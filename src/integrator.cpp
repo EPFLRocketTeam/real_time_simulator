@@ -4,8 +4,6 @@
 #include "real_time_simulator/State.h"
 #include "real_time_simulator/Sensor.h"
 
-#include "real_time_simulator/GetFSM.h"
-
 #include "real_time_simulator/Control.h"
 
 #include "geometry_msgs/Vector3.h"
@@ -62,6 +60,10 @@ class Rocket
     float accX, accY, accZ;
     float gyroX, gyroY, gyroZ;
     float baro;
+
+    float acc_noise, acc_bias;
+    float gyro_noise, gyro_bias;
+    float baro_noise, baro_bias;
 
 
     void update_CM( float current_prop_mass)
@@ -123,6 +125,15 @@ class Rocket
       total_Inertia[2] = dry_Inertia[2];
 
       update_CM(propellant_mass);
+
+      n.getParam("/perturbation/acc_noise", acc_noise);
+      n.getParam("/perturbation/acc_bias", acc_bias);
+
+      n.getParam("/perturbation/gyro_noise", gyro_noise);
+      n.getParam("/perturbation/gyro_bias", gyro_bias);
+
+      n.getParam("/perturbation/baro_noise", baro_noise);
+      n.getParam("/perturbation/baro_bias", baro_bias);
     }
 };
 
@@ -171,9 +182,9 @@ void send_fake_sensor(ros::Publisher rocket_sensor_pub)
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator (seed);
 
-  std::normal_distribution<double> acc_noise (0.0, 0);
-  std::normal_distribution<double> gyro_noise (0.0, 0.0);
-  std::normal_distribution<double> baro_noise (0.0, 0.0);
+  std::normal_distribution<double> acc_noise (rocket.acc_bias, rocket.acc_noise);
+  std::normal_distribution<double> gyro_noise (rocket.gyro_bias, rocket.gyro_noise);
+  std::normal_distribution<double> baro_noise (rocket.baro_bias, rocket.baro_noise);
 
   real_time_simulator::Sensor sensor_msg;
 
@@ -369,7 +380,7 @@ int main(int argc, char **argv)
   // Subscribe to perturbations message
   ros::Subscriber rocket_perturbation_sub = n.subscribe("disturbance_pub", 100, rocket_perturbationCallback);
 
-	// Create fast state publisher
+	// Create state publisher
 	ros::Publisher rocket_state_pub = n.advertise<real_time_simulator::State>("rocket_state", 10);
 
   // Create fake sensors publisher
@@ -387,9 +398,6 @@ int main(int argc, char **argv)
 	current_fsm.time_now = 0;
 	current_fsm.state_machine = "Idle";
 	
-	fsm_pub.publish(current_fsm);
-	time_zero = ros::Time::now().toSec();
-
 	n.getParam("/environment/rail_length", rail_length);
 
   // Initialize external forces
@@ -399,7 +407,7 @@ int main(int argc, char **argv)
 
   rocket_control << 0, 0,
                     0, 0,
-                    0, 0;
+                    rocket.maxThrust[2], 0;
 
   using namespace Eigen;
 
@@ -432,9 +440,6 @@ int main(int argc, char **argv)
   // Thread to integrate state. Duration defines interval time in seconds
   ros::Timer integrator_thread = n.createTimer(ros::Duration(period_integration), [&](const ros::TimerEvent&)
 	{
-	  // Update current time
-		current_fsm.time_now = ros::Time::now().toSec() - time_zero;
-		
     // State machine ------------------------------------------
 		if (current_fsm.state_machine.compare("Idle") == 0)
 		{
@@ -442,6 +447,8 @@ int main(int argc, char **argv)
 		}
     else
     {
+      // Update current time
+	  	current_fsm.time_now = ros::Time::now().toSec() - time_zero;
 
       if (current_fsm.state_machine.compare("Rail") == 0)
       {
@@ -477,8 +484,6 @@ int main(int argc, char **argv)
       X = xout;
 
       rocket.update_CM(X(13));
-
-      send_fake_sensor(rocket_sensor_pub);
     }
 
 
@@ -510,6 +515,12 @@ int main(int argc, char **argv)
 		fsm_pub.publish(current_fsm);
 
     //std::cout << "Fast integration time: " << 1000*(ros::Time::now().toSec()-time_now) << "ms \n";
+  });
+
+  double sensor_period; n.getParam("/perturbation/sensor_period", sensor_period);
+  ros::Timer sensor_thread = n.createTimer(ros::Duration(sensor_period), [&](const ros::TimerEvent&)
+	{
+    send_fake_sensor(rocket_sensor_pub);
   });
 
   // Automatic callback of service and publisher from here

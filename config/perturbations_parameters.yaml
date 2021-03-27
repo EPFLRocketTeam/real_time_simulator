@@ -3,7 +3,7 @@
 wind_gust_intensity:      # Wind speed in [m/s] (world X and Y)
   - 0
   - 0
-wind_gust_assymetry: 0.1  # Range of gust position, from 0 to 1 rocket length
+wind_gust_assymetry: 0.0 # Range of gust position, from 0 to 1 rocket length
 wind_gust_var: 5          # Gust standart deviation as percentage of wind gust intensity
 
 motor_tilt:               # 2D tilt of motor in degree
@@ -23,3 +23,14 @@ drag_assymetry:           # Amount of drag force distributed on X and Y surface 
   - 0.5
 
 air_density_bias: 20      # Error bias in percentage of the air density
+
+# Sensor parameters
+sensor_period: 0.060
+acc_noise: 0.0
+acc_bias: 0.0
+
+gyro_noise: 0.0
+gyro_bias: 0.0
+
+baro_noise: 0
+baro_bias: 0

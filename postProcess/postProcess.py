@@ -19,8 +19,8 @@ import time
 
 import rosbag
 
-tStart = -1
-tEnd = 20
+tStart = 0
+tEnd = 27
 
 # Simulated state
 position = np.zeros((1,3))
@@ -53,8 +53,9 @@ thrust_target = []
 bag = rosbag.Bag('../log/log.bag')
 
 for topic, msg, t in bag.read_messages(topics=['/fsm_pub']):
-  time_init = t.to_sec()
-  break
+  if msg.state_machine == "Rail":
+    time_init = t.to_sec()
+    break
   
 
 for topic, msg, t in bag.read_messages(topics=['/rocket_state']):
@@ -78,12 +79,12 @@ for topic, msg, t in bag.read_messages(topics=['/kalman_rocket_state']):
     new_omega = msg.twist.angular
     new_mass = msg.propeller_mass
         
-    position_est = np.append(position, [[new_pos.x, new_pos.y, new_pos.z]], axis = 0)
-    speed_est = np.append(speed, [[new_speed.x, new_speed.y, new_speed.z]], axis = 0)
-    attitude_est = np.append(attitude, [[ new_attitude.x, new_attitude.y, new_attitude.z, new_attitude.w]], axis = 0)
-    omega_est = np.append(omega, [[new_omega.x, new_omega.y, new_omega.z]], axis = 0)
-    prop_mass_est = np.append(prop_mass, [[new_mass]])
-    time_state_est = np.append(time_state, [[t.to_sec()]])
+    position_est = np.append(position_est, [[new_pos.x, new_pos.y, new_pos.z]], axis = 0)
+    speed_est = np.append(speed_est, [[new_speed.x, new_speed.y, new_speed.z]], axis = 0)
+    attitude_est = np.append(attitude_est, [[ new_attitude.x, new_attitude.y, new_attitude.z, new_attitude.w]], axis = 0)
+    omega_est = np.append(omega_est, [[new_omega.x, new_omega.y, new_omega.z]], axis = 0)
+    prop_mass_est = np.append(prop_mass_est, [[new_mass]])
+    time_state_est = np.append(time_state_est, [[t.to_sec()]])
 
 for topic, msg, t in bag.read_messages(topics=['/control_pub']):
   new_force = msg.force
@@ -155,7 +156,7 @@ select_est = np.logical_and(time_state_est>tStart, time_state_est <tEnd)
 select_force = np.logical_and(time_force>tStart, time_force <tEnd) 
 select_target = np.zeros_like(time_target, dtype = bool)
 
-select_target[::20,:] = True
+#select_target[::20,:] = True
 
 # Plot all flight data
 fig, axe = plt.subplots(3,4, figsize=(15,10))
@@ -222,29 +223,29 @@ axe[2][0].legend()
 if 1:
   point_spacing = 150
 
-  l = axe[0][0].plot(time_state_est[select_est][::point_spacing], position_est[:, 0][select_est][::point_spacing], label = 'Estimated X', marker = '+', linestyle=':')
-  l = axe[0][0].plot(time_state_est[select_est][::point_spacing], position_est[:, 1][select_est][::point_spacing], label = 'Estimated Z', marker = '+', linestyle=':')
+  l = axe[0][0].plot(time_state_est[select_est][::point_spacing], position_est[:, 0][select_est][::point_spacing], label = 'Estimated X', marker = '+', linestyle=':', color = "c")
+  l = axe[0][0].plot(time_state_est[select_est][::point_spacing], position_est[:, 1][select_est][::point_spacing], label = 'Estimated Y', marker = '+', linestyle=':', color = "r")
   axe[0][0].legend()
 
   l = axe[0][1].plot(time_state_est[select_est][::point_spacing], position_est[:, 2][select_est][::point_spacing], label = 'Estimated Z', marker = '+', linestyle=':')
   axe[0][1].legend()
 
-  l = axe[1][0].plot(time_state_est[select_est][::point_spacing], speed_est[:, 0][select_est][::point_spacing], label = 'Estimated X', marker = '+', linestyle=':')
-  l = axe[1][0].plot(time_state_est[select_est][::point_spacing], speed_est[:, 1][select_est][::point_spacing], label = 'Estimated Y', marker = '+', linestyle=':')
+  l = axe[1][0].plot(time_state_est[select_est][::point_spacing], speed_est[:, 0][select_est][::point_spacing], label = 'Estimated X', marker = '+', linestyle=':', color = "c")
+  l = axe[1][0].plot(time_state_est[select_est][::point_spacing], speed_est[:, 1][select_est][::point_spacing], label = 'Estimated Y', marker = '+', linestyle=':', color = "r")
   axe[1][0].legend()
 
   l = axe[1][1].plot(time_state_est[select_est][::point_spacing], speed_est[:, 2][select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated Z")
   axe[1][1].legend()
 
-  l = axe[0][2].plot(time_state_est[select_est][::point_spacing], attitude_est[:, 0][select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated X")
-  l = axe[0][2].plot(time_state_est[select_est][::point_spacing], attitude_est[:, 1][select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated Y")
+  l = axe[0][2].plot(time_state_est[select_est][::point_spacing], attitude_est[:, 0][select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated X", color = "c")
+  l = axe[0][2].plot(time_state_est[select_est][::point_spacing], attitude_est[:, 1][select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated Y", color = "r")
   axe[0][2].legend()
 
   l = axe[0][3].plot(time_state_est[select_est][::point_spacing], attitude_est[:, 2][select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated Z")
   axe[0][3].legend()  
 
-  l = axe[1][2].plot(time_state_est[select_est][::point_spacing], omega_est[:, 0][select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated X")
-  l = axe[1][2].plot(time_state_est[select_est][::point_spacing], omega_est[:, 1][select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated Y")
+  l = axe[1][2].plot(time_state_est[select_est][::point_spacing], omega_est[:, 0][select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated X", color = "c")
+  l = axe[1][2].plot(time_state_est[select_est][::point_spacing], omega_est[:, 1][select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated Y", color = "r")
   axe[1][2].legend()
 
   l = axe[1][3].plot(time_state_est[select_est][::point_spacing], omega_est[:, 2][select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated Z")
