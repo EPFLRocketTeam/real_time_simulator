@@ -43,3 +43,18 @@ export ROS_MASTER_URI=http://*your local IP*:11311
 
 Use an environment loader to do the exports on the local machine (see onboard_interface for examples)
 
+6. Install package
+Clone or download repository in your catkin workspace (usually ~/catkin_ws/src if you followed the ROS tutorials), then compile it
+```bash
+cd ~/catkin_ws/src
+git clone https://github.com/EPFLRocketTeam/real_time_simulator.git
+cd ..
+catkin_make
+```
+
+# Test
+Once everything is installed, you can use the test_simu.sh bash script to simulate a basic flight and check that everything is properly working
+```bash
+roscd real_time_simulator/
+./bash_scripts/test_simu.sh 
+```
