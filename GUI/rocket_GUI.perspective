@@ -71,7 +71,7 @@
               "keys": {
                 "rviz_config_file": {
                   "type": "repr",
-                  "repr": "u'/home/alberic/catkin_ws/src/real_time_simulator/GUI/rocket_config.rviz'"
+                  "repr": "'*your real_time_simulator absolute path*/GUI/rocket_config.rviz'"
                 },
                 "hide_menu": {
                   "type": "repr",

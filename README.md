@@ -45,6 +45,12 @@ cd ..
 catkin_make
 ```
 
+Rviz config issue: The config of the rviz plugin in rqt will not load properly because it only stores the absolute path in the .perspective file.
+This is fixed by writing your absolute path in GUI/rocket_GUI.perspective at the line:
+```
+"repr": "'*your real_time_simulator absolute path*/GUI/rocket_config.rviz'"
+```
+
 # Test
 Once everything is installed, you can use the test_simu.sh bash script to simulate a basic flight and check that everything is properly working
 ```bash
