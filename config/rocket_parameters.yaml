@@ -1,0 +1,45 @@
+# Rocket parameters
+stages: 4
+diameters:
+  - 0
+  - 0.156 
+  - 0.156 
+  - 0.135
+stage_z: 
+  - 0 
+  - 0.242 
+  - 4.11 
+  - 4.16 
+fin_n: 3
+fin_top_offset: 3.83 
+fin_span: 0.1
+fin_root_chord: 0.28 # base length
+fin_tip_chord: 0.125
+fin_sweep: 0.107
+fin_thickness: 0.004
+lug_n: 2
+lug_S: 5.7e-4 
+dry_mass: 41.558
+dry_CM: 2.14
+dry_I:
+  - 47
+  - 47
+  - 2
+propellant_mass: 6 
+propellant_CM: 3
+Isp: 213
+maxThrust:
+  - 100
+  - 100
+  - 3000
+minThrust: 
+  - -100
+  - -100
+  - 0
+minTorque: -50
+maxTorque: 50
+Cd:
+  - 2
+  - 2
+  - 0.7
+initial_speed: 0

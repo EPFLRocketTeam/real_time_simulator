@@ -1,0 +1,28 @@
+stages 3
+diameters 0 0.081 0.081
+stage_z 0 0.274 3.18
+fin_n 3
+fin_xt 3.07
+fin_s 0.77
+fin_cr 0.058
+fin_ct 0.012
+fin_xs 0.0393
+fin_t 0.003
+lug_n 2
+lug_S 1.81e-4
+rocket_m 7.856
+rocket_I 3.6
+rocket_cm 1.4
+ab_x 314
+ab_n 0
+ab_phi 0.9
+pl_mass 4.0
+para_main_SCD 0.0
+para_drogue_SCD 0.4561
+para_main_event 1
+motor Keran.txt
+motor_fac 1
+cone_mode on
+cp_fac 1
+CNa_fac 1
+CD_fac 1

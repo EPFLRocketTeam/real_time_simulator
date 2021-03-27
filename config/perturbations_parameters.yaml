@@ -1,0 +1,25 @@
+# Perturbations parameters
+
+wind_gust_intensity:      # Wind speed in [m/s] (world X and Y)
+  - 0
+  - 0
+wind_gust_assymetry: 0.1  # Range of gust position, from 0 to 1 rocket length
+wind_gust_var: 5          # Gust standart deviation as percentage of wind gust intensity
+
+motor_tilt:               # 2D tilt of motor in degree
+  - 0.0
+  - 0.0
+plume_tilt_var:           # Plume tilt standard deviation in degree
+  - 0.0
+  - 0.0
+
+fins_tilt:                # Tilt angle of each fins
+  - 2
+  - 1
+  - -1
+
+drag_assymetry:           # Amount of drag force distributed on X and Y surface as percentage of total drag -> creates X and Y torque
+  - -0.2
+  - 0.5
+
+air_density_bias: 20      # Error bias in percentage of the air density

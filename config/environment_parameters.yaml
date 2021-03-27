@@ -1,0 +1,17 @@
+# Environment parameters
+ground_altitude: 1567
+latitude: 46.90479
+longitude: 8.07575
+temperature: 300
+humidity: 0.5
+pressure: 84972.484
+apogee: # targeted apogee
+  - 0
+  - 0
+  - 3000
+wind_speed: 10
+wind_direction: 0 # angle of wind from north, clockwise
+rail_azimuth: 0 # angle of rail from north, clock wise
+rail_zenith: 4 # angle of rail from vertical
+rocket_roll: 0 # initial roll angle around z rocket axis
+rail_length: 4
