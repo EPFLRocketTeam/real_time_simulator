@@ -1,5 +1,3 @@
-
 *.pyc
-
 log/log.bag
 GUI/rocket_GUI.perspective
