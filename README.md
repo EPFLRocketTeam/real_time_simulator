@@ -35,13 +35,6 @@ add at the end of your .bashrc file:
 source /opt/ros/melodic/setup.bash
 source ~/catkin_ws/devel/setup.sh
 ```
-To run ROS across multiple machines, also add:
-```bash
-export ROS_IP=*your local IP*
-export ROS_MASTER_URI=http://*your local IP*:11311
-```
-
-Use an environment loader to do the exports on the local machine (see onboard_interface for examples)
 
 6. Install package
 Clone or download repository in your catkin workspace (usually ~/catkin_ws/src if you followed the ROS tutorials), then compile it
