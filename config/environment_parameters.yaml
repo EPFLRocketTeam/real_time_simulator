@@ -1,4 +1,12 @@
-# Environment parameters
+#------------- Environment parameters ----------------
+#
+# Defines parameters external to the rocket:
+#   - Athmosphere parameters
+#   - Rail configuration
+#   - Targeted apogee
+#
+# ----------------------------------------------------
+
 ground_altitude: 1567
 latitude: 46.90479
 longitude: 8.07575

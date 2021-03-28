@@ -1,3 +1,18 @@
+/*
+* Node to collect data from the simulation and GNC algorithms, and send them to the GUI
+*
+* Inputs: 
+*   - Full simulated state from integrator node:    \rocket_state
+*   - Full estimated state from navigation node:    \kalman_rocket_state
+*   - 3D force and torque from the control node:    \control_pub
+*   - Trajectory defined by guidance node:          \target_trajectory
+*   - Predicted trajectory of control node:         \mpc_horizon
+*
+* Outputs:
+*   - Visualization message for the GUI (rqt) with all inputs : \rocket_visualization
+*
+*/
+
 #include "ros/ros.h"
 
 #include "real_time_simulator/State.h"

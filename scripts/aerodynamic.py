@@ -2,20 +2,19 @@
 
 # -----------------------
 #
-# Simulation node: Integrate rocket equations to provide real time rocket state for other nodes
+# Node to compute aerodynamic forces and torques acting on the rocket
 #
 # Input:
-#    - Rocket control law (3D force and 3D torque) from control node
-#		 - External disturbances (3D force and 3D torque) from disturbance node --> TBD
+#	 - Full simulated state from integrator node:    			\rocket_state
+#    - 3D force and torque from the control node:    			\control_pub
+#	 - Finite state machine and time since start of simulation:	\fsm_pub
 #
 # Parameters:
-#    - Rocket model defined in JSON file --> TBD
-#    - Environment model defined in JSON file --> TBD
-#    - Integration time defined by integration_period variable
-#    - Initial state (position, speed, quaternion, angular speed)
+#    - Rocket model: 		/config/rocket_parameters.yaml
+#    - Environment model: 	/config/environment_parameters.yaml
 #
 # Outputs:
-#    - Rocket state (position, speed, quaternion, angular speed)
+#    - Aerodynamic 3D force and torque:  \rocket_aero
 #
 # -----------------------
 

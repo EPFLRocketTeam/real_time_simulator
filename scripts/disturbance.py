@@ -1,5 +1,24 @@
 #!/usr/bin/env python3
 
+# -----------------------
+#
+# Node to compute parameterizable disturbations forces and torques acting on the rocket
+#
+# Input:
+#	 - Full simulated state from integrator node:    			\rocket_state
+#    - 3D force and torque from the control node:    			\control_pub
+#	 - Finite state machine and time since start of simulation:	\fsm_pub
+#
+# Parameters:
+#    - Rocket model: 		/config/rocket_parameters.yaml
+#    - Environment model: 	/config/environment_parameters.yaml
+#	 - Perturbations model: /config/perturbations_parameters.yaml
+#
+# Outputs:
+#    - Aerodynamic 3D force and torque:  \rocket_aero
+#
+# -----------------------
+
 import rospy
 
 import numpy as np

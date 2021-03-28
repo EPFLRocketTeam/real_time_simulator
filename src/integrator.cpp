@@ -3,15 +3,21 @@
 * Also manage the finite state machine to coordinate other nodes
 *
 * Inputs: 
-*	- Commands from the GUI to start the simulation 
-* 	- 3D force and torque from the rocket engine (commands)
-* 	- 3D force and torque from the aerodynamics.py node
-*	- 3D force and torque from the disturbance.py node
+*   - Commands from the GUI to start the simulation:      \commands
+*   - 3D force and torque from the rocket engine:         \control_pub
+*   - 3D force and torque from the aerodynamics.py node:  \rocket_aero
+*   - 3D force and torque from the disturbance.py node:   \disturbance_pub
+
+* Parameters:
+*   - Rocket model: 		/config/rocket_parameters.yaml
+*   - Environment model: 	/config/environment_parameters.yaml
+*   - Sensor error model: /config/perturbations_parameters.yaml
 *
 * Outputs:
-*	- Finite state machine (Idle, Rail, Launch or Coast) and time since start of simulation : \fsm_pub
-*	- Rocket full state (14 states) at 100 Hz: \rocket_state
-*	- Simulated IMU and barometer sensor data: \sensor_pub
+*   - Finite state machine and time since start of simulation : \fsm_pub
+*   - Rocket full state (14 states) at 100 Hz:                  \rocket_state
+*   - Simulated IMU and barometer sensor data:                  \sensor_pub
+*
 */
 
 #include "ros/ros.h"

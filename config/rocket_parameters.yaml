@@ -1,4 +1,11 @@
-# Rocket parameters
+#------------- Rocket parameters --------------------
+#
+# Defines parameters specific to the rocket:
+#   - General dimensions of the components
+#   - Rocket engine specifications
+#   - Targeted apogee
+#
+# ----------------------------------------------------
 stages: 4
 diameters:
   - 0

@@ -1,4 +1,10 @@
-# Perturbations parameters
+#------------- Perturbations parameters ----------------
+#
+# Defines perturbations and errors to be applied to the model in order to test GNC robustness
+#   - External forces and torque perturbations (used by disturbance.py)
+#   - Sensors error
+#
+# ----------------------------------------------------
 
 wind_gust_intensity:      # Wind speed in [m/s] (world X and Y)
   - 0
