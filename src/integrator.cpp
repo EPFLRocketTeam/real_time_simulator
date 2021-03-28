@@ -1,3 +1,19 @@
+/*
+* Node integrating differential equations of a rocket's flight to simulate position, velocity, quaternion, angular rate and mass  (14 states) in real time
+* Also manage the finite state machine to coordinate other nodes
+*
+* Inputs: 
+*	- Commands from the GUI to start the simulation 
+* 	- 3D force and torque from the rocket engine (commands)
+* 	- 3D force and torque from the aerodynamics.py node
+*	- 3D force and torque from the disturbance.py node
+*
+* Outputs:
+*	- Finite state machine (Idle, Rail, Launch or Coast) and time since start of simulation : \fsm_pub
+*	- Rocket full state (14 states) at 100 Hz: \rocket_state
+*	- Simulated IMU and barometer sensor data: \sensor_pub
+*/
+
 #include "ros/ros.h"
 
 #include "real_time_simulator/FSM.h"
