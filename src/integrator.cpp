@@ -48,6 +48,8 @@
 #include <chrono>
 #include <random>
 
+# define M_PI           3.14159265358979323846  /* pi */
+
 class Rocket
 {
   public:
@@ -349,7 +351,7 @@ void dynamics_rail(const state& x, state& xdot, const double &t)
   xdot.segment(10, 3) << 0.0, 0.0, 0.0;
 
   // Mass variation is proportional to total thrust
-  xdot(13) = -rocket_control.col(0).norm()/(rocket.Isp*g0);
+  xdot.tail(1) << -rocket_control.col(0).norm()/(rocket.Isp*g0);
 
   // Fake sensor data update -----------------
   body_acceleration = (total_force + rot_matrix.transpose()*gravity)/mass; // Here gravity is measured by the accelerometer because of the rail's reaction force
@@ -439,7 +441,7 @@ int main(int argc, char **argv)
   n.getParam("/environment/rail_zenith", zenith);
   n.getParam("/environment/rail_azimuth", azimuth);
 
-  roll *= 3.14159/180; zenith *= 3.14159/180; azimuth *= 3.14159/180;
+  roll *= M_PI/180; zenith *= M_PI/180; azimuth *= M_PI/180;
 
   typedef EulerSystem<-EULER_Z, EULER_Y, EULER_Z> Rail_system;
   typedef EulerAngles<double, Rail_system> angle_type;
