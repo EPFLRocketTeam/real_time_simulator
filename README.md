@@ -15,7 +15,7 @@ sudo rosdep init
 rosdep update
 ```
 2. Install Eigen:
-Download eigen version >3.4, open the folder in a terminal
+Download eigen version >3.4 [here](https://gitlab.com/libeigen/eigen), open the folder in a terminal
 ```bash
 sudo cp -r -t /usr/local/include/ Eigen/ unsupported/
 ```
@@ -39,7 +39,7 @@ echo "source ~/catkin_ws/devel/setup.sh" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-6. Install Simulator package and GUI plugin
+6. Install Simulator package and GUI plugin:
 Clone or download repository in your catkin workspace (usually ~/catkin_ws/src if you followed the ROS tutorials), then compile it:
 ```bash
 cd ~/catkin_ws/src
