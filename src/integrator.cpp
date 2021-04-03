@@ -381,7 +381,7 @@ void processCommand(const std_msgs::String &command){
 
 
 typedef runge_kutta_dopri5< double > stepper_type;
-using stepper_type2 = runge_kutta_dopri5<state>;
+using stepper_type2 = runge_kutta_dopri5<state, double, state, double, vector_space_algebra>;
 
 
 int main(int argc, char **argv)
