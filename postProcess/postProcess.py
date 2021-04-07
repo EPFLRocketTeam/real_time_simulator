@@ -220,7 +220,7 @@ axe[2][0].set_title("Propellant mass [kg]")
 axe[2][0].legend()
 
 # Plot Navigation estimated state (if needed)
-if 0:
+if 1:
   point_spacing = 150
 
   l = axe[0][0].plot(time_state_est[select_est][::point_spacing], position_est[:, 0][select_est][::point_spacing], label = 'Estimated X', marker = '+', linestyle=':', color = "c")
@@ -255,7 +255,7 @@ if 0:
   axe[2][0].legend()
 
 # Plot Guidance optimal trajectory (if needed)
-if 0:
+if 1:
   l = axe[0][1].plot(time_target.T[:,::20], target_positionZ.T[:,::20])
 
   l = axe[1][1].plot(time_target.T[:,::20], target_speedZ.T[:,::20])

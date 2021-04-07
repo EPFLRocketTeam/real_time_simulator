@@ -408,7 +408,7 @@ int main(int argc, char **argv)
 	ros::Publisher rocket_state_pub = n.advertise<real_time_simulator::State>("rocket_state", 10);
 
   // Create fake sensors publisher
-	ros::Publisher rocket_sensor_pub = n.advertise<real_time_simulator::Sensor>("sensor_pub", 10);
+	ros::Publisher rocket_sensor_pub = n.advertise<real_time_simulator::Sensor>("simu_sensor_pub", 10);
 
   // Create timer publisher and associated thread (100Hz)
 	ros::Publisher fsm_pub = n.advertise<real_time_simulator::FSM>("fsm_pub", 10);
