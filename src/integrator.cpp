@@ -81,9 +81,9 @@ class Rocket
     std::vector<float> J_inv{0, 0, 0};
 
     // Sensor data
-    float accX, accY, accZ;
-    float gyroX, gyroY, gyroZ;
-    float baro;
+    Eigen::Vector3d sensor_acc;
+    Eigen::Vector3d sensor_gyro;
+    float sensor_baro;
 
     float acc_noise, acc_bias;
     float gyro_noise, gyro_bias;
@@ -212,15 +212,15 @@ void send_fake_sensor(ros::Publisher rocket_sensor_pub)
 
   real_time_simulator::Sensor sensor_msg;
 
-  sensor_msg.IMU_acc.x = rocket.accX + acc_noise(generator);
-  sensor_msg.IMU_acc.y = rocket.accY + acc_noise(generator);
-  sensor_msg.IMU_acc.z = rocket.accZ + acc_noise(generator);
+  sensor_msg.IMU_acc.x = rocket.sensor_acc(0) + acc_noise(generator);
+  sensor_msg.IMU_acc.y = rocket.sensor_acc(1) + acc_noise(generator);
+  sensor_msg.IMU_acc.z = rocket.sensor_acc(2) + acc_noise(generator);
 
-  sensor_msg.IMU_gyro.x = rocket.gyroX + gyro_noise(generator);
-  sensor_msg.IMU_gyro.y = rocket.gyroY + gyro_noise(generator);
-  sensor_msg.IMU_gyro.z = rocket.gyroZ + gyro_noise(generator);
+  sensor_msg.IMU_gyro.x = rocket.sensor_gyro(0) + gyro_noise(generator);
+  sensor_msg.IMU_gyro.y = rocket.sensor_gyro(1) + gyro_noise(generator);
+  sensor_msg.IMU_gyro.z = rocket.sensor_gyro(2) + gyro_noise(generator);
 
-  sensor_msg.baro_height = rocket.baro + baro_noise(generator);
+  sensor_msg.baro_height = rocket.sensor_baro + baro_noise(generator);
 
   rocket_sensor_pub.publish(sensor_msg);
 }
@@ -293,20 +293,11 @@ void dynamics_flight(const state& x, state& xdot, const double &t)
 
 
   // Fake sensor data update -----------------
-  Eigen::Matrix<double, 3, 1> body_acceleration;
-  body_acceleration = rot_matrix.transpose()*(total_force+gravity)/mass;
-  rocket.accX = body_acceleration(0);
-  rocket.accY = body_acceleration(1);
-  rocket.accZ = body_acceleration(2);
+  rocket.sensor_acc = rot_matrix.transpose()*(total_force+gravity)/mass;
 
-  Eigen::Matrix<double, 3, 1> body_gyroscope;
-  body_gyroscope = rot_matrix.transpose()*x.segment(10,3);
+  rocket.sensor_gyro = rot_matrix.transpose()*x.segment(10,3);
 
-  rocket.gyroX = body_gyroscope(0);
-  rocket.gyroY = body_gyroscope(1);
-  rocket.gyroZ = body_gyroscope(2);
-
-  rocket.baro = x(2);
+  rocket.sensor_baro = x(2);
   }
 
 
@@ -353,17 +344,12 @@ void dynamics_rail(const state& x, state& xdot, const double &t)
   // Mass variation is proportional to total thrust
   xdot.tail(1) << -rocket_control.col(0).norm()/(rocket.Isp*g0);
 
-  // Fake sensor data update -----------------
-  body_acceleration = (total_force + rot_matrix.transpose()*gravity)/mass; // Here gravity is measured by the accelerometer because of the rail's reaction force
-  rocket.accX = body_acceleration(0);
-  rocket.accY = body_acceleration(1);
-  rocket.accZ = body_acceleration(2);
+  // Fake sensor data update -----------------  
+  rocket.sensor_acc = (total_force + rot_matrix.transpose()*gravity)/mass; // Here gravity is measured by the accelerometer because of the rail's reaction force
+  
+  rocket.sensor_gyro << 0.0, 0.0, 0.0;
 
-  rocket.gyroX = 0.0;
-  rocket.gyroY = 0.0;
-  rocket.gyroZ = 0.0;
-
-  rocket.baro = x(2);
+  rocket.sensor_baro = x(2);
 }
 
 float rail_length = 0;
@@ -454,6 +440,12 @@ int main(int argc, char **argv)
   state X;
   X << 0, 0, 0,   0, 0, 0,     0.0, 0.0 , 0.0 , 1.0 ,     0.0, 0.0, 0.0,    rocket.propellant_mass;
   X.segment(6,4) = q.coeffs();
+
+
+  // Init sensors
+  rocket.sensor_acc = (q.inverse())._transformVector(Eigen::Vector3d::UnitZ()*9.81);
+  rocket.sensor_gyro << 0.0, 0.0, 0.0;
+  rocket.sensor_baro = 0;
 
   state xout = X;
 

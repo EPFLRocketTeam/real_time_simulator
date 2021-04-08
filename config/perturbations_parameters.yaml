@@ -33,10 +33,10 @@ air_density_bias: 20      # Error bias in percentage of the air density
 # Sensor parameters
 sensor_period: 0.060
 acc_noise: 0.0
-acc_bias: 0.0
+acc_bias: 0
 
-gyro_noise: 0.0
-gyro_bias: 0.0
+gyro_noise: 0
+gyro_bias: 20
 
 baro_noise: 0
-baro_bias: 0
+baro_bias: 30
