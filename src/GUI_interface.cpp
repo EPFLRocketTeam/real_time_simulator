@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
     rocket_marker.type = visualization_msgs::Marker::MESH_RESOURCE;
     std::string stl_name;
     n.getParam("/visualization/stl_model", stl_name);
-    rocket_marker.mesh_resource = "package://real_time_simulator/GUI/"+stl_name;
+    rocket_marker.mesh_resource = stl_name;
 
     // Set the scale of the marker -- 1x1x1 here means 1m on a side
     float stl_scale;
@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
 
     //setup rocket marker from kalman state
     kalman_marker.type = visualization_msgs::Marker::MESH_RESOURCE;
-    kalman_marker.mesh_resource = "package://real_time_simulator/GUI/"+stl_name;
+    kalman_marker.mesh_resource = stl_name;
 
     // Set the scale of the marker -- 1x1x1 here means 1m on a side
     kalman_marker.scale.x = stl_scale;
@@ -179,13 +179,15 @@ int main(int argc, char **argv) {
     kalman_marker.scale.z = stl_scale;
 
     //thrust vector
-    const float shaft_diameter = 0.1;
-    const float arrow_diameter = 0.2;
-    const float head_length = 0.2;
-    float thrust_scaling;
-    n.getParam("/visualization/thrust_vector_scaling", thrust_scaling);
-    float offset;
+    float thrust_scaling, trajectory_line_width, thrust_length_scaling, offset;
+    n.getParam("/visualization/thrust_vector_arrow_scaling", thrust_scaling);;
+    n.getParam("/visualization/thrust_vector_length_scaling", thrust_length_scaling);
+    n.getParam("/visualization/trajectory_line_width", trajectory_line_width);
     n.getParam("/visualization/CM_to_thrust_distance", offset);
+
+    const float shaft_diameter = 0.1*thrust_scaling;
+    const float arrow_diameter = 0.2*thrust_scaling;
+    const float head_length = 0.2*thrust_scaling;
 
     thrust_vector.type = visualization_msgs::Marker::ARROW;
     thrust_vector.scale.x = shaft_diameter;
@@ -193,7 +195,7 @@ int main(int argc, char **argv) {
     thrust_vector.scale.z = head_length;
 
     //MPC horizon
-    const float line_width = 0.1;
+    const float line_width = trajectory_line_width;
     mpc_horizon.type = visualization_msgs::Marker::LINE_STRIP;
     mpc_horizon.scale.x = line_width;
 
@@ -248,9 +250,9 @@ int main(int argc, char **argv) {
 
         //end of arrow
         thrust_vector.points[1] = thrust_vector.points[0];
-        thrust_vector.points[1].x += thrust_vector_inertial.x() * thrust_scaling;
-        thrust_vector.points[1].y += thrust_vector_inertial.y() * thrust_scaling;
-        thrust_vector.points[1].z += thrust_vector_inertial.z() * thrust_scaling;
+        thrust_vector.points[1].x += thrust_vector_inertial.x() * thrust_length_scaling;
+        thrust_vector.points[1].y += thrust_vector_inertial.y() * thrust_length_scaling;
+        thrust_vector.points[1].z += thrust_vector_inertial.z() * thrust_length_scaling;
 
         thrust_vector.header.stamp = ros::Time::now();
         thrust_vector.lifetime = ros::Duration();
