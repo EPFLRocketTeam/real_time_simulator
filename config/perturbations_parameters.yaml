@@ -36,7 +36,7 @@ acc_noise: 0.0
 acc_bias: 0
 
 gyro_noise: 0
-gyro_bias: 20
+gyro_bias: 0
 
 baro_noise: 0
-baro_bias: 30
+baro_bias: 0
