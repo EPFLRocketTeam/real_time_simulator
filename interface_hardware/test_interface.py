@@ -22,7 +22,9 @@ DOWNLOAD = 	0x03
 TVC_MOVE = 	0x04
 ABORT = 	0x05
 RECOVER =	0x06
-TRANSACTION = 0x07
+SENSOR_WRITE =  0x07
+COMMAND_READ =  0x08
+SENSOR_READ =   0x09
 
 control_pub = None
 hb = None
@@ -36,19 +38,22 @@ def fsm_recv_callback(fsm_data):
 
 
 def simu_sensor_callback(simu_sensor):
-    acc_x = int(1000*simu_sensor.IMU_acc.x)
-    acc_y = int(1000*simu_sensor.IMU_acc.y)
-    acc_z = int(1000*simu_sensor.IMU_acc.z)
+    acc_x = int(1000*simu_sensor.IMU_acc.x/9.81)
+    acc_y = int(1000*simu_sensor.IMU_acc.y/9.81)
+    acc_z = int(1000*simu_sensor.IMU_acc.z/9.81)
 
-    gyro_x = int(1000*simu_sensor.IMU_gyro.x)
-    gyro_y = int(1000*simu_sensor.IMU_gyro.y)
-    gyro_z = int(1000*simu_sensor.IMU_gyro.z)
+    gyro_x = int(1000*simu_sensor.IMU_gyro.x/9.81)
+    gyro_y = int(1000*simu_sensor.IMU_gyro.y/9.81)
+    gyro_z = int(1000*simu_sensor.IMU_gyro.z/9.81)
 
     baro = int(1000*simu_sensor.baro_height)
     
-    sens_data = struct.pack("iii"+"iii"+"ii", acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z, baro, 0)
+    sens_data = struct.pack("iii"+"iii"+"i", acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z, baro)
 
-    resp = hb.send(TRANSACTION, sens_data)
+    resp = hb.send(SENSOR_WRITE,  sens_data)
+    
+    resp = hb.send(COMMAND_READ,   sens_data)
+
 
     if(resp and len(resp) == 46):
         cmd_data = struct.unpack("i" + "iiii"+"iii"+"iii"+"H", bytes(resp))
