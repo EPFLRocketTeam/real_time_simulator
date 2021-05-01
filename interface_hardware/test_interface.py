@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import rospy
+import rospkg
 
 import numpy as np
 import math
@@ -13,6 +14,8 @@ from real_time_simulator.msg import Sensor
 
 import msv2
 import struct
+
+from scipy.interpolate import interp1d
 
 #COMMANDS
 GET_STAT = 	0x00
@@ -38,6 +41,8 @@ def fsm_recv_callback(fsm_data):
 
 
 def simu_sensor_callback(simu_sensor):
+    global current_control
+
     acc_x = int(1000*simu_sensor.IMU_acc.x/9.81)
     acc_y = int(1000*simu_sensor.IMU_acc.y/9.81)
     acc_z = int(1000*simu_sensor.IMU_acc.z/9.81)
@@ -58,7 +63,6 @@ def simu_sensor_callback(simu_sensor):
     if(resp and len(resp) == 46):
         cmd_data = struct.unpack("i" + "iiii"+"iii"+"iii"+"H", bytes(resp))
 
-        current_control = Control()
         current_kalman = State()
         if current_fsm.state_machine == "Idle":
             current_control.force.z = 2000
@@ -106,7 +110,7 @@ if __name__ == '__main__':
             state_Pi = data[0]
     
     
-    hb.send(BOOT, [0x00, 0x00])
+    #hb.send(BOOT, [0x00, 0x00])
 
     print("initializing ros...")
     # Init ROS
@@ -117,7 +121,12 @@ if __name__ == '__main__':
 
     kalman_pub = rospy.Publisher("kalman_rocket_state", State, queue_size=10)
 
+    # Publisher for measured actuator inputs
+    actuator_pub = rospy.Publisher('control_measured', Control, queue_size=10)
+
     current_fsm = FSM()
+
+    current_control = Control()
 
     # Subscribe to fake sensor from simulation 
     rospy.Subscriber("simu_sensor_pub", Sensor, simu_sensor_callback)
@@ -137,19 +146,17 @@ if __name__ == '__main__':
         
             # Thread sleep time defined by rate
             rate.sleep()
-            
-            # Send back sensors and control as official flight data for GNC
-            sensor_pub.publish(simu_sensor_data)
 
             if current_fsm.state_machine != "Idle":
                 real_thrust = 0.0
+                current_control.force.z = 1000
                 if current_control.force.z != 0.0 and current_fsm.time_now > thrust_curve[0,0] and current_fsm.time_now < thrust_curve[-1,0]:
                     real_thrust = float(f_thrust(current_fsm.time_now))
 
                 current_control.force.z = real_thrust
                 actuator_pub.publish(current_control)
 
-    rospy.spin()
+    #rospy.spin()
         
     
 

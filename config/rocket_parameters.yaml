@@ -12,13 +12,13 @@ diameters:
   - 0.156 
   - 0.156 
   - 0.135
-stage_z: 
+stage_z:
   - 0 
   - 0.242 
-  - 4.11 
-  - 4.16 
-fin_n: 3
-fin_top_offset: 3.83 
+  - 3.43 
+  - 3.51 
+fin_n: 4
+fin_top_offset: 3.15 
 fin_span: 0.17
 fin_root_chord: 0.28 # base length
 fin_tip_chord: 0.125
@@ -26,15 +26,15 @@ fin_sweep: 0.107
 fin_thickness: 0.004
 lug_n: 2
 lug_S: 5.7e-4 
-dry_mass: 41.558
-dry_CM: 2.14
+dry_mass: 34.186 # Dry rocket mass + ABS leftover
+dry_CM: 1.77
 dry_I:
-  - 47
-  - 47
+  - 39
+  - 39
   - 2
-propellant_mass: 3 
-propellant_CM: 3
-Isp: 213
+propellant_mass: 4.228
+propellant_CM: 2.5
+Isp: 207
 maxThrust:
   - 100
   - 100
@@ -48,5 +48,5 @@ maxTorque: 50
 Cd:
   - 2
   - 2
-  - 0.7
+  - 0.335
 initial_speed: 0
