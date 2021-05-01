@@ -19,7 +19,7 @@ stage_z:
   - 4.16 
 fin_n: 3
 fin_top_offset: 3.83 
-fin_span: 0.1
+fin_span: 0.17
 fin_root_chord: 0.28 # base length
 fin_tip_chord: 0.125
 fin_sweep: 0.107

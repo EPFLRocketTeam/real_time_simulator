@@ -70,6 +70,8 @@ class Rocket
 
     float initial_speed;
 
+    float h0;
+
     std::vector<float> target_apogee = {0, 0, 0};
     std::vector<float> Cd = {0, 0, 0};
     std::vector<float> surface = {0, 0, 0};
@@ -158,6 +160,9 @@ class Rocket
 
       n.getParam("/perturbation/baro_noise", baro_noise);
       n.getParam("/perturbation/baro_bias", baro_bias);
+
+      n.getParam("/environment/ground_altitude", h0);
+
     }
 };
 
@@ -242,7 +247,7 @@ using control_t = Eigen::Matrix<scalar_t, 4, 1>;
 void dynamics_flight(const state& x, state& xdot, const double &t)
 {
   // -------------- Simulation variables -----------------------------
-  double g0 = 3.986e14/pow(6371e3+x(2), 2);  // Earth gravity in [m/s^2]
+  double g0 = 3.986e14/pow(6371e3 + rocket.h0 + x(2), 2);  // Earth gravity in [m/s^2]
 
   double mass = rocket.dry_mass + x(13);                  // Instantaneous mass of the rocket in [kg]
 
@@ -345,7 +350,7 @@ void dynamics_rail(const state& x, state& xdot, const double &t)
   xdot.tail(1) << -rocket_control.col(0).norm()/(rocket.Isp*g0);
 
   // Fake sensor data update -----------------  
-  rocket.sensor_acc = (total_force + rot_matrix.transpose()*gravity)/mass; // Here gravity is measured by the accelerometer because of the rail's reaction force
+  rocket.sensor_acc = (total_force + rot_matrix.transpose()*gravity)/mass;
   
   rocket.sensor_gyro << 0.0, 0.0, 0.0;
 
@@ -382,7 +387,7 @@ int main(int argc, char **argv)
   ros::Subscriber command_sub = n.subscribe("commands", 10, processCommand);
     
   // Subscribe to control message from control node
-  ros::Subscriber rocket_control_sub = n.subscribe("control_pub", 100, rocket_controlCallback);
+  ros::Subscriber rocket_control_sub = n.subscribe("control_measured", 100, rocket_controlCallback);
 
   // Subscribe to aero message
   ros::Subscriber rocket_aero_sub = n.subscribe("rocket_aero", 100, rocket_aeroCallback);
@@ -443,7 +448,7 @@ int main(int argc, char **argv)
 
 
   // Init sensors
-  rocket.sensor_acc = (q.inverse())._transformVector(Eigen::Vector3d::UnitZ()*9.81);
+  rocket.sensor_acc = (q.inverse())._transformVector(Eigen::Vector3d::UnitZ()*3.986e14/pow(6371e3 + rocket.h0, 2));
   rocket.sensor_gyro << 0.0, 0.0, 0.0;
   rocket.sensor_baro = 0;
 

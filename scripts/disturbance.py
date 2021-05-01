@@ -185,7 +185,7 @@ if __name__ == '__main__':
 	rospy.Subscriber("fsm_pub", FSM, fsm_callback)
 
 	# Subscribe to rocket_control 
-	rospy.Subscriber("control_pub", Control, control_callback)
+	rospy.Subscriber("control_measured", Control, control_callback)
 
 	# Subscribe to rocket_state 
 	rospy.Subscriber("rocket_state", State, rocket_state_callback)

@@ -192,6 +192,7 @@ class Simulator3D:
         # Drag
         # Drag coefficient
         cd = drag(self.rocket, alpha, v_mag, nu, a)*self.rocket.CD_fac  # !!! take 3000 us !!! -> actually half of the computation time
+        #print(cd, " ", alpha, " ", v_mag)
         
         # Drag force
         d = -0.5 * rho * Sm * cd * v_mag ** 2 * v_norm
@@ -205,7 +206,6 @@ class Simulator3D:
         w_pitch = w - np.dot(w, ra) * ra
         cdm = pitch_damping_moment(self.rocket, rho, CNa_bar, CP_bar, dMdt, cg, np.linalg.norm(w_pitch), v_mag)
         md = -0.5 * rho * cdm * Sm * v_mag ** 2 * normalize_vector(w_pitch)
-
 
         self.rocket.set_aero(n+d, mn+md)
 

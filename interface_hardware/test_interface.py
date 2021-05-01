@@ -36,9 +36,9 @@ def fsm_recv_callback(fsm_data):
 
 
 def simu_sensor_callback(simu_sensor):
-    acc_x = int(1000*simu_sensor.IMU_acc.x)
-    acc_y = int(1000*simu_sensor.IMU_acc.y)
-    acc_z = int(1000*simu_sensor.IMU_acc.z)
+    acc_x = int(1000*simu_sensor.IMU_acc.x/9.81)
+    acc_y = int(1000*simu_sensor.IMU_acc.y/9.81)
+    acc_z = int(1000*simu_sensor.IMU_acc.z/9.81)
 
     gyro_x = int(1000*simu_sensor.IMU_gyro.x)
     gyro_y = int(1000*simu_sensor.IMU_gyro.y)
@@ -87,8 +87,6 @@ if __name__ == '__main__':
     else:
         print("error")
 
-    hb.send(BOOT, [0x00, 0x00])
-
     state_Pi = 1
 
     while state_Pi == 1:
@@ -101,7 +99,9 @@ if __name__ == '__main__':
         if(stat and len(stat) == 20):
             data = struct.unpack("HHiIiHBb", bytes(stat))
             state_Pi = data[0]
-
+    
+    
+    hb.send(BOOT, [0x00, 0x00])
 
     print("initializing ros...")
     # Init ROS
@@ -118,6 +118,31 @@ if __name__ == '__main__':
     rospy.Subscriber("simu_sensor_pub", Sensor, simu_sensor_callback)
 
     rospy.Subscriber("fsm_pub", FSM, fsm_recv_callback)
+
+    if rospy.get_param("/simulation") == 3:
+
+        # Load motor thrust curve to get real thrust (for control_measured)
+        rospack = rospkg.RosPack()
+        thrust_curve = np.loadtxt(rospack.get_path('bellalui_gnc') + "/config/motor_file.txt")
+        f_thrust = interp1d(thrust_curve[:,0], thrust_curve[:,1])
+            
+        rate = rospy.Rate(100)
+
+        while not rospy.is_shutdown():
+        
+            # Thread sleep time defined by rate
+            rate.sleep()
+            
+            # Send back sensors and control as official flight data for GNC
+            sensor_pub.publish(simu_sensor_data)
+
+            if current_fsm.state_machine != "Idle":
+                real_thrust = 0.0
+                if current_control.force.z != 0.0 and current_fsm.time_now > thrust_curve[0,0] and current_fsm.time_now < thrust_curve[-1,0]:
+                    real_thrust = float(f_thrust(current_fsm.time_now))
+
+                current_control.force.z = real_thrust
+                actuator_pub.publish(current_control)
 
     rospy.spin()
         
