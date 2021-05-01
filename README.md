@@ -27,7 +27,7 @@ sudo apt install libboost-dev
 ```bash
 sudo apt install python3-pip python-pip
 pip3 install rospkg dataclasses scipy numpy pyqtgraph
-pip install scipy
+pip install scipy pyserial
 ```
 
 5. If you have never installed another ROS package before:
