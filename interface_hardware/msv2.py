@@ -61,7 +61,7 @@ class msv2:
         self.port = port
         self.ser.baudrate = BAUDRATE
         self.ser.port = port
-        self.ser.timeout = 0.2
+        self.ser.timeout = 0.1
         try:
             self.ser.open()
             self.connected = 1
@@ -73,7 +73,7 @@ class msv2:
         try:
             self.ser.port = self.port
             self.ser.baudrate = BAUDRATE
-            self.ser.timeout = 0.2
+            self.ser.timeout = 0.1
             self.ser.open()
             self.connected = 1
             print("connected")

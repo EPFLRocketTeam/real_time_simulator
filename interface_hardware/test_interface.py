@@ -43,6 +43,7 @@ def fsm_recv_callback(fsm_data):
 def simu_sensor_callback(simu_sensor):
     global current_control
 
+    
     acc_x = int(1000*simu_sensor.IMU_acc.x/9.81)
     acc_y = int(1000*simu_sensor.IMU_acc.y/9.81)
     acc_z = int(1000*simu_sensor.IMU_acc.z/9.81)
@@ -50,6 +51,9 @@ def simu_sensor_callback(simu_sensor):
     gyro_x = int(1000*simu_sensor.IMU_gyro.x/9.81)
     gyro_y = int(1000*simu_sensor.IMU_gyro.y/9.81)
     gyro_z = int(1000*simu_sensor.IMU_gyro.z/9.81)
+
+    print("sensor received: {}".format(acc_z))
+
 
     baro = int(1000*simu_sensor.baro_height)
     
@@ -68,6 +72,8 @@ def simu_sensor_callback(simu_sensor):
             current_control.force.z = 2000
         else:
             current_control.force.z = cmd_data[0]
+
+        print("current_Control: {}".format(cmd_data[0]))
 
         control_pub.publish(current_control)
 
@@ -110,23 +116,25 @@ if __name__ == '__main__':
             state_Pi = data[0]
     
     
-    #hb.send(BOOT, [0x00, 0x00])
+    hb.send(BOOT, [0x00, 0x00])
 
     print("initializing ros...")
     # Init ROS
     rospy.init_node('test_interface', anonymous=True)
     
     # Publisher for commanded rocket_control 
-    control_pub = rospy.Publisher("control_pub", Control, queue_size=10)
+    control_pub = rospy.Publisher("control_pub", Control, queue_size=1)
 
-    kalman_pub = rospy.Publisher("kalman_rocket_state", State, queue_size=10)
+    kalman_pub = rospy.Publisher("kalman_rocket_state", State, queue_size=1)
 
     # Publisher for measured actuator inputs
-    actuator_pub = rospy.Publisher('control_measured', Control, queue_size=10)
+    actuator_pub = rospy.Publisher('control_measured', Control, queue_size=1)
 
     current_fsm = FSM()
 
     current_control = Control()
+
+    measured_control = Control()
 
     # Subscribe to fake sensor from simulation 
     rospy.Subscriber("simu_sensor_pub", Sensor, simu_sensor_callback)
@@ -134,6 +142,7 @@ if __name__ == '__main__':
     rospy.Subscriber("fsm_pub", FSM, fsm_recv_callback)
 
     if rospy.get_param("/simulation") == 3:
+
 
         # Load motor thrust curve to get real thrust (for control_measured)
         rospack = rospkg.RosPack()
@@ -149,12 +158,14 @@ if __name__ == '__main__':
 
             if current_fsm.state_machine != "Idle":
                 real_thrust = 0.0
-                current_control.force.z = 1000
+                #current_control.force.z = 1000
                 if current_control.force.z != 0.0 and current_fsm.time_now > thrust_curve[0,0] and current_fsm.time_now < thrust_curve[-1,0]:
                     real_thrust = float(f_thrust(current_fsm.time_now))
 
-                current_control.force.z = real_thrust
-                actuator_pub.publish(current_control)
+
+                measured_control.force.z = real_thrust
+                #print(real_thrust)
+                actuator_pub.publish(measured_control)
 
     #rospy.spin()
         
