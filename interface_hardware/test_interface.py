@@ -156,7 +156,7 @@ if __name__ == '__main__':
             # Thread sleep time defined by rate
             rate.sleep()
 
-            if current_fsm.state_machine != "Idle":
+            if current_fsm.state_machine != "Idle" and current_fsm.state_machine != "Rail":
                 real_thrust = 0.0
                 #current_control.force.z = 1000
                 if current_control.force.z != 0.0 and current_fsm.time_now > thrust_curve[0,0] and current_fsm.time_now < thrust_curve[-1,0]:
@@ -168,8 +168,4 @@ if __name__ == '__main__':
                 actuator_pub.publish(measured_control)
 
     #rospy.spin()
-        
-    
 
-    
-            
