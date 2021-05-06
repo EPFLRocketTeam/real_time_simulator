@@ -28,10 +28,12 @@ RECOVER =	0x06
 SENSOR_WRITE =  0x07
 COMMAND_READ =  0x08
 SENSOR_READ =   0x09
+FEEDBACK_WRITE = 0x0A
 
 control_pub = None
 hb = None
 
+CONVERSION = 76.233
 
 
 def fsm_recv_callback(fsm_data):
@@ -44,13 +46,13 @@ def simu_sensor_callback(simu_sensor):
     global current_control
 
     
-    acc_x = int(1000*simu_sensor.IMU_acc.x/9.81)
-    acc_y = int(1000*simu_sensor.IMU_acc.y/9.81)
-    acc_z = int(1000*simu_sensor.IMU_acc.z/9.81)
+    acc_x = round(1000*simu_sensor.IMU_acc.x/9.81)
+    acc_y = round(1000*simu_sensor.IMU_acc.y/9.81)
+    acc_z = round(1000*simu_sensor.IMU_acc.z/9.81)
 
-    gyro_x = int(1000*simu_sensor.IMU_gyro.x/9.81)
-    gyro_y = int(1000*simu_sensor.IMU_gyro.y/9.81)
-    gyro_z = int(1000*simu_sensor.IMU_gyro.z/9.81)
+    gyro_x = round(1000*simu_sensor.IMU_gyro.x/9.81)
+    gyro_y = round(1000*simu_sensor.IMU_gyro.y/9.81)
+    gyro_z = round(1000*simu_sensor.IMU_gyro.z/9.81)
 
     print("sensor received: {}".format(acc_z))
 
@@ -91,6 +93,9 @@ def simu_sensor_callback(simu_sensor):
         kalman_pub.publish(current_kalman)
 
 
+    bin_data =  struct.pack("I", int(measured_control.force.z*CONVERSION))
+
+    resp = hb.send(FEEDBACK_WRITE, bin_data)
 
 
 if __name__ == '__main__':
@@ -155,16 +160,19 @@ if __name__ == '__main__':
         
             # Thread sleep time defined by rate
             rate.sleep()
+            
+            if current_fsm.time_now > thrust_curve[0,0] and current_fsm.time_now < thrust_curve[-1,0]:
 
-            if current_fsm.state_machine != "Idle" and current_fsm.state_machine != "Rail":
-                real_thrust = 0.0
-                #current_control.force.z = 1000
-                if current_control.force.z != 0.0 and current_fsm.time_now > thrust_curve[0,0] and current_fsm.time_now < thrust_curve[-1,0]:
-                    real_thrust = float(f_thrust(current_fsm.time_now))
+                real_thrust = float(f_thrust(current_fsm.time_now))
 
+                if current_fsm.state_machine != "Idle" and current_fsm.state_machine != "Rail":
+                    if current_control.force.z == 0.0:
+                        real_thrust = 0.0
+
+                        
 
                 measured_control.force.z = real_thrust
-                #print(real_thrust)
+                print("real_thrust: ",real_thrust)
                 actuator_pub.publish(measured_control)
 
     #rospy.spin()
