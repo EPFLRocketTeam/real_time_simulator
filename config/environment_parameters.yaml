@@ -20,6 +20,6 @@ apogee: # targeted apogee
 wind_speed: 10
 wind_direction: 0 # angle of wind from north, clockwise
 rail_azimuth: 0 # angle of rail from north, clock wise
-rail_zenith: 0 # angle of rail from vertical
+rail_zenith: 5 # angle of rail from vertical
 rocket_roll: 0 # initial roll angle around z rocket axis
-rail_length: 4
+rail_length: 9

@@ -26,15 +26,15 @@ fin_sweep: 0.107
 fin_thickness: 0.004
 lug_n: 2
 lug_S: 5.7e-4 
-dry_mass: 34.186 # Dry rocket mass + ABS leftover
+dry_mass: 34.078 # Dry rocket mass + ABS leftover: 32.708+(2.2-0.830)
 dry_CM: 1.77
 dry_I:
   - 39
   - 39
   - 2
-propellant_mass: 4.228
+propellant_mass: 4.65
 propellant_CM: 2.5
-Isp: 207
+Isp: 140.5
 maxThrust:
   - 100
   - 100

@@ -192,6 +192,8 @@ catkin_install_python(PROGRAMS
         scripts/aerodynamic.py
         scripts/disturbance.py
         interface_hardware/test_interface.py
+        interface_hardware/pcan_interface.py
+        interface_hardware/usb_interface.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         )
 

@@ -151,6 +151,8 @@ def simu_sensor_callback(simu_sensor):
 
 if __name__ == '__main__':
 
+    THROTTLING = rospy.get_param("/rocket/throttling")
+
     bus = can.interface.Bus(interface='pcan', channel='PCAN_USBBUS1', bitrate=250000, state=can.bus.BusState.ACTIVE)
 
     if bus is None:
@@ -187,7 +189,8 @@ if __name__ == '__main__':
     rospy.Subscriber("fsm_pub", FSM, fsm_recv_callback)
 
     rospack = rospkg.RosPack()
-    thrust_curve = np.loadtxt(rospack.get_path('bellalui_gnc') + "/config/motor_file.txt")
+    
+    thrust_curve = np.loadtxt(rospack.get_path("real_time_simulator") + "/config/thrust_curve/motor_file.txt")
     f_thrust = interp1d(thrust_curve[:,0], thrust_curve[:,1])
         
     #variables
@@ -196,8 +199,6 @@ if __name__ == '__main__':
     rate = rospy.Rate(50) #PP heartbeat
 
     while not rospy.is_shutdown():
-
-        
 
         #poll can messages
         while(1):
@@ -225,24 +226,23 @@ if __name__ == '__main__':
             new_thrust = False
             control_pub.publish(current_control)
 
+        current_kalman.pose.orientation.w = 1
         kalman_pub.publish(current_kalman)
 
+        if THROTTLING:
+            real_thrust = current_control.force.z
 
-        if current_fsm.time_now > thrust_curve[0,0] and current_fsm.time_now < thrust_curve[-1,0]:
+        else:
+            if current_fsm.time_now > thrust_curve[0,0] and current_fsm.time_now < thrust_curve[-1,0]:
 
-            real_thrust = float(f_thrust(current_fsm.time_now))
+                real_thrust = float(f_thrust(current_fsm.time_now))
 
-            if current_fsm.state_machine != "Idle" and current_fsm.state_machine != "Rail":
-                if current_control.force.z == 0.0:
-                    real_thrust = 0.0
+                if current_fsm.state_machine != "Idle" and current_fsm.state_machine != "Rail":
+                    if current_control.force.z == 0.0:
+                        real_thrust = 0.0
 
-                    
-
-            measured_control.force.z = real_thrust
-            print("real_thrust: ",real_thrust)
-            actuator_pub.publish(measured_control)
-
-
+        measured_control.force.z = real_thrust
+        actuator_pub.publish(measured_control)
 
 
         rate.sleep()
