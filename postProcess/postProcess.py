@@ -15,6 +15,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
+from scipy import interpolate
 
 import time
 
@@ -228,7 +229,7 @@ axe[2][2].legend()
 l = axe[2][3].plot(time_force[select_force], z_torque[select_force], label = 'Z torque [N.m]', color = "green")
 axe[2][3].legend()
 
-l = axe[2][1].plot(time_actuation[select_actuation], measured_force[:, 2][select_actuation], label = "Z force [N]", linewidth=2)
+l = axe[2][1].plot(time_actuation[select_actuation], measured_force[:, 2][select_actuation], label = "Z force [N]", linewidth=2, marker = "+")
 axe[2][1].legend()
 
 l = axe[2][0].plot(time_state[select], prop_mass[select], label = "Mass", linewidth=4)
@@ -288,6 +289,13 @@ if 0:
 
 fig.tight_layout()
 
+# Plot speed difference to check kalman filter
+if 0:
+  plot2 = plt.figure(2, figsize=(15,15))
 
-plt.show()
+  f = interpolate.interp1d(time_state_est, speed_est[:, 2], fill_value = "extrapolate")
+  plt.plot(time_state[select], f(time_state[select])- speed[:, 2][select])
+  plt.xlabel("Time [s]")
+  plt.ylabel("Speed difference [m/s]")
+  plt.show()
 

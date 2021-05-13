@@ -195,6 +195,7 @@ if __name__ == '__main__':
         
     #variables
     new_thrust = False
+    real_thrust = rospy.get_param("/rocket/maxThrust")[2]
 
     rate = rospy.Rate(50) #PP heartbeat
 
@@ -233,7 +234,7 @@ if __name__ == '__main__':
             real_thrust = current_control.force.z
 
         else:
-            if current_fsm.time_now > thrust_curve[0,0] and current_fsm.time_now < thrust_curve[-1,0]:
+            if current_fsm.time_now >= thrust_curve[0,0] and current_fsm.time_now <= thrust_curve[-1,0]:
 
                 real_thrust = float(f_thrust(current_fsm.time_now))
 
