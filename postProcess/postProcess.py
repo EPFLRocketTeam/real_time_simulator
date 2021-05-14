@@ -297,5 +297,6 @@ if 0:
   plt.plot(time_state[select], f(time_state[select])- speed[:, 2][select])
   plt.xlabel("Time [s]")
   plt.ylabel("Speed difference [m/s]")
-  plt.show()
+
+plt.show()
 
