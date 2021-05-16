@@ -31,12 +31,12 @@ drag_assymetry:           # Amount of drag force distributed on X and Y surface 
 air_density_bias: 20      # Error bias in percentage of the air density
 
 # Sensor parameters
-sensor_period: 0.040
+sensor_period: 0.048
 acc_noise: 0.1
 acc_bias: 0
 
-gyro_noise: 0.01
+gyro_noise: 0.00455
 gyro_bias: 0
 
-baro_noise: 0.125
+baro_noise: 0.2
 baro_bias: 0

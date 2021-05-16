@@ -254,6 +254,7 @@ void dynamics_flight(const state& x, state& xdot, const double &t)
   // Orientation of the rocket with quaternion
   Eigen::Quaternion<double> attitude( x(9), x(6), x(7), x(8)); attitude.normalize();
   Eigen::Matrix<double, 3, 3> rot_matrix = attitude.toRotationMatrix();
+  //std::cout << (180/3.14)*std::acos(x(9)*x(9) - x(6)*x(6) - x(7)*x(7) + x(8)*x(8)) << "\n";
 
 
   // Force in inertial frame: gravity

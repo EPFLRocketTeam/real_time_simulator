@@ -126,9 +126,9 @@ def simu_sensor_callback(simu_sensor):
     acc_y = round(1000*simu_sensor.IMU_acc.y/9.81)
     acc_z = round(1000*simu_sensor.IMU_acc.z/9.81)
 
-    gyro_x = round(1000*simu_sensor.IMU_gyro.x/9.81)
-    gyro_y = round(1000*simu_sensor.IMU_gyro.y/9.81)
-    gyro_z = round(1000*simu_sensor.IMU_gyro.z/9.81)
+    gyro_x = round(1000*simu_sensor.IMU_gyro.x)
+    gyro_y = round(1000*simu_sensor.IMU_gyro.y)
+    gyro_z = round(1000*simu_sensor.IMU_gyro.z)
 
     baro = int(1000*simu_sensor.baro_height)
 

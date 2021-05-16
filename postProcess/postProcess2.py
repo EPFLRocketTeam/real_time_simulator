@@ -43,6 +43,10 @@ control_force = np.zeros((1,3))
 z_torque = np.zeros((1,1))
 time_force = np.zeros((1,1))
 
+# Measured force from AV
+measured_force = np.zeros((1,3))
+time_actuation = []
+
 # Guidance optimal trajectory
 target_positionZ = []
 target_speedZ = []
@@ -91,6 +95,12 @@ for topic, msg, t in bag.read_messages(topics=['/control_pub']):
   control_force = np.append(control_force, [[new_force.x, new_force.y, new_force.z]], axis = 0)
   z_torque = np.append(z_torque, [[msg.torque.z]]) 
   time_force = np.append(time_force, [[t.to_sec()]]) 
+
+for topic, msg, t in bag.read_messages(topics=['/control_measured']):
+  new_force = msg.force
+  measured_force = np.append(measured_force, [[new_force.x, new_force.y, new_force.z]], axis = 0)
+  time_actuation = np.append(time_actuation, [[t.to_sec()]]) 
+
   
 
 for topic, msg, t in bag.read_messages(topics=['/target_trajectory']):
@@ -133,11 +143,14 @@ control_force = control_force[1:]
 z_torque = z_torque[1:]
 time_force = time_force[1:]
 
+measured_force = measured_force[1:]
+
 
 # Synchronize time
 time_force = time_force - time_init
 time_state = time_state - time_init
 time_state_est = time_state_est - time_init
+time_actuation = time_actuation - time_init
 
 # Convert quaternion to euler for easier visualization
 quaternion = attitude
@@ -156,6 +169,7 @@ omega_est = np.rad2deg(omega_est)
 select = np.logical_and(time_state>tStart, time_state <tEnd)
 select_est = np.logical_and(time_state_est>tStart, time_state_est <tEnd)
 select_force = np.logical_and(time_force>tStart, time_force <tEnd) 
+select_actuation = np.logical_and(time_actuation>tStart, time_actuation <tEnd) 
 #select_target = np.zeros_like(time_target, dtype = bool)
 
 #select_target[::20,:] = True
@@ -214,7 +228,10 @@ axe[2][2].legend()
 l = axe[2][3].plot(time_force[select_force], z_torque[select_force], label = 'Z torque [N.m]', color = "green")
 axe[2][3].legend()
 
-l = axe[2][1].plot(time_force[select_force], control_force[:, 2][select_force], label = "Z force [N]", linewidth=4)
+l = axe[2][1].plot(time_force[select_force], control_force[:, 2][select_force], label = "Commanded Z force [N]", linewidth=4)
+axe[2][1].legend()
+
+l = axe[2][1].plot(time_actuation[select_actuation], measured_force[:, 2][select_actuation], label = "Z force [N]", linewidth=2, marker = "+")
 axe[2][1].legend()
 
 l = axe[2][0].plot(time_state[select], prop_mass[select], label = "Mass", linewidth=4)
