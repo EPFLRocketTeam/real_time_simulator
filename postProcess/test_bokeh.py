@@ -26,17 +26,16 @@ from scipy import interpolate
 
 import time
 
+# Arrays with GNC data
+simu_data = None
+nav_data = None
 
 tStart = -1
 tEnd = 40
 
-# Simulated state
-position = np.zeros((1,3))
-speed = np.zeros((1,3))
-attitude = np.zeros((1,4))
-omega = np.zeros((1,3))
-prop_mass = np.zeros((1,1))
-time_state = np.zeros((1,1))
+simu = True
+nav = False
+horizon = False
 
 # Estimated state from Navigation
 position_est = np.zeros((1,3))
@@ -69,13 +68,58 @@ select_force = True
 select_actuation = True
 select_target = True
 
+def fill_full_state(bag, topic = ""):
+
+  msg_count = bag.get_message_count(topic)
+  np_data = np.zeros((14, msg_count))
+  attitude = np.zeros((msg_count,4))
+  i = 0
+  for _, msg, t in bag.read_messages(topics=[topic]):
+      new_attitude = msg.pose.orientation    
+  
+      attitude[i] = np.array([new_attitude.x, new_attitude.y, new_attitude.z, new_attitude.w])
+
+      np_data[13, i] = t.to_sec()
+
+      np_data[0, i] = msg.pose.position.x
+      np_data[1, i] = msg.pose.position.y
+      np_data[2, i] = msg.pose.position.z
+
+      np_data[3, i] = msg.twist.linear.x
+      np_data[4, i] = msg.twist.linear.y
+      np_data[5, i] = msg.twist.linear.z
+
+      np_data[9, i] = msg.twist.angular.x
+      np_data[10, i] = msg.twist.angular.y
+      np_data[11, i] = msg.twist.angular.z
+
+      np_data[12, i] = msg.propeller_mass
+
+      i = i+1
+
+  r = R.from_quat(attitude)
+  attitude_eul = r.as_euler('zyx', degrees=True)
+  
+  np_data[6:9, :] = np.transpose(attitude_eul)
+  np_data[9:12, :] = np.rad2deg(np_data[9:12, :] )
+
+  return np_data
+
+
+
+
+
+
+
+
+
+
+
+
+
 def load_log_file(attr, old, new):
-  global position 
-  global speed
-  global attitude 
-  global omega 
-  global prop_mass 
-  global time_state 
+  global simu_data
+  global nav_data
 
   # Estimated state from Navigation
   global position_est
@@ -107,7 +151,7 @@ def load_log_file(attr, old, new):
   global select_force 
   global select_actuation 
   global select_target 
-  print(new)
+
   bag =  rosbag.Bag(new) 
 
 # rospack = rospkg.RosPack()
@@ -117,35 +161,10 @@ def load_log_file(attr, old, new):
     if msg.state_machine == "Rail":
       time_init = t.to_sec()
       break
-    
+  
+  simu_data = fill_full_state(bag, topic = "/rocket_state")
 
-  for topic, msg, t in bag.read_messages(topics=['/rocket_state']):
-      new_pos = msg.pose.position
-      new_speed = msg.twist.linear
-      new_attitude = msg.pose.orientation    
-      new_omega = msg.twist.angular
-      new_mass = msg.propeller_mass
-          
-      position = np.append(position, [[new_pos.x, new_pos.y, new_pos.z]], axis = 0)
-      speed = np.append(speed, [[new_speed.x, new_speed.y, new_speed.z]], axis = 0)
-      attitude = np.append(attitude, [[ new_attitude.x, new_attitude.y, new_attitude.z, new_attitude.w]], axis = 0)
-      omega = np.append(omega, [[new_omega.x, new_omega.y, new_omega.z]], axis = 0)
-      prop_mass = np.append(prop_mass, [[new_mass]])
-      time_state = np.append(time_state, [[t.to_sec()]])
-
-  for topic, msg, t in bag.read_messages(topics=['/kalman_rocket_state']):
-      new_pos = msg.pose.position
-      new_speed = msg.twist.linear
-      new_attitude = msg.pose.orientation    
-      new_omega = msg.twist.angular
-      new_mass = msg.propeller_mass
-          
-      position_est = np.append(position_est, [[new_pos.x, new_pos.y, new_pos.z]], axis = 0)
-      speed_est = np.append(speed_est, [[new_speed.x, new_speed.y, new_speed.z]], axis = 0)
-      attitude_est = np.append(attitude_est, [[ new_attitude.x, new_attitude.y, new_attitude.z, new_attitude.w]], axis = 0)
-      omega_est = np.append(omega_est, [[new_omega.x, new_omega.y, new_omega.z]], axis = 0)
-      prop_mass_est = np.append(prop_mass_est, [[new_mass]])
-      time_state_est = np.append(time_state_est, [[t.to_sec()]])
+  nav_data = fill_full_state(bag, topic = "/kalman_rocket_state")
 
   for topic, msg, t in bag.read_messages(topics=['/control_pub']):
     new_force = msg.force
@@ -178,22 +197,7 @@ def load_log_file(attr, old, new):
   target_prop_mass = np.array(target_prop_mass)
   thrust_target = np.array(thrust_target)
 
-  print("Apogee: {}".format(max(position[:, 2])))
-
-  # Only keep ROS data
-  prop_mass = prop_mass[1:]
-  speed = speed[1:]
-  omega = omega[1:]
-  position = position[1:]
-  attitude = attitude[1:]
-  time_state = time_state[1:]
-
-  prop_mass_est = prop_mass_est[1:]
-  speed_est = speed_est[1:]
-  omega_est = omega_est[1:]
-  position_est = position_est[1:]
-  attitude_est = attitude_est[1:]
-  time_state_est = time_state_est[1:]
+  print("Apogee: {}".format(max(simu_data[2])))
 
   control_force = control_force[1:]
   controlled_z_torque = controlled_z_torque[1:]
@@ -205,50 +209,20 @@ def load_log_file(attr, old, new):
 
   # Synchronize time
   time_force = time_force - time_init
-  time_state = time_state - time_init
-  time_state_est = time_state_est - time_init
+  simu_data[13] = simu_data[13] - time_init
+  nav_data[13] = nav_data[13] - time_init
   time_actuation = time_actuation - time_init
-
-  # Convert quaternion to euler for easier visualization
-  quaternion = attitude
-  r = R.from_quat(attitude)
-  attitude = r.as_euler('zyx', degrees=True)
-
-  quaternion_est = attitude_est
-  r = R.from_quat(attitude_est)
-  attitude_est = r.as_euler('zyx', degrees=True)
-
-  # Convert radians to degrees for easier visualization
-  omega = np.rad2deg(omega)
-  omega_est = np.rad2deg(omega_est)
-
-
-  select = np.logical_and(time_state>tStart, time_state <tEnd)
-  select_est = np.logical_and(time_state_est>tStart, time_state_est <tEnd)
-  select_force = np.logical_and(time_force>tStart, time_force <tEnd) 
-  select_actuation = np.logical_and(time_actuation>tStart, time_actuation <tEnd) 
-  select_target = np.zeros_like(time_target, dtype = bool)
 
   update_plot()
 
 #select_target[::20,:] = True
 
 def update_range(attr, old, new):
-  
+  global tStart
+  global tEnd
+
   tStart = new[0]
   tEnd = new[1]
-
-  global select
-  global select_est
-  global select_force
-  global select_actuation
-  global select_target
-
-  select = np.logical_and(time_state>tStart, time_state <tEnd)
-  select_est = np.logical_and(time_state_est>tStart, time_state_est <tEnd)
-  select_force = np.logical_and(time_force>tStart, time_force <tEnd) 
-  select_actuation = np.logical_and(time_actuation>tStart, time_actuation <tEnd) 
-  select_target = np.zeros_like(time_target, dtype = bool)
 
   update_plot()
 
@@ -381,23 +355,30 @@ layout = gridplot([[f_posXY, f_posZ, f_attitude, check_plot_type], [f_speedXY, f
 
 doc.add_root(layout)
 
-def update_plot(simu = True, nav = False, horizon = False):
+def update_plot():
+
+  select = np.logical_and(simu_data[13]>tStart, simu_data[13] <tEnd)
+  select_est = np.logical_and(nav_data[13]>tStart, nav_data[13] <tEnd)
+  select_force = np.logical_and(time_force>tStart, time_force <tEnd) 
+  select_actuation = np.logical_and(time_actuation>tStart, time_actuation <tEnd) 
+  select_target = np.zeros_like(time_target, dtype = bool)
 
   if simu:
-    source_simu.data=dict(t=time_state[select], 
-                          posX=position[:, 0][select],
-                          posY=position[:, 1][select],
-                          posZ=position[:, 2][select],
-                          speedX=speed[:, 0][select],
-                          speedY=speed[:, 1][select],
-                          speedZ=speed[:, 2][select],
-                          attX=attitude[:, 0][select],
-                          attY=attitude[:, 1][select],
-                          attZ=attitude[:, 2][select],
-                          omegaX=omega[:, 0][select],
-                          omegaY=omega[:, 1][select],
-                          omegaZ=omega[:, 2][select],
-                          mass = prop_mass[select])
+    
+    source_simu.data = dict(t=simu_data[13][select],
+                            posX=simu_data[0][select],
+                            posY=simu_data[1][select],
+                            posZ=simu_data[2][select],
+                            speedX=simu_data[3][select],
+                            speedY=simu_data[4][select],
+                            speedZ=simu_data[5][select],
+                            attX=simu_data[6][select],
+                            attY=simu_data[7][select],
+                            attZ=simu_data[8][select],
+                            omegaX=simu_data[9][select],
+                            omegaY=simu_data[10][select],
+                            omegaZ=simu_data[11][select],
+                            mass = simu_data[12][select])
 
     source_feedback.data=dict(t=time_actuation[select_actuation], 
                           thrust=measured_force[:, 2][select_actuation],
@@ -429,20 +410,20 @@ def update_plot(simu = True, nav = False, horizon = False):
 
   if nav:
     point_spacing = 150
-    source_nav.data=dict(t=time_state_est[select_est][::point_spacing], 
-                          posX=position_est[:, 0][select_est][::point_spacing],
-                          posY=position_est[:, 1][select_est][::point_spacing],
-                          posZ=position_est[:, 2][select_est][::point_spacing],
-                          speedX=speed_est[:, 0][select_est][::point_spacing],
-                          speedY=speed_est[:, 1][select_est][::point_spacing],
-                          speedZ=speed_est[:, 2][select_est][::point_spacing],
-                          attX=attitude_est[:, 0][select_est][::point_spacing],
-                          attY=attitude_est[:, 1][select_est][::point_spacing],
-                          attZ=attitude_est[:, 2][select_est][::point_spacing],
-                          omegaX=omega_est[:, 0][select_est][::point_spacing],
-                          omegaY=omega_est[:, 1][select_est][::point_spacing],
-                          omegaZ=omega_est[:, 2][select_est][::point_spacing],
-                          mass = prop_mass_est[select_est][::point_spacing])
+    source_nav.data = dict(t=nav_data[13][select_est][::point_spacing],
+                            posX=nav_data[0][select_est][::point_spacing],
+                            posY=nav_data[1][select_est][::point_spacing],
+                            posZ=nav_data[2][select_est][::point_spacing],
+                            speedX=nav_data[3][select_est][::point_spacing],
+                            speedY=nav_data[4][select_est][::point_spacing],
+                            speedZ=nav_data[5][select_est][::point_spacing],
+                            attX=nav_data[6][select_est][::point_spacing],
+                            attY=nav_data[7][select_est][::point_spacing],
+                            attZ=nav_data[8][select_est][::point_spacing],
+                            omegaX=nav_data[9][select_est][::point_spacing],
+                            omegaY=nav_data[10][select_est][::point_spacing],
+                            omegaZ=nav_data[11][select_est][::point_spacing],
+                            mass = nav_data[12][select_est][::point_spacing])
 
     source_control.data=dict(t=time_force[select_force], 
                           thrust=control_force[:, 2][select_force],
@@ -473,11 +454,15 @@ def update_plot(simu = True, nav = False, horizon = False):
 
 
 def check_plot_type_handler(new):
-    simu = True if 0 in new else False
-    nav = True if 1 in new else False
-    horizon = True if 2 in new else False
+  global simu
+  global nav
+  global horizon
 
-    update_plot(simu, nav, horizon)
+  simu = True if 0 in new else False
+  nav = True if 1 in new else False
+  horizon = True if 2 in new else False
+
+  update_plot()
 
 check_plot_type.on_click(check_plot_type_handler)
 
