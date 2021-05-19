@@ -435,7 +435,7 @@ int main(int argc, char **argv)
 
   roll *= M_PI/180; zenith *= M_PI/180; azimuth *= M_PI/180;
 
-  typedef EulerSystem<-EULER_Z, EULER_Y, EULER_Z> Rail_system;
+  typedef EulerSystem<EULER_Z, EULER_Y, EULER_Z> Rail_system;
   typedef EulerAngles<double, Rail_system> angle_type;
 
   angle_type init_angle(azimuth, zenith, roll);

@@ -290,13 +290,16 @@ if 0:
 fig.tight_layout()
 
 # Plot speed difference to check kalman filter
-if 0:
+if 1:
+  plt.rcParams.update({'font.size': 16})
   plot2 = plt.figure(2, figsize=(15,15))
 
-  f = interpolate.interp1d(time_state_est, speed_est[:, 2], fill_value = "extrapolate")
-  plt.plot(time_state[select], f(time_state[select])- speed[:, 2][select])
+  f_speed = interpolate.interp1d(time_state_est, speed_est[:, 2], fill_value = "extrapolate")
+  f_alt = interpolate.interp1d(time_state_est, position_est[:, 2], fill_value = "extrapolate")
+  plt.plot(time_state[select], np.convolve(f_speed(time_state[select])- speed[:, 2][select], np.ones(20)/20, mode='same'))
+  #plt.plot(time_state[select], f_alt(time_state[select])- position[:, 2][select])
   plt.xlabel("Time [s]")
-  plt.ylabel("Speed difference [m/s]")
+  plt.ylabel("Speed error [m/s]")
 
 plt.show()
 
