@@ -4,7 +4,7 @@ from bokeh.embed import file_html
 from bokeh.io import show
 from bokeh.layouts import gridplot, layout, row, column
 from bokeh.models import CheckboxGroup, CustomJS, ColumnDataSource
-from bokeh.models import Button, RadioGroup, FileInput, TextInput, RangeSlider, Slider
+from bokeh.models import Button, RadioGroup, FileInput, TextInput, RangeSlider, Slider, Panel, Tabs
 from bokeh.themes import Theme
 
 import rospy
@@ -191,10 +191,11 @@ doc.theme = Theme(json={'attrs': {
 
     # apply defaults to Figure properties
     'Figure': {
-        'toolbar_location': "Right",
         'outline_line_color': "DimGrey",
         'min_border': 10,
         'background_fill_color': "#FFFCFC",
+        'plot_width':100, 
+
     },
 
     'Line': {
@@ -203,19 +204,45 @@ doc.theme = Theme(json={'attrs': {
 
     'Axis': {
         'axis_line_color': "DimGrey",
+        
+    },
+
+    'Title': {
+        'text_font_size': "14",
+        'text_line_height': 0.3,
+        'align':'center',
+    },
+
+    'Legend': {
+        'label_text_font_size': "10px",
+        'background_fill_alpha': 0.5,
+        'location': 'bottom_right',
     },
 }})
 
 # Create figures for plots
-f_posXY = figure()
-f_posZ = figure()
-f_speedXY = figure()
-f_speedZ = figure()
-f_attitude = figure()
-f_omega = figure()
-f_thrust = figure()
-f_force = figure()
-f_mass = figure()
+f_posXY = figure(title="Position [m]", title_location="left", x_axis_label='Time [s]')
+f_posZ = figure(title="Position [m]", title_location="left", x_axis_label='Time [s]')
+f_speedXY = figure(title="Speed [m/s]", x_axis_label='Time [s]')
+f_speedZ = figure(title="Speed [m/s]", title_location="left", x_axis_label='Time [s]')
+f_attitude = figure(title="Euler angle [°]", x_axis_label='Time [s]')
+f_omega = figure(title="Angular rate [°/s]", x_axis_label='Time [s]')
+f_thrust = figure(title="Main thrust [N]", title_location="left", x_axis_label='Time [s]')
+f_force = figure(title="Side force [N]", x_axis_label='Time [s]')
+f_mass = figure(title="Propellant mass [kg]", x_axis_label='Time [s]')
+
+f_posZ_sel = figure(plot_width=600, plot_height=600)
+f_speedZ_sel = figure(plot_width=600, plot_height=600)
+f_thrust_sel = figure(plot_width=600, plot_height=600)
+
+
+f_selectable = figure()
+f_selectable.toolbar_location = "above"
+
+f_posZ.toolbar_location = "above"
+f_speedZ.toolbar_location = "below"
+f_thrust.toolbar_location = "below"
+
 
 # Create empty source for data
 source_simu = ColumnDataSource(data=dict( t=[], 
@@ -254,46 +281,47 @@ source_target = ColumnDataSource(data = dict( t=[],
 
 
 # Map simulation data to plots
-f_posXY.line('t', 'posX', source=source_simu, color = "SteelBlue")
-f_posXY.line('t', 'posY', source=source_simu, color = "Coral")
-f_posZ.line('t', 'posZ', source=source_simu, color = "Teal")
-f_speedXY.line('t', 'speedX', source=source_simu, color = "SteelBlue")
-f_speedXY.line('t', 'speedY', source=source_simu, color = "Coral")
-f_speedZ.line('t', 'speedZ', source=source_simu, color = "Teal")
-f_attitude.line('t', 'attX', source=source_simu, color = "SteelBlue")
-f_attitude.line('t', 'attY', source=source_simu, color = "Coral")
-f_attitude.line('t', 'attZ', source=source_simu, color = "Teal")
-f_omega.line('t', 'omegaX', source=source_simu, color = "SteelBlue")
-f_omega.line('t', 'omegaY', source=source_simu, color = "Coral")
-f_omega.line('t', 'omegaZ', source=source_simu, color = "Teal")
+f_posXY.line('t', 'posX', source=source_simu, color = "SteelBlue", legend_label="X")
+f_posXY.line('t', 'posY', source=source_simu, color = "Coral", legend_label="Y")
+f_posZ.line('t', 'posZ', source=source_simu, color = "Teal", legend_label="simu Z")
+f_speedXY.line('t', 'speedX', source=source_simu, color = "SteelBlue", legend_label="X")
+f_speedXY.line('t', 'speedY', source=source_simu, color = "Coral", legend_label="Y")
+f_speedZ.line('t', 'speedZ', source=source_simu, color = "Teal", legend_label="simu Z")
+f_attitude.line('t', 'attX', source=source_simu, color = "SteelBlue", legend_label="X")
+f_attitude.line('t', 'attY', source=source_simu, color = "Coral", legend_label="Y")
+f_attitude.line('t', 'attZ', source=source_simu, color = "Teal", legend_label="Z")
+f_omega.line('t', 'omegaX', source=source_simu, color = "SteelBlue", legend_label="X")
+f_omega.line('t', 'omegaY', source=source_simu, color = "Coral", legend_label="Y")
+f_omega.line('t', 'omegaZ', source=source_simu, color = "Teal", legend_label="Z")
 f_mass.line('t', 'mass', source=source_simu, color = "SeaGreen")
 
 # Map navigation data to plots
-f_posXY.scatter('t', 'posX', source=source_nav, marker = "+", line_dash='dashed', color = "SteelBlue")
-f_posXY.scatter('t', 'posY', source=source_nav, marker = "+", line_dash='dashed', color = "Coral")
-f_posZ.scatter('t', 'posZ', source=source_nav, marker = "+", line_dash='dashed', color = "Teal")
-f_speedXY.scatter('t', 'speedX', source=source_nav, marker = "+", line_dash='dashed', color = "SteelBlue")
-f_speedXY.scatter('t', 'speedY', source=source_nav, marker = "+", line_dash='dashed', color = "Coral")
-f_speedZ.scatter('t', 'speedZ', source=source_nav, marker = "+", line_dash='dashed', color = "Teal")
-f_attitude.scatter('t', 'attX', source=source_nav, marker = "+", line_dash='dashed', color = "SteelBlue")
-f_attitude.scatter('t', 'attY', source=source_nav, marker = "+", line_dash='dashed', color = "Coral")
-f_attitude.scatter('t', 'attZ', source=source_nav, marker = "+", line_dash='dashed', color = "Teal")
-f_omega.scatter('t', 'omegaX', source=source_nav, marker = "+", line_dash='dashed', color = "SteelBlue")
-f_omega.scatter('t', 'omegaY', source=source_nav, marker = "+", line_dash='dashed', color = "Coral")
-f_omega.scatter('t', 'omegaZ', source=source_nav, marker = "+", line_dash='dashed', color = "Teal")
+f_posXY.scatter('t', 'posX', source=source_nav, marker = "+", line_dash='dashed', color = "SteelBlue", legend_label="X")
+f_posXY.scatter('t', 'posY', source=source_nav, marker = "+", line_dash='dashed', color = "Coral", legend_label="Y")
+f_posZ.scatter('t', 'posZ', source=source_nav, marker = "+", line_dash='dashed', color = "Teal", size=8, legend_label="est. Z")
+f_speedXY.scatter('t', 'speedX', source=source_nav, marker = "+", line_dash='dashed', color = "SteelBlue", legend_label="X")
+f_speedXY.scatter('t', 'speedY', source=source_nav, marker = "+", line_dash='dashed', color = "Coral", legend_label="Y")
+f_speedZ.scatter('t', 'speedZ', source=source_nav, marker = "+", line_dash='dashed', color = "Teal", size=8, legend_label="est. Z")
+f_attitude.scatter('t', 'attX', source=source_nav, marker = "+", line_dash='dashed', color = "SteelBlue", legend_label="X")
+f_attitude.scatter('t', 'attY', source=source_nav, marker = "+", line_dash='dashed', color = "Coral", legend_label="Y")
+f_attitude.scatter('t', 'attZ', source=source_nav, marker = "+", line_dash='dashed', color = "Teal", legend_label="Z")
+f_omega.scatter('t', 'omegaX', source=source_nav, marker = "+", line_dash='dashed', color = "SteelBlue", legend_label="X")
+f_omega.scatter('t', 'omegaY', source=source_nav, marker = "+", line_dash='dashed', color = "Coral", legend_label="Y")
+f_omega.scatter('t', 'omegaZ', source=source_nav, marker = "+", line_dash='dashed', color = "Teal", legend_label="Z")
 f_mass.scatter('t', 'mass', source=source_nav, marker = "+", line_dash='dashed', color = "SeaGreen")
 
 # Map measured forces to plots
-f_thrust.line('t', 'thrust', source=source_feedback, color = "FireBrick")
-f_force.line('t', 'forceX', source=source_feedback, color = "SteelBlue")
-f_force.line('t', 'forceY', source=source_feedback, color = "Coral")
-f_force.line('t', 'torqueZ', source=source_feedback, color = "Teal")
+f_thrust.line('t', 'thrust', source=source_feedback, color = "FireBrick", legend_label="measured")
+f_force.line('t', 'forceX', source=source_feedback, color = "SteelBlue", legend_label="X")
+f_force.line('t', 'forceY', source=source_feedback, color = "Coral", legend_label="Y")
+f_force.line('t', 'torqueZ', source=source_feedback, color = "Teal", legend_label="Z torque")
 
 # Map controlled forces to plots
-f_thrust.scatter('t', 'thrust', source=source_control, marker = "+", line_dash='dashed', color = "Orange")
-f_force.scatter('t', 'forceX', source=source_control, marker = "+", line_dash='dashed', color = "SteelBlue")
-f_force.scatter('t', 'forceY', source=source_control, marker = "+", line_dash='dashed', color = "Coral")
-f_force.scatter('t', 'torqueZ', source=source_control, marker = "+", line_dash='dashed', color = "Teal")
+f_thrust.scatter('t', 'thrust', source=source_control, marker = "+", line_dash='dashed', color = "Orange", size=8, legend_label="command")
+f_thrust.line('t', 'thrust', source=source_control, line_alpha=0.5, color = "Orange")
+f_force.scatter('t', 'forceX', source=source_control, marker = "+", line_dash='dashed', color = "SteelBlue", legend_label="X")
+f_force.scatter('t', 'forceY', source=source_control, marker = "+", line_dash='dashed', color = "Coral", legend_label="Y")
+f_force.scatter('t', 'torqueZ', source=source_control, marker = "+", line_dash='dashed', color = "Teal", legend_label="Z torque")
 
 # Map target from guidance to plots
 f_thrust.line('t', 'thrust', source=source_target, line_alpha=0.5, line_width = 3, color="Orange")
@@ -301,6 +329,11 @@ f_posZ.line('t', 'posZ', source=source_target, line_alpha=0.5, line_width = 3, c
 f_speedZ.line('t', 'speedZ', source=source_target, line_alpha=0.5, line_width = 3, color="Teal")
 f_mass.line('t', 'mass', source=source_target, line_alpha=0.5, line_width = 3, color="SeaGreen")
 
+# Selectable plot
+tab1 = Panel(child=f_posZ, title="Altitude [m]")
+tab2 = Panel(child=f_thrust, title="Main thrust [N]")
+tab3 = Panel(child=f_speedZ, title="Speed [m/s]")
+select_tabs = Tabs(tabs=[tab1, tab2, tab3],  width = 800, height = 600)
 
 # Create Checkbox to select type of data to display
 LABELS = ["Simulation", "Navigation", "Horizon"]
@@ -315,7 +348,7 @@ range_slider = RangeSlider(start=-1, end=40, value=(-1,30), step=.1, title="Time
 range_slider.on_change('value', update_range)
 
 # Create slider to change displayed guidance iteration
-iteration_slider = Slider(start=0, end=100, value=0, step=1, title="Guidance iteration", margin = (20,5,70,30))
+iteration_slider = Slider(start=0, end=100, value=0, step=1, title="Guidance iteration", width = 250, margin = (20,5,70,30))
 iteration_slider.on_change('value', update_iteration)
 
 # Create slider to change density of displayed navigation points
@@ -326,11 +359,11 @@ file_input = FileInput()
 file_input.on_change('filename', load_log_file)
 
 # Create complete layout with all widgets
-grid_plot = gridplot([[f_posXY, f_posZ, f_attitude], [f_speedXY, f_speedZ, f_omega], [f_mass, f_thrust, f_force]], plot_width=350, plot_height=230)
+grid_plot = gridplot([[f_posXY, f_posZ, f_attitude], [f_speedXY, f_speedZ, f_omega], [f_mass, f_thrust, f_force]])#, plot_width=350, plot_height=250)
 main_plot = column(range_slider, grid_plot)
 param_col = column(check_plot_type, file_input, iteration_slider, nav_slider)
 
-doc_layout = row(main_plot, param_col)
+doc_layout = row(main_plot, param_col, select_tabs)
 doc.add_root(doc_layout)
 
 
@@ -398,11 +431,11 @@ def update_plot():
                             omegaZ=nav_data[11][select_est][::point_spacing],
                             mass = nav_data[12][select_est][::point_spacing])
 
-    source_control.data=dict(t=control_data[4][select_control][::point_spacing], 
-                            thrust=control_data[2][select_control][::point_spacing],
-                            forceX=control_data[0][select_control][::point_spacing],
-                            forceY=control_data[1][select_control][::point_spacing],
-                            torqueZ=control_data[3][select_control][::point_spacing])
+    source_control.data=dict(t=control_data[4][select_control], 
+                            thrust=control_data[2][select_control],
+                            forceX=control_data[0][select_control],
+                            forceY=control_data[1][select_control],
+                            torqueZ=control_data[3][select_control])
 
   else: 
 
