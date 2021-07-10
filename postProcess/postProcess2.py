@@ -228,7 +228,7 @@ axe[2][2].legend()
 l = axe[2][3].plot(time_force[select_force], z_torque[select_force], label = 'Z torque [N.m]', color = "green")
 axe[2][3].legend()
 
-l = axe[2][1].plot(time_force[select_force], control_force[:, 2][select_force], label = "Commanded Z force [N]", linewidth=4)
+l = axe[2][1].plot(time_force[select_force], control_force[:, 2][select_force], label = "Commanded Z force [N]", linewidth=4, marker = "+")
 axe[2][1].legend()
 
 l = axe[2][1].plot(time_actuation[select_actuation], measured_force[:, 2][select_actuation], label = "Z force [N]", linewidth=2, marker = "+")

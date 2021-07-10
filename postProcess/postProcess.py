@@ -21,8 +21,8 @@ import time
 
 import rosbag
 
-tStart = -1
-tEnd = 40
+tStart = 0
+tEnd = 22
 
 # Simulated state
 position = np.zeros((1,3))
@@ -60,7 +60,7 @@ rospack = rospkg.RosPack()
 bag = rosbag.Bag(rospack.get_path('real_time_simulator') + '/log/log.bag')
 
 for topic, msg, t in bag.read_messages(topics=['/fsm_pub']):
-  if msg.state_machine == "Rail":
+  if msg.state_machine != "Idle":
     time_init = t.to_sec()
     break
   
@@ -174,6 +174,7 @@ select_actuation = np.logical_and(time_actuation>tStart, time_actuation <tEnd)
 select_target = np.zeros_like(time_target, dtype = bool)
 
 #select_target[::20,:] = True
+print(np.arccos(np.mean(- quaternion[:, 0][select]**2 - quaternion[:, 1][select]**2 + quaternion[:, 2][select]**2 + quaternion[:, 3][select]**2, axis = 0)))
 
 # Plot all flight data
 fig, axe = plt.subplots(3,4, figsize=(15,10))
@@ -238,7 +239,7 @@ axe[2][0].legend()
 
 # Plot Navigation estimated state (if needed)
 if 1:
-  point_spacing = 50
+  point_spacing = 150
 
   l = axe[0][0].plot(time_state_est[select_est][::point_spacing], position_est[:, 0][select_est][::point_spacing], label = 'Estimated X', marker = '+', linestyle=':', color = "c")
   l = axe[0][0].plot(time_state_est[select_est][::point_spacing], position_est[:, 1][select_est][::point_spacing], label = 'Estimated Y', marker = '+', linestyle=':', color = "r")
@@ -290,13 +291,13 @@ if 0:
 fig.tight_layout()
 
 # Plot speed difference to check kalman filter
-if 1:
+if 0:
   plt.rcParams.update({'font.size': 16})
   plot2 = plt.figure(2, figsize=(15,15))
 
   f_speed = interpolate.interp1d(time_state_est, speed_est[:, 2], fill_value = "extrapolate")
   f_alt = interpolate.interp1d(time_state_est, position_est[:, 2], fill_value = "extrapolate")
-  plt.plot(time_state[select], np.convolve(f_speed(time_state[select])- speed[:, 2][select], np.ones(20)/20, mode='same'))
+  plt.plot(time_state[select], np.convolve(f_speed(time_state[select])- speed[:, 2][select], np.ones(20)/20, mode='same'), "+")
   #plt.plot(time_state[select], f_alt(time_state[select])- position[:, 2][select])
   plt.xlabel("Time [s]")
   plt.ylabel("Speed error [m/s]")

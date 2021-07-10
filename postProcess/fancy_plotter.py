@@ -75,7 +75,7 @@ def fill_full_state(bag, topic = ""):
       i = i+1
 
   r = R.from_quat(attitude)
-  attitude_eul = r.as_euler('zyx', degrees=True)
+  attitude_eul = r.as_euler('xyz', degrees=True)
   
   np_data[6:9, :] = np.transpose(attitude_eul)
   np_data[9:12, :] = np.rad2deg(np_data[9:12, :] )
@@ -96,7 +96,7 @@ def load_log_file(attr, old, new):
 
   # Get first time message for synchronization
   for topic, msg, t in bag.read_messages(topics=['/fsm_pub']):
-    if msg.state_machine == "Rail":
+    if msg.state_machine != "Idle":
       time_init = t.to_sec()
       break
   
@@ -208,7 +208,7 @@ doc.theme = Theme(json={'attrs': {
     },
 
     'Title': {
-        'text_font_size': "14",
+        'text_font_size': "12px",
         'text_line_height': 0.3,
         'align':'center',
     },
@@ -223,10 +223,10 @@ doc.theme = Theme(json={'attrs': {
 # Create figures for plots
 f_posXY = figure(title="Position [m]", title_location="left", x_axis_label='Time [s]')
 f_posZ = figure(title="Position [m]", title_location="left", x_axis_label='Time [s]')
-f_speedXY = figure(title="Speed [m/s]", x_axis_label='Time [s]')
+f_speedXY = figure(title="Speed [m/s]", title_location="left", x_axis_label='Time [s]')
 f_speedZ = figure(title="Speed [m/s]", title_location="left", x_axis_label='Time [s]')
-f_attitude = figure(title="Euler angle [°]", x_axis_label='Time [s]')
-f_omega = figure(title="Angular rate [°/s]", x_axis_label='Time [s]')
+f_attitude = figure(title="Euler angle [°]", title_location="left", x_axis_label='Time [s]')
+f_omega = figure(title="Angular rate [°/s]", title_location="left", x_axis_label='Time [s]')
 f_thrust = figure(title="Main thrust [N]", title_location="left", x_axis_label='Time [s]')
 f_force = figure(title="Side force [N]", x_axis_label='Time [s]')
 f_mass = figure(title="Propellant mass [kg]", x_axis_label='Time [s]')
@@ -344,7 +344,7 @@ file_name = TextInput(margin = (20,5,70,30))
 file_name.on_change('value', load_log_file)
 
 # Create slider to change displayed time
-range_slider = RangeSlider(start=-1, end=40, value=(-1,30), step=.1, title="Time", width = 800, height = 10)
+range_slider = RangeSlider(start=-1, end=60, value=(-1,30), step=.1, title="Time", width = 800, height = 10)
 range_slider.on_change('value', update_range)
 
 # Create slider to change displayed guidance iteration
@@ -359,7 +359,7 @@ file_input = FileInput()
 file_input.on_change('filename', load_log_file)
 
 # Create complete layout with all widgets
-grid_plot = gridplot([[f_posXY, f_posZ, f_attitude], [f_speedXY, f_speedZ, f_omega], [f_mass, f_thrust, f_force]])#, plot_width=350, plot_height=250)
+grid_plot = gridplot([[f_posXY, f_posZ, f_attitude], [f_speedXY, f_speedZ, f_omega], [f_mass, f_thrust, f_force]], plot_width=450, plot_height=350)
 main_plot = column(range_slider, grid_plot)
 param_col = column(check_plot_type, file_input, iteration_slider, nav_slider)
 

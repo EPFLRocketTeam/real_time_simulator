@@ -192,10 +192,10 @@ class Simulator3D:
         # Drag
         # Drag coefficient
         cd = drag(self.rocket, alpha, v_mag, nu, a)*self.rocket.CD_fac  # !!! take 3000 us !!! -> actually half of the computation time
-        #print(cd, " ", alpha, " ", v_mag)
         
         # Drag force
         d = -0.5 * rho * Sm * cd * v_mag ** 2 * v_norm
+        #print(0.5 * rho * Sm * cd * v_norm)
 
         # Moment estimation ------------------------
 

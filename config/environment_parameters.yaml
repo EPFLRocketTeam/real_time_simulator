@@ -18,8 +18,8 @@ apogee: # targeted apogee
   - 0
   - 3000
 wind_speed: 10
-wind_direction: 0 # angle of wind from north, clockwise
-rail_azimuth: 0 # angle of rail from north, clock wise
-rail_zenith: 5 # angle of rail from vertical
+wind_direction: 0 # angle of wind from north, trigonmetric
+rail_azimuth: 0 # angle of rail from north, trigonmetric
+rail_zenith: 5 # angle of rail from vertical (trigonmetric inertial Y rotation)
 rocket_roll: 0 # initial roll angle around z rocket axis
 rail_length: 9
