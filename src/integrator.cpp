@@ -93,7 +93,7 @@ public:
         current_fsm.time_now = 0;
         current_fsm.state_machine = "Idle";
 
-        nh.param<double>("/environment/rail_length", rail_length, 0);
+        nh.param<double>("rail_length", rail_length, 0);
 
         nh.param<std::string>("start_trigger", start_trigger, "command");
 
@@ -107,10 +107,10 @@ public:
                 rocket.maxThrust[2], 0;
 
         //Get initial orientation and convert in Radians
-        float roll = 0, zenith = 0, azimuth = 0.0;
-        nh.getParam("/environment/rocket_roll", roll);
-        nh.getParam("/environment/rail_zenith", zenith);
-        nh.getParam("/environment/rail_azimuth", azimuth);
+        double roll = 0.0, zenith = 0.0, azimuth = 0.0;
+        nh.param<double>("rocket_roll", roll, 0.0);
+        nh.param<double>("rail_zenith", zenith, 0.0);
+        nh.param<double>("rail_azimuth", azimuth, 0.0);
 
         roll *= M_PI / 180;
         zenith *= M_PI / 180;
@@ -138,22 +138,22 @@ public:
 
     void initTopics(ros::NodeHandle &nh) {
         // Subscribe to commands
-        command_sub = nh.subscribe("commands", 10, &IntegratorNode::processCommand, this);
+        command_sub = nh.subscribe("/commands", 10, &IntegratorNode::processCommand, this);
         // Subscribe to control message from control node
-        rocket_control_sub = nh.subscribe("control_measured", 100,
+        rocket_control_sub = nh.subscribe("/control_measured", 100,
                                           &IntegratorNode::rocketControlCallback, this);
         // Subscribe to aero message
-        rocket_aero_sub = nh.subscribe("rocket_aero", 100, &IntegratorNode::rocketAeroCallback, this);
+        rocket_aero_sub = nh.subscribe("/rocket_aero", 100, &IntegratorNode::rocketAeroCallback, this);
         // Subscribe to perturbations message
-        rocket_perturbation_sub = nh.subscribe("disturbance_pub", 100,
+        rocket_perturbation_sub = nh.subscribe("/disturbance_pub", 100,
                                                &IntegratorNode::rocketPerturbationCallback, this);
 
         // Create state publisher
-        rocket_state_pub = nh.advertise<real_time_simulator::State>("rocket_state", 10);
+        rocket_state_pub = nh.advertise<real_time_simulator::State>("/rocket_state", 10);
         // Create fake sensors publisher
-        rocket_sensor_pub = nh.advertise<real_time_simulator::Sensor>("simu_sensor_pub", 10);
+        rocket_sensor_pub = nh.advertise<real_time_simulator::Sensor>("/simu_sensor_pub", 10);
         // Create timer publisher and associated thread (100Hz)
-        fsm_pub = nh.advertise<real_time_simulator::FSM>("fsm_pub", 10);
+        fsm_pub = nh.advertise<real_time_simulator::FSM>("/fsm_pub", 10);
     }
 
     void step() {
@@ -295,7 +295,7 @@ int main(int argc, char **argv) {
     /* ---------- ROS intitialization ---------- */
     // Init ROS fast integrator node
     ros::init(argc, argv, "integrator");
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("integrator");
 
     IntegratorNode integrator_node(nh);
 

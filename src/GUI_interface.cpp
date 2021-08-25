@@ -102,7 +102,7 @@ void init_marker(visualization_msgs::Marker &marker, std::string ns, float r, fl
 int main(int argc, char **argv) {
     // Init ROS time keeper node
     ros::init(argc, argv, "visualization");
-    ros::NodeHandle n;
+    ros::NodeHandle n("visualization");
 
     // Initialize state
     current_state.pose.orientation.x = 0;
@@ -126,12 +126,12 @@ int main(int argc, char **argv) {
 
 
     // Subscribe to state message
-    ros::Subscriber rocket_state_sub = n.subscribe("rocket_state", 1, rocket_stateCallback);
-    ros::Subscriber rocket_nav_state_sub = n.subscribe("kalman_rocket_state", 1, rocket_nav_stateCallback);
-    ros::Subscriber control_sub = n.subscribe("control_measured", 1, controlCallback);
-    ros::Subscriber mpc_horizon_sub = n.subscribe("mpc_horizon", 1, mpcHorizonCallback);
-    ros::Subscriber target_trajectory_sub = n.subscribe("target_trajectory", 1, targetTrajCallback);
-    ros::Subscriber target_apogee_sub = n.subscribe("target_apogee", 1, targetApogeeCallback);
+    ros::Subscriber rocket_state_sub = n.subscribe("/rocket_state", 1, rocket_stateCallback);
+    ros::Subscriber rocket_nav_state_sub = n.subscribe("/kalman_rocket_state", 1, rocket_nav_stateCallback);
+    ros::Subscriber control_sub = n.subscribe("/control_measured", 1, controlCallback);
+    ros::Subscriber mpc_horizon_sub = n.subscribe("/mpc_horizon", 1, mpcHorizonCallback);
+    ros::Subscriber target_trajectory_sub = n.subscribe("/target_trajectory", 1, targetTrajCallback);
+    ros::Subscriber target_apogee_sub = n.subscribe("/target_apogee", 1, targetApogeeCallback);
 
     // Moving frame
     tf2_ros::TransformBroadcaster tfb;
@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
 
     // Create RViz publisher (10Hz)
     ros::Rate r(10);
-    ros::Publisher viz_pub = n.advertise<visualization_msgs::Marker>("rocket_visualization", marker_id_count + 1);
+    ros::Publisher viz_pub = n.advertise<visualization_msgs::Marker>("/rocket_visualization", marker_id_count + 1);
 
     while (ros::ok()) {
         // Set the pose of the marker.  This is a full 6DOF pose relative to the frame/time specified in the header
