@@ -73,6 +73,11 @@ void targetTrajCallback(const real_time_simulator::Trajectory::ConstPtr &traj) {
     current_target_trajectory = *traj;
 }
 
+geometry_msgs::Vector3 current_target_apogee;
+void targetApogeeCallback(const geometry_msgs::Vector3::ConstPtr &target){
+    current_target_apogee = *target;
+}
+
 int marker_id_count = 0;
 
 void init_marker(visualization_msgs::Marker &marker, std::string ns, float r, float g, float b, float a = 1.0, std::string frame_id = "world") {
@@ -121,11 +126,12 @@ int main(int argc, char **argv) {
 
 
     // Subscribe to state message
-    ros::Subscriber rocket_state_sub = n.subscribe("rocket_state", 1000, rocket_stateCallback);
-    ros::Subscriber rocket_nav_state_sub = n.subscribe("kalman_rocket_state", 1000, rocket_nav_stateCallback);
-    ros::Subscriber control_sub = n.subscribe("control_measured", 1000, controlCallback);
-    ros::Subscriber mpc_horizon_sub = n.subscribe("mpc_horizon", 1000, mpcHorizonCallback);
-    ros::Subscriber target_trajectory_sub = n.subscribe("target_trajectory", 1000, targetTrajCallback);
+    ros::Subscriber rocket_state_sub = n.subscribe("rocket_state", 1, rocket_stateCallback);
+    ros::Subscriber rocket_nav_state_sub = n.subscribe("kalman_rocket_state", 1, rocket_nav_stateCallback);
+    ros::Subscriber control_sub = n.subscribe("control_measured", 1, controlCallback);
+    ros::Subscriber mpc_horizon_sub = n.subscribe("mpc_horizon", 1, mpcHorizonCallback);
+    ros::Subscriber target_trajectory_sub = n.subscribe("target_trajectory", 1, targetTrajCallback);
+    ros::Subscriber target_apogee_sub = n.subscribe("target_apogee", 1, targetApogeeCallback);
 
     // Moving frame
     tf2_ros::TransformBroadcaster tfb;
@@ -145,7 +151,7 @@ int main(int argc, char **argv) {
     transformStamped.transform.rotation.z = q.z();
     transformStamped.transform.rotation.w = q.w();
 
-    visualization_msgs::Marker rocket_marker, thrust_vector, mpc_horizon, target_trajectory, kalman_marker;
+    visualization_msgs::Marker rocket_marker, thrust_vector, mpc_horizon, target_trajectory, kalman_marker, target_apogee;
 
     float stl_alpha;
     n.getParam("/visualization/stl_alpha", stl_alpha);
@@ -155,6 +161,7 @@ int main(int argc, char **argv) {
     init_marker(thrust_vector, "thrust vector", 1, 0.5, 0);
     init_marker(mpc_horizon, "mpc horizon", 0.1, 0.3, 0.7, 0.4);
     init_marker(target_trajectory, "target trajectory", 0.15, 0.5, 0.25, 0.4);
+    init_marker(target_apogee, "target trajectory", 0.15, 0.5, 0.25, 0.5);
 
     //setup rocket marker
     rocket_marker.type = visualization_msgs::Marker::MESH_RESOURCE;
@@ -202,6 +209,13 @@ int main(int argc, char **argv) {
     //target trajectory
     target_trajectory.type = visualization_msgs::Marker::LINE_STRIP;
     target_trajectory.scale.x = line_width;
+
+    //target apogee
+    target_apogee.type = visualization_msgs::Marker::SPHERE;
+    double sphere_diameter = 0.1;
+    target_apogee.scale.x = sphere_diameter;
+    target_apogee.scale.y = sphere_diameter;
+    target_apogee.scale.z = sphere_diameter;
 
     // Create RViz publisher (10Hz)
     ros::Rate r(10);
@@ -275,6 +289,13 @@ int main(int argc, char **argv) {
         target_trajectory.header.stamp = ros::Time::now();
         target_trajectory.lifetime = ros::Duration();
 
+        //target trajectory
+        target_apogee.header.stamp = ros::Time::now();
+        target_apogee.lifetime = ros::Duration();
+        target_apogee.pose.position.x = current_target_apogee.x;
+        target_apogee.pose.position.y = current_target_apogee.y;
+        target_apogee.pose.position.z = current_target_apogee.z;
+        
         target_trajectory.points.clear();
         for (auto &traj_point : current_target_trajectory.trajectory) {
             geometry_msgs::Point point;
@@ -299,6 +320,7 @@ int main(int argc, char **argv) {
         viz_pub.publish(mpc_horizon);
         viz_pub.publish(target_trajectory);
         viz_pub.publish(kalman_marker);
+        viz_pub.publish(target_apogee);
         ros::spinOnce();
 
         r.sleep();
