@@ -76,6 +76,8 @@ private:
     ros::Publisher rocket_state_pub;
     ros::Publisher rocket_sensor_pub;
     ros::Publisher fsm_pub;
+
+    std::string start_trigger;
 public:
     float integration_period = 10e-3;
 
@@ -92,6 +94,8 @@ public:
         current_fsm.state_machine = "Idle";
 
         nh.param<double>("/environment/rail_length", rail_length, 0);
+
+        nh.param<std::string>("start_trigger", start_trigger, "command");
 
         // Initialize external forces
         aero_control << 0, 0,
@@ -230,6 +234,10 @@ public:
         rocket_control << control_law->force.x, control_law->torque.x,
                 control_law->force.y, control_law->torque.y,
                 control_law->force.z, control_law->torque.z;
+        if(current_fsm.state_machine != "Launch" && start_trigger == "Control"){
+            time_zero = ros::Time::now().toSec();
+            current_fsm.state_machine = "Launch";
+        }
     }
 
 // Callback function to store last received aero force and torque
@@ -249,7 +257,7 @@ public:
     void processCommand(const std_msgs::String &command) {
         if (command.data.compare("Coast") == 0) {
             current_fsm.state_machine = "Coast";
-        } else {
+        } else if(start_trigger == "Command") {
             //received launch command
             time_zero = ros::Time::now().toSec();
             if (rail_length == 0) current_fsm.state_machine = "Launch";
