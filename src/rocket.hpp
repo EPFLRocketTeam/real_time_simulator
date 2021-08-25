@@ -68,7 +68,7 @@ public:
     float baro_noise, baro_bias;
 
     using state = Matrix<double, 14, 1>;
-    using control = Matrix<double, 4, 1>;
+    using control = Matrix<double, 3, 2>;
 
     void update_CM(float current_prop_mass) {
         total_CM = total_length - (dry_CM * dry_mass + propellant_CM * current_prop_mass) /
@@ -144,9 +144,9 @@ public:
 
     void dynamics_flight(const state &x,
                          state &xdot,
-                         Matrix<double, 3, 2> &rocket_control,
-                         Matrix<double, 3, 2> &aero_control,
-                         Matrix<double, 3, 2> &perturbation_control,
+                         control &rocket_control,
+                         control &aero_control,
+                         control &perturbation_control,
                          const double &t) {
         // -------------- Simulation variables -----------------------------
         double g0 = 3.986e14 / pow(6371e3 + h0 + x(2), 2);  // Earth gravity in [m/s^2]
@@ -215,8 +215,8 @@ public:
 
     void dynamics_rail(const state &x,
                        state &xdot,
-                       Matrix<double, 3, 2> &rocket_control,
-                       Matrix<double, 3, 2> &aero_control,
+                       control &rocket_control,
+                       control &aero_control,
                        const double &t) {
         // -------------- Simulation variables -----------------------------
         double g0 = 3.986e14 / pow(6371e3 + x(2), 2);  // Earth gravity in [m/s^2]

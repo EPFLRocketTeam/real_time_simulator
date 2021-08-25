@@ -56,11 +56,11 @@ private:
     Rocket rocket;
 
     //last updated rocket force & torque
-    Eigen::Matrix<double, 3, 2> rocket_control;
+    Rocket::control rocket_control;
     //last updated aerodynamic force & torque
-    Eigen::Matrix<double, 3, 2> aero_control;
+    Rocket::control aero_control;
     //last updated perturbations force & torque
-    Eigen::Matrix<double, 3, 2> perturbation_control;
+    Rocket::control perturbation_control;
     //last requested fsm
     real_time_simulator::FSM current_fsm;
     double time_zero;
