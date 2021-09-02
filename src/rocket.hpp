@@ -70,7 +70,7 @@ public:
     using state = Matrix<double, 14, 1>;
     using control = Matrix<double, 3, 2>;
 
-    void update_CM(float current_prop_mass) {
+    void updateCM(float current_prop_mass) {
         total_CM = total_length - (dry_CM * dry_mass + propellant_CM * current_prop_mass) /
                                   (dry_mass + current_prop_mass); // From aft of rocket
 
@@ -127,7 +127,7 @@ public:
 
         total_Inertia[2] = dry_Inertia[2];
 
-        update_CM(propellant_mass);
+        updateCM(propellant_mass);
 
         n.getParam("/perturbation/acc_noise", acc_noise);
         n.getParam("/perturbation/acc_bias", acc_bias);
@@ -142,12 +142,12 @@ public:
 
     }
 
-    void dynamics_flight(const state &x,
-                         state &xdot,
-                         control &rocket_control,
-                         control &aero_control,
-                         control &perturbation_control,
-                         const double &t) {
+    void flightDynamics(const state &x,
+                        state &xdot,
+                        control &rocket_control,
+                        control &aero_control,
+                        control &perturbation_control,
+                        const double &t) {
         // -------------- Simulation variables -----------------------------
         double g0 = 3.986e14 / pow(6371e3 + h0 + x(2), 2);  // Earth gravity in [m/s^2]
 
@@ -213,11 +213,11 @@ public:
     }
 
 
-    void dynamics_rail(const state &x,
-                       state &xdot,
-                       control &rocket_control,
-                       control &aero_control,
-                       const double &t) {
+    void railDynamics(const state &x,
+                      state &xdot,
+                      control &rocket_control,
+                      control &aero_control,
+                      const double &t) {
         // -------------- Simulation variables -----------------------------
         double g0 = 3.986e14 / pow(6371e3 + x(2), 2);  // Earth gravity in [m/s^2]
 
