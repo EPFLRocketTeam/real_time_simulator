@@ -76,6 +76,8 @@ private:
     ros::Publisher rocket_state_pub;
     ros::Publisher rocket_sensor_pub;
     ros::Publisher fsm_pub;
+
+    std::string start_trigger;
 public:
     float integration_period = 10e-3;
 
@@ -89,9 +91,11 @@ public:
 
         // Initialize fsm
         current_fsm.time_now = 0;
-        current_fsm.state_machine = "Idle";
+        current_fsm.state_machine = real_time_simulator::FSM::IDLE;
 
-        nh.param<double>("/environment/rail_length", rail_length, 0);
+        nh.param<double>("rail_length", rail_length, 0);
+
+        nh.param<std::string>("start_trigger", start_trigger, "command");
 
         // Initialize external forces
         aero_control << 0, 0,
@@ -103,10 +107,10 @@ public:
                 rocket.maxThrust[2], 0;
 
         //Get initial orientation and convert in Radians
-        float roll = 0, zenith = 0, azimuth = 0.0;
-        nh.getParam("/environment/rocket_roll", roll);
-        nh.getParam("/environment/rail_zenith", zenith);
-        nh.getParam("/environment/rail_azimuth", azimuth);
+        double roll = 0.0, zenith = 0.0, azimuth = 0.0;
+        nh.param<double>("rocket_roll", roll, 0.0);
+        nh.param<double>("rail_zenith", zenith, 0.0);
+        nh.param<double>("rail_azimuth", azimuth, 0.0);
 
         roll *= M_PI / 180;
         zenith *= M_PI / 180;
@@ -134,65 +138,65 @@ public:
 
     void initTopics(ros::NodeHandle &nh) {
         // Subscribe to commands
-        command_sub = nh.subscribe("commands", 10, &IntegratorNode::processCommand, this);
+        command_sub = nh.subscribe("/commands", 10, &IntegratorNode::processCommand, this);
         // Subscribe to control message from control node
-        rocket_control_sub = nh.subscribe("control_measured", 100,
+        rocket_control_sub = nh.subscribe("/control_measured", 100,
                                           &IntegratorNode::rocketControlCallback, this);
         // Subscribe to aero message
-        rocket_aero_sub = nh.subscribe("rocket_aero", 100, &IntegratorNode::rocketAeroCallback, this);
+        rocket_aero_sub = nh.subscribe("/rocket_aero", 100, &IntegratorNode::rocketAeroCallback, this);
         // Subscribe to perturbations message
-        rocket_perturbation_sub = nh.subscribe("disturbance_pub", 100,
+        rocket_perturbation_sub = nh.subscribe("/disturbance_pub", 100,
                                                &IntegratorNode::rocketPerturbationCallback, this);
 
         // Create state publisher
-        rocket_state_pub = nh.advertise<real_time_simulator::State>("rocket_state", 10);
+        rocket_state_pub = nh.advertise<real_time_simulator::State>("/rocket_state", 10);
         // Create fake sensors publisher
-        rocket_sensor_pub = nh.advertise<real_time_simulator::Sensor>("simu_sensor_pub", 10);
+        rocket_sensor_pub = nh.advertise<real_time_simulator::Sensor>("/simu_sensor_pub", 10);
         // Create timer publisher and associated thread (100Hz)
-        fsm_pub = nh.advertise<real_time_simulator::FSM>("fsm_pub", 10);
+        fsm_pub = nh.advertise<real_time_simulator::FSM>("/fsm_pub", 10);
     }
 
     void step() {
         // State machine ------------------------------------------
-        if (current_fsm.state_machine.compare("Idle") == 0) {
+        if (current_fsm.state_machine == real_time_simulator::FSM::IDLE) {
 
         } else {
             // Update current time
             current_fsm.time_now = ros::Time::now().toSec() - time_zero;
 
-            if (current_fsm.state_machine.compare("Rail") == 0) {
+            if (current_fsm.state_machine == real_time_simulator::FSM::RAIL) {
                 auto dynamics_rail = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
-                    rocket.dynamics_rail(x, xdot, rocket_control, aero_control, t);
+                    rocket.railDynamics(x, xdot, rocket_control, aero_control, t);
                 };
                 stepper.do_step(dynamics_rail, X, 0, xout, 0 + integration_period);
 
                 // End of rail -> Launch state
                 if (X(2) > rail_length) {
-                    current_fsm.state_machine = "Launch";
+                    current_fsm.state_machine = real_time_simulator::FSM::LAUNCH;
                 }
-            } else if (current_fsm.state_machine.compare("Launch") == 0) {
+            } else if (current_fsm.state_machine == real_time_simulator::FSM::LAUNCH) {
                 auto dynamics_flight = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
-                    rocket.dynamics_flight(x, xdot, rocket_control, aero_control, perturbation_control, t);
+                    rocket.flightDynamics(x, xdot, rocket_control, aero_control, perturbation_control, t);
                 };
                 stepper.do_step(dynamics_flight, X, 0, xout, 0 + integration_period);
 
                 // End of burn -> no more thrust
                 if (X(13) < 0) {
-                    current_fsm.state_machine = "Coast";
+                    current_fsm.state_machine = real_time_simulator::FSM::COAST;
                 }
-            } else if (current_fsm.state_machine.compare("Coast") == 0) {
+            } else if (current_fsm.state_machine == real_time_simulator::FSM::COAST) {
                 rocket_control << 0, 0,
                         0, 0,
                         0, 0;
                 auto dynamics_flight = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
-                    rocket.dynamics_flight(x, xdot, rocket_control, aero_control, perturbation_control, t);
+                    rocket.flightDynamics(x, xdot, rocket_control, aero_control, perturbation_control, t);
                 };
                 stepper.do_step(dynamics_flight, X, 0, xout, 0 + integration_period);
             }
 
             X = xout;
 
-            rocket.update_CM(X(13));
+            rocket.updateCM(X(13));
         }
 
         // Parse state and publish it on the /fast_rocket_state topic
@@ -230,6 +234,10 @@ public:
         rocket_control << control_law->force.x, control_law->torque.x,
                 control_law->force.y, control_law->torque.y,
                 control_law->force.z, control_law->torque.z;
+        if (current_fsm.state_machine == real_time_simulator::FSM::IDLE && start_trigger == "Control") {
+            time_zero = ros::Time::now().toSec();
+            current_fsm.state_machine = real_time_simulator::FSM::LAUNCH;
+        }
     }
 
 // Callback function to store last received aero force and torque
@@ -247,39 +255,43 @@ public:
     }
 
     void processCommand(const std_msgs::String &command) {
-        if (command.data.compare("Coast") == 0) {
-            current_fsm.state_machine = "Coast";
-        } else {
+        if (command.data == "Coast") {
+            current_fsm.state_machine = real_time_simulator::FSM::COAST;
+        } else if (command.data == "Stop") {
+            current_fsm.state_machine = real_time_simulator::FSM::STOP;
+        }
+        else if (start_trigger == "Command") {
             //received launch command
             time_zero = ros::Time::now().toSec();
-            if (rail_length == 0) current_fsm.state_machine = "Launch";
-            else current_fsm.state_machine = "Rail";
+            if (rail_length == 0) current_fsm.state_machine = real_time_simulator::FSM::LAUNCH;
+            else current_fsm.state_machine = real_time_simulator::FSM::RAIL;
         }
     }
 
-    void send_fake_sensor() {
-        // construct a trivial random generator engine from a time-based seed:
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::default_random_engine generator(seed);
+void sendFakeSensor() {
+    // construct a trivial random generator engine from a time-based seed:
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
 
-        std::normal_distribution<double> acc_noise(rocket.acc_bias, rocket.acc_noise);
-        std::normal_distribution<double> gyro_noise(rocket.gyro_bias, rocket.gyro_noise);
-        std::normal_distribution<double> baro_noise(rocket.baro_bias, rocket.baro_noise);
+    std::normal_distribution<double> acc_noise(rocket.acc_bias, rocket.acc_noise);
+    std::normal_distribution<double> gyro_noise(rocket.gyro_bias, rocket.gyro_noise);
+    std::normal_distribution<double> baro_noise(rocket.baro_bias, rocket.baro_noise);
 
-        real_time_simulator::Sensor sensor_msg;
+    real_time_simulator::Sensor sensor_msg;
 
-        sensor_msg.IMU_acc.x = rocket.sensor_acc(0) + acc_noise(generator);
-        sensor_msg.IMU_acc.y = rocket.sensor_acc(1) + acc_noise(generator);
-        sensor_msg.IMU_acc.z = rocket.sensor_acc(2) + acc_noise(generator);
+    sensor_msg.IMU_acc.x = rocket.sensor_acc(0) + acc_noise(generator);
+    sensor_msg.IMU_acc.y = rocket.sensor_acc(1) + acc_noise(generator);
+    sensor_msg.IMU_acc.z = rocket.sensor_acc(2) + acc_noise(generator);
 
-        sensor_msg.IMU_gyro.x = rocket.sensor_gyro(0) + gyro_noise(generator);
-        sensor_msg.IMU_gyro.y = rocket.sensor_gyro(1) + gyro_noise(generator);
-        sensor_msg.IMU_gyro.z = rocket.sensor_gyro(2) + gyro_noise(generator);
+    sensor_msg.IMU_gyro.x = rocket.sensor_gyro(0) + gyro_noise(generator);
+    sensor_msg.IMU_gyro.y = rocket.sensor_gyro(1) + gyro_noise(generator);
+    sensor_msg.IMU_gyro.z = rocket.sensor_gyro(2) + gyro_noise(generator);
 
-        sensor_msg.baro_height = rocket.sensor_baro + baro_noise(generator);
+    sensor_msg.baro_height = rocket.sensor_baro + baro_noise(generator);
 
-        rocket_sensor_pub.publish(sensor_msg);
-    }
+    rocket_sensor_pub.publish(sensor_msg);
+}
+
 };
 
 
@@ -287,7 +299,7 @@ int main(int argc, char **argv) {
     /* ---------- ROS intitialization ---------- */
     // Init ROS fast integrator node
     ros::init(argc, argv, "integrator");
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("integrator");
 
     IntegratorNode integrator_node(nh);
 
@@ -300,7 +312,7 @@ int main(int argc, char **argv) {
     double sensor_period;
     nh.getParam("/perturbation/sensor_period", sensor_period);
     ros::Timer sensor_thread = nh.createTimer(ros::Duration(sensor_period), [&](const ros::TimerEvent &) {
-        integrator_node.send_fake_sensor();
+        integrator_node.sendFakeSensor();
     });
 
     // Automatic callback of service and publisher from here
