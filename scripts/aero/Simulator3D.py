@@ -10,25 +10,25 @@ import time
 from scipy.integrate import ode, solve_ivp
 from dataclasses import dataclass
 
-from Rocket.Stage import Stage
-from Rocket.Rocket import Rocket
-from Rocket.Body import Body
-from Functions.Models.stdAtmosUS import stdAtmosUS
-from Functions.Models.drag import drag
-from Functions.Models.Nose_drag import Nose_drag
-from Functions.Models.drag_shuriken import drag_shuriken
-from Functions.Models.wind_model import wind_model
-from Functions.Models.normal_lift import normal_lift
-from Functions.Math.normalize_vector import normalize_vector
-from Functions.Math.rotmat import rotmat
-from Functions.Math.quat2rotmat import quat2rotmat
-from Functions.Math.rot2anglemat import rot2anglemat
-from Functions.Math.quat_evolve import quat_evolve
-from Functions.Math.rot2quat import rot2quat
-from Functions.Models.pitch_damping_moment import pitch_damping_moment
-from Functions.Models.Mass_Non_Lin import Mass_Non_Lin
-from Functions.Models.Thrust import Thrust
-from Functions.Models.Mass_Properties import Mass_Properties
+from aero.Rocket.Stage import Stage
+from aero.Rocket.Rocket import Rocket
+from aero.Rocket.Body import Body
+from aero.Functions.Models.stdAtmosUS import stdAtmosUS
+from aero.Functions.Models.drag import drag
+from aero.Functions.Models.Nose_drag import Nose_drag
+from aero.Functions.Models.drag_shuriken import drag_shuriken
+from aero.Functions.Models.wind_model import wind_model
+from aero.Functions.Models.normal_lift import normal_lift
+from aero.Functions.Math.normalize_vector import normalize_vector
+from aero.Functions.Math.rotmat import rotmat
+from aero.Functions.Math.quat2rotmat import quat2rotmat
+from aero.Functions.Math.rot2anglemat import rot2anglemat
+from aero.Functions.Math.quat_evolve import quat_evolve
+from aero.Functions.Math.rot2quat import rot2quat
+from aero.Functions.Models.pitch_damping_moment import pitch_damping_moment
+from aero.Functions.Models.Mass_Non_Lin import Mass_Non_Lin
+from aero.Functions.Models.Thrust import Thrust
+from aero.Functions.Models.Mass_Properties import Mass_Properties
 
 
 class Simulator3D:

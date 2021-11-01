@@ -1,6 +1,6 @@
-from Rocket import Rocket
+from aero.Rocket import Rocket
 import numpy as np
-from Functions.Models.Thrust import Thrust
+from aero.Functions.Models.Thrust import Thrust
 
 def Mass_Non_Lin(t: float, Rocket: Rocket):
 

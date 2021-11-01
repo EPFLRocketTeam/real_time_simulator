@@ -31,23 +31,23 @@ from scipy.integrate import ode, solve_ivp
 import time
 import yaml
 
-from Rocket.Body import Body
-from Rocket.Fins import Fins
-from Rocket.Motor import Motor
-from Rocket.Rocket import Rocket
-from Rocket.Stage import Stage
-from Functions import Math
-from Functions.Math.quat2rotmat import quat2rotmat
-from Functions.Math.rot2anglemat import rot2anglemat
-from Functions.Math.normalize_vector import normalize_vector
-from Functions.Math.quat_evolve import quat_evolve
-from Functions.Models.wind_model import wind_model
-from Functions.Models.robert_galejs_lift import robert_galejs_lift
-from Functions.Models.barrowman_lift import barrowman_lift
-from Functions.Math.rot2quat import rot2quat
-from Functions.Models.stdAtmosUS import stdAtmosUS
-from Simulator3D import Simulator3D
-from Functions.Models.stdAtmos import stdAtmos
+from aero.Rocket.Body import Body
+from aero.Rocket.Fins import Fins
+from aero.Rocket.Motor import Motor
+from aero.Rocket.Rocket import Rocket
+from aero.Rocket.Stage import Stage
+from aero.Functions import Math
+from aero.Functions.Math.quat2rotmat import quat2rotmat
+from aero.Functions.Math.rot2anglemat import rot2anglemat
+from aero.Functions.Math.normalize_vector import normalize_vector
+from aero.Functions.Math.quat_evolve import quat_evolve
+from aero.Functions.Models.wind_model import wind_model
+from aero.Functions.Models.robert_galejs_lift import robert_galejs_lift
+from aero.Functions.Models.barrowman_lift import barrowman_lift
+from aero.Functions.Math.rot2quat import rot2quat
+from aero.Functions.Models.stdAtmosUS import stdAtmosUS
+from aero.Simulator3D import Simulator3D
+from aero.Functions.Models.stdAtmos import stdAtmos
 
 
 
@@ -94,7 +94,7 @@ def init_integrator():
 
 	rocket_body.add_fins(finDefData)
 
-	rocket_body.add_motor('Motors/M2400T.txt')
+	#rocket_body.add_motor('../Motors/M2400T.txt')
   
 	main_parachute_params = [True, 23.14, 100]
 	rocket_body.add_parachute(main_parachute_params)

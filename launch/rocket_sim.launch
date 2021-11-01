@@ -24,7 +24,7 @@
   
   <node name="GUI_interface" pkg="real_time_simulator" type="GUI_interface" />
   
-  <node name="rqt_gui" pkg="rqt_gui" type="rqt_gui" args="--perspective-file $(find real_time_simulator)/GUI/rocket_GUI.perspective"/>
+  <node name="rqt_gui" pkg="rqt_gui" type="rqt_gui" args="--perspective-file $(find real_time_simulator)/GUI/rocket_GUI.perspective"/> 
   <node pkg="rosbag" type="record" name="recorder" args="record -a -O $(find real_time_simulator)/log/log.bag"/>
 
 </launch>

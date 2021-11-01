@@ -3,7 +3,7 @@
 # Date   : 5 May 2019
 # EPFL Rocket Team, 1015 Lausanne, Switzerland
 
-from Rocket.Stage import Stage
+from aero.Rocket.Stage import Stage
 from scipy.interpolate import interp1d
 import numpy as np
 

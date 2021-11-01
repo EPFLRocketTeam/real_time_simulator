@@ -1,5 +1,5 @@
-from Rocket import Rocket
-from Functions.Models.Thrust import Thrust
+from aero.Rocket import Rocket
+from aero.Functions.Models.Thrust import Thrust
 import numpy as np
 
 

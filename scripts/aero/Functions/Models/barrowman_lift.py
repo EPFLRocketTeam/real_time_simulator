@@ -2,7 +2,7 @@
 # Last update : 16 October 2020
 # EPFL Rocket Team, 1015 Lausanne, Switzerland
 
-from Rocket.Rocket import Rocket
+from aero.Rocket.Rocket import Rocket
 import math
 import numpy as np
 

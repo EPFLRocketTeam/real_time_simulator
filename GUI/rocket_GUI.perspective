@@ -1,11 +1,36 @@
 {
   "keys": {},
   "groups": {
+    "mainwindow": {
+      "keys": {
+        "geometry": {
+          "repr(QByteArray.hex)": "QtCore.QByteArray(b'01d9d0cb000300000000002f0000003600000bfc000005ef0000002f0000008000000bfc000005ef00000000000000000a000000002f0000008000000bfc000005ef')",
+          "type": "repr(QByteArray.hex)",
+          "pretty-print": "     / 6     /            /      "
+        },
+        "state": {
+          "repr(QByteArray.hex)": "QtCore.QByteArray(b'000000ff00000000fd000000010000000300000bce0000051afc0100000004fc00000000000005860000058600fffffffc0200000002fb00000026007200710074005f007200760069007a005f005f005200560069007a005f005f0031005f005f010000002b000003cd0000016300fffffffb0000006a007200710074005f0065007a005f007000750062006c00690073006800650072005f005f0045007a005000750062006c00690073006800650072005f005f0031005f005f0045007a005000750062006c006900730068006500720050006c007500670069006e00550069010000040400000141000000e600fffffffc000005920000063c0000063c00fffffffc0200000003fb00000030005f005f0044006f0063006b0057006900640067006500740043006f006e007400610069006e00650072005f005f00310100000016000001a90000000000000000fc0000002b000003650000027c00fffffffc0100000002fc00000592000003180000031800fffffffc0200000002fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0031005f005f00440061007400610050006c006f0074005700690064006700650074010000002b000001af0000013800fffffffb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0032005f005f00440061007400610050006c006f007400570069006400670065007401000001e6000001aa0000013800fffffffc000008b6000003180000031800fffffffc0200000002fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0034005f005f00440061007400610050006c006f0074005700690064006700650074010000002b000001af0000013800fffffffb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0036005f005f00440061007400610050006c006f007400570069006400670065007401000001e6000001aa0000013800fffffffc0000039c000001a90000013800fffffffc0100000002fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0033005f005f00440061007400610050006c006f00740057006900640067006500740100000592000003180000031800fffffffb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0035005f005f00440061007400610050006c006f007400570069006400670065007401000008b6000003180000031800fffffffb00000030005f005f0044006f0063006b0057006900640067006500740043006f006e007400610069006e00650072005f005f003201000004360000013f0000000000000000fb0000004c007200710074005f0063006f006e0073006f006c0065005f005f0043006f006e0073006f006c0065005f005f0031005f005f0043006f006e0073006f006c0065005700690064006700650074010000078e0000019f000000000000000000000bce0000000000000004000000040000000800000008fc00000001000000030000000100000036004d0069006e0069006d0069007a006500640044006f0063006b00570069006400670065007400730054006f006f006c0062006100720000000000ffffffff0000000000000000')",
+          "type": "repr(QByteArray.hex)",
+          "pretty-print": "                                                  +   c                                                             A                 0__DockWidgetContainer__1          + e |                  Brqt_plot__Plot__1__DataPlotWidget          Brqt_plot__Plot__2__DataPlotWidget                                                         +   8                                           8               Brqt_plot__Plot__3__DataPlotWidget          Brqt_plot__Plot__5__DataPlotWidget          0__DockWidgetContainer__2          Lrqt_console__Console__1__ConsoleWidget                            6MinimizedDockWidgetsToolbar        "
+        }
+      },
+      "groups": {
+        "toolbar_areas": {
+          "keys": {
+            "MinimizedDockWidgetsToolbar": {
+              "repr": "8",
+              "type": "repr"
+            }
+          },
+          "groups": {}
+        }
+      }
+    },
     "pluginmanager": {
       "keys": {
         "running-plugins": {
-          "type": "repr",
-          "repr": "{u'rqt_rviz/RViz': [1], u'rqt_ez_publisher/EzPublisher': [1], u'rqt_plot/Plot': [3, 6, 5, 4, 2, 1]}"
+          "repr": "{'rqt_ez_publisher/EzPublisher': [1], 'rqt_plot/Plot': [3, 6, 5, 4, 2, 1], 'rqt_rviz/RViz': [1]}",
+          "type": "repr"
         }
       },
       "groups": {
@@ -14,30 +39,30 @@
           "groups": {
             "dock_widget": {
               "keys": {
+                "dock_widget_title": {
+                  "repr": "'Container'",
+                  "type": "repr"
+                },
                 "dockable": {
-                  "type": "repr",
-                  "repr": "u'true'"
+                  "repr": "'true'",
+                  "type": "repr"
                 },
                 "parent": {
-                  "type": "repr",
-                  "repr": "None"
-                },
-                "dock_widget_title": {
-                  "type": "repr",
-                  "repr": "u'Container'"
+                  "repr": "None",
+                  "type": "repr"
                 }
               },
               "groups": {
                 "mainwindow": {
                   "keys": {
                     "geometry": {
+                      "repr(QByteArray.hex)": "QtCore.QByteArray(b'01d9d0cb0002000000000000000000150000013e000001bc00000000000000150000013e000001bc00000000000000000a00')",
                       "type": "repr(QByteArray.hex)",
-                      "repr(QByteArray.hex)": "QtCore.QByteArray('01d9d0cb0002000000000000000000150000013e000001bc00000000000000150000013e000001bc00000000000000000a00')",
                       "pretty-print": "         >       >       "
                     },
                     "state": {
+                      "repr(QByteArray.hex)": "QtCore.QByteArray(b'000000ff00000000fd00000001000000020000013f000001a8fc0100000001fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0032005f005f00440061007400610050006c006f007400570069006400670065007401000000000000013f0000013f00ffffff0000013f0000000000000004000000040000000800000008fc00000000')",
                       "type": "repr(QByteArray.hex)",
-                      "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff00000000fd00000001000000020000013f000001a8fc0100000001fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0032005f005f00440061007400610050006c006f007400570069006400670065007401000000000000013f0000013f00ffffff0000013f0000000000000004000000040000000800000008fc00000000')",
                       "pretty-print": "                 Brqt_plot__Plot__2__DataPlotWidget                       "
                     }
                   },
@@ -47,70 +72,35 @@
             }
           }
         },
-        "plugin__rqt_rviz__RViz__1": {
-          "keys": {},
-          "groups": {
-            "dock_widget__": {
-              "keys": {
-                "dockable": {
-                  "type": "repr",
-                  "repr": "True"
-                },
-                "parent": {
-                  "type": "repr",
-                  "repr": "None"
-                },
-                "dock_widget_title": {
-                  "type": "repr",
-                  "repr": "u'rocket_config.rviz[*] - RViz'"
-                }
-              },
-              "groups": {}
-            },
-            "plugin": {
-              "keys": {
-                "rviz_config_file": {
-                  "type": "repr",
-                  "repr": "'*your real_time_simulator absolute path*/GUI/rocket_config.rviz'"
-                },
-                "hide_menu": {
-                  "type": "repr",
-                  "repr": "False"
-                }
-              },
-              "groups": {}
-            }
-          }
-        },
         "plugin____DockWidgetContainer__2": {
           "keys": {},
           "groups": {
             "dock_widget": {
               "keys": {
+                "dock_widget_title": {
+                  "repr": "'Container (2)'",
+                  "type": "repr"
+                },
                 "dockable": {
-                  "type": "repr",
-                  "repr": "u'true'"
+                  "repr": "'true'",
+                  "type": "repr"
                 },
                 "parent": {
-                  "type": "repr",
-                  "repr": "None"
-                },
-                "dock_widget_title": {
-                  "type": "repr",
-                  "repr": "u'Container (2)'"
+                  "repr": "None",
+                  "type": "repr"
                 }
               },
               "groups": {
                 "mainwindow": {
                   "keys": {
                     "geometry": {
+                      "repr(QByteArray.hex)": "QtCore.QByteArray(b'01d9d0cb0002000000000000000000150000013e0000036d00000000000000150000013e0000036d00000000000000000a00')",
                       "type": "repr(QByteArray.hex)",
-                      "repr(QByteArray.hex)": "QtCore.QByteArray('01d9d0cb0002000000000000000000150000013e0000036d00000000000000150000013e0000036d00000000000000000a00')",
                       "pretty-print": "         > m     > m     "
                     },
                     "state": {
+                      "repr(QByteArray.hex)": "QtCore.QByteArray(b'000000ff00000000fd00000001000000020000013f00000359fc0100000001fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0033005f005f00440061007400610050006c006f007400570069006400670065007401000000000000013f0000013f00ffffff0000013f0000000000000004000000040000000800000008fc00000000')",
                       "type": "repr(QByteArray.hex)",
-                      "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff00000000fd00000001000000020000013f00000359fc0100000001fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0033005f005f00440061007400610050006c006f007400570069006400670065007401000000000000013f0000013f00ffffff0000013f0000000000000004000000040000000800000008fc00000000')",
                       "pretty-print": "                 Brqt_plot__Plot__3__DataPlotWidget                       "
                     }
                   },
@@ -120,285 +110,95 @@
             }
           }
         },
-        "plugin__rqt_plot__Plot__1": {
+        "plugin__rqt_console__Console__1": {
           "keys": {},
           "groups": {
-            "dock_widget__DataPlotWidget": {
+            "dock_widget__ConsoleWidget": {
               "keys": {
+                "dock_widget_title": {
+                  "repr": "'Console'",
+                  "type": "repr"
+                },
                 "dockable": {
-                  "type": "repr",
-                  "repr": "True"
+                  "repr": "True",
+                  "type": "repr"
                 },
                 "parent": {
-                  "type": "repr",
-                  "repr": "None"
-                },
-                "dock_widget_title": {
-                  "type": "repr",
-                  "repr": "u'MatPlot'"
+                  "repr": "None",
+                  "type": "repr"
                 }
               },
               "groups": {}
             },
             "plugin": {
               "keys": {
-                "autoscroll": {
-                  "type": "repr",
-                  "repr": "True"
+                "exclude_filters": {
+                  "repr": "'severity'",
+                  "type": "repr"
                 },
-                "plot_type": {
-                  "type": "repr",
-                  "repr": "0"
+                "filter_splitter": {
+                  "repr(QByteArray.hex)": "QtCore.QByteArray(b'000000ff000000010000000200000072000000720100000009010000000200')",
+                  "type": "repr(QByteArray.hex)",
+                  "pretty-print": "       r r     "
                 },
-                "topics": {
-                  "type": "repr",
-                  "repr": "[u'/control_pub/force/y', u'/control_pub/force/x']"
+                "highlight_filters": {
+                  "repr": "'message'",
+                  "type": "repr"
                 },
-                "y_limits": {
-                  "type": "repr",
-                  "repr": "[-50.0, 50.0]"
+                "message_limit": {
+                  "repr": "20000",
+                  "type": "repr"
                 },
-                "x_limits": {
-                  "type": "repr",
-                  "repr": "[0.0, 50.0]"
+                "paused": {
+                  "repr": "False",
+                  "type": "repr"
+                },
+                "settings_exist": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "show_highlighted_only": {
+                  "repr": "False",
+                  "type": "repr"
+                },
+                "table_splitter": {
+                  "repr(QByteArray.hex)": "QtCore.QByteArray(b'000000ff000000010000000200000329000000000100000009010000000200')",
+                  "type": "repr(QByteArray.hex)",
+                  "pretty-print": "       )       "
                 }
               },
-              "groups": {}
-            }
-          }
-        },
-        "plugin__rqt_plot__Plot__2": {
-          "keys": {},
-          "groups": {
-            "dock_widget__DataPlotWidget": {
-              "keys": {
-                "dockable": {
-                  "type": "repr",
-                  "repr": "True"
+              "groups": {
+                "exclude_filter_0": {
+                  "keys": {
+                    "enabled": {
+                      "repr": "True",
+                      "type": "repr"
+                    },
+                    "itemlist": {
+                      "repr": "''",
+                      "type": "repr"
+                    }
+                  },
+                  "groups": {}
                 },
-                "parent": {
-                  "type": "repr",
-                  "repr": "None"
-                },
-                "dock_widget_title": {
-                  "type": "repr",
-                  "repr": "u'PyQtGraph (2)'"
+                "highlight_filter_0": {
+                  "keys": {
+                    "enabled": {
+                      "repr": "True",
+                      "type": "repr"
+                    },
+                    "regex": {
+                      "repr": "False",
+                      "type": "repr"
+                    },
+                    "text": {
+                      "repr": "''",
+                      "type": "repr"
+                    }
+                  },
+                  "groups": {}
                 }
-              },
-              "groups": {}
-            },
-            "plugin": {
-              "keys": {
-                "autoscroll": {
-                  "type": "repr",
-                  "repr": "True"
-                },
-                "plot_type": {
-                  "type": "repr",
-                  "repr": "0"
-                },
-                "topics": {
-                  "type": "repr",
-                  "repr": "[u'/rocket_state/pose/position/y', u'/rocket_state/pose/position/x']"
-                },
-                "y_limits": {
-                  "type": "repr",
-                  "repr": "[-100.0, 100.0]"
-                },
-                "x_limits": {
-                  "type": "repr",
-                  "repr": "[0.0, 50.0]"
-                }
-              },
-              "groups": {}
-            }
-          }
-        },
-        "plugin__rqt_plot__Plot__3": {
-          "keys": {},
-          "groups": {
-            "dock_widget__DataPlotWidget": {
-              "keys": {
-                "dockable": {
-                  "type": "repr",
-                  "repr": "True"
-                },
-                "parent": {
-                  "type": "repr",
-                  "repr": "None"
-                },
-                "dock_widget_title": {
-                  "type": "repr",
-                  "repr": "u'PyQtGraph (3)'"
-                }
-              },
-              "groups": {}
-            },
-            "plugin": {
-              "keys": {
-                "autoscroll": {
-                  "type": "repr",
-                  "repr": "True"
-                },
-                "plot_type": {
-                  "type": "repr",
-                  "repr": "0"
-                },
-                "topics": {
-                  "type": "repr",
-                  "repr": "[u'/rocket_state/twist/linear/x', u'/rocket_state/twist/linear/y']"
-                },
-                "y_limits": {
-                  "type": "repr",
-                  "repr": "[-50.0, 50.0]"
-                },
-                "x_limits": {
-                  "type": "repr",
-                  "repr": "[0.0, 50.0]"
-                }
-              },
-              "groups": {}
-            }
-          }
-        },
-        "plugin__rqt_plot__Plot__4": {
-          "keys": {},
-          "groups": {
-            "dock_widget__DataPlotWidget": {
-              "keys": {
-                "dockable": {
-                  "type": "repr",
-                  "repr": "True"
-                },
-                "parent": {
-                  "type": "repr",
-                  "repr": "None"
-                },
-                "dock_widget_title": {
-                  "type": "repr",
-                  "repr": "u'PyQtGraph (4)'"
-                }
-              },
-              "groups": {}
-            },
-            "plugin": {
-              "keys": {
-                "autoscroll": {
-                  "type": "repr",
-                  "repr": "True"
-                },
-                "plot_type": {
-                  "type": "repr",
-                  "repr": "0"
-                },
-                "topics": {
-                  "type": "repr",
-                  "repr": "u'/control_pub/force/z'"
-                },
-                "y_limits": {
-                  "type": "repr",
-                  "repr": "[-1.0, 2500.0]"
-                },
-                "x_limits": {
-                  "type": "repr",
-                  "repr": "[0.0, 50.0]"
-                }
-              },
-              "groups": {}
-            }
-          }
-        },
-        "plugin__rqt_plot__Plot__5": {
-          "keys": {},
-          "groups": {
-            "dock_widget__DataPlotWidget": {
-              "keys": {
-                "dockable": {
-                  "type": "repr",
-                  "repr": "True"
-                },
-                "parent": {
-                  "type": "repr",
-                  "repr": "None"
-                },
-                "dock_widget_title": {
-                  "type": "repr",
-                  "repr": "u'PyQtGraph (5)'"
-                }
-              },
-              "groups": {}
-            },
-            "plugin": {
-              "keys": {
-                "autoscroll": {
-                  "type": "repr",
-                  "repr": "True"
-                },
-                "plot_type": {
-                  "type": "repr",
-                  "repr": "0"
-                },
-                "topics": {
-                  "type": "repr",
-                  "repr": "u'/rocket_state/twist/linear/z'"
-                },
-                "y_limits": {
-                  "type": "repr",
-                  "repr": "[-10.0, 250.0]"
-                },
-                "x_limits": {
-                  "type": "repr",
-                  "repr": "[0.0, 50.0]"
-                }
-              },
-              "groups": {}
-            }
-          }
-        },
-        "plugin__rqt_plot__Plot__6": {
-          "keys": {},
-          "groups": {
-            "dock_widget__DataPlotWidget": {
-              "keys": {
-                "dockable": {
-                  "type": "repr",
-                  "repr": "True"
-                },
-                "parent": {
-                  "type": "repr",
-                  "repr": "None"
-                },
-                "dock_widget_title": {
-                  "type": "repr",
-                  "repr": "u'PyQtGraph (6)'"
-                }
-              },
-              "groups": {}
-            },
-            "plugin": {
-              "keys": {
-                "autoscroll": {
-                  "type": "repr",
-                  "repr": "True"
-                },
-                "plot_type": {
-                  "type": "repr",
-                  "repr": "0"
-                },
-                "topics": {
-                  "type": "repr",
-                  "repr": "u'/rocket_state/pose/position/z'"
-                },
-                "y_limits": {
-                  "type": "repr",
-                  "repr": "[-1.0, 2500.0]"
-                },
-                "x_limits": {
-                  "type": "repr",
-                  "repr": "[0.0, 50.0]"
-                }
-              },
-              "groups": {}
+              }
             }
           }
         },
@@ -407,83 +207,83 @@
           "groups": {
             "dock_widget__EzPublisherPluginUi": {
               "keys": {
+                "dock_widget_title": {
+                  "repr": "''",
+                  "type": "repr"
+                },
                 "dockable": {
-                  "type": "repr",
-                  "repr": "True"
+                  "repr": "True",
+                  "type": "repr"
                 },
                 "parent": {
-                  "type": "repr",
-                  "repr": "None"
-                },
-                "dock_widget_title": {
-                  "type": "repr",
-                  "repr": "u''"
+                  "repr": "None",
+                  "type": "repr"
                 }
               },
               "groups": {}
             },
             "plugin": {
               "keys": {
-                "texts": {
-                  "type": "repr",
-                  "repr": "[u'/commands/data']"
+                "configurable": {
+                  "repr": "True",
+                  "type": "repr"
                 },
                 "publish_interval": {
-                  "type": "repr",
-                  "repr": "100"
+                  "repr": "100",
+                  "type": "repr"
                 },
-                "configurable": {
-                  "type": "repr",
-                  "repr": "True"
+                "texts": {
+                  "repr": "['/commands/data']",
+                  "type": "repr"
                 }
               },
               "groups": {
                 "commands": {
                   "keys": {
-                    "data_range": {
-                      "type": "repr",
-                      "repr": "(0, 0)"
-                    },
                     "data_is_repeat": {
-                      "type": "repr",
-                      "repr": "False"
+                      "repr": "False",
+                      "type": "repr"
+                    },
+                    "data_range": {
+                      "repr": "(0, 0)",
+                      "type": "repr"
                     }
                   },
                   "groups": {}
                 },
                 "rocket_state": {
                   "keys": {
-                    "propeller_mass_range": {
-                      "type": "repr",
-                      "repr": "(-1.0, 1.0)"
-                    },
                     "propeller_mass_is_repeat": {
-                      "type": "repr",
-                      "repr": "False"
+                      "repr": "False",
+                      "type": "repr"
+                    },
+                    "propeller_mass_range": {
+                      "repr": "(-1.0, 1.0)",
+                      "type": "repr"
                     }
                   },
                   "groups": {
                     "pose": {
                       "keys": {
                         "orientation_is_repeat": {
-                          "type": "repr",
-                          "repr": "False"
+                          "repr": "False",
+                          "type": "repr"
                         },
                         "orientation_range": {
-                          "type": "repr",
-                          "repr": "(-3.14, 3.14)"
+                          "repr": "(-3.14, 3.14)",
+                          "type": "repr"
                         }
                       },
                       "groups": {
                         "position": {
                           "keys": {
                             "z_is_repeat": {
-                              "type": "repr",
-                              "repr": "False"
+                              "repr": "False",
+                              "type": "repr"
                             },
                             "z_range": {
-                              "type": "repr",
-                              "repr": "(0.0, 100.0)"
+                              "repr": "(0.0, 100.0)",
+                              "type": "repr"
                             }
                           },
                           "groups": {}
@@ -496,122 +296,322 @@
             }
           }
         },
-        "plugin__rqt_console__Console__1": {
+        "plugin__rqt_plot__Plot__1": {
           "keys": {},
           "groups": {
-            "dock_widget__ConsoleWidget": {
+            "dock_widget__DataPlotWidget": {
               "keys": {
+                "dock_widget_title": {
+                  "repr": "'MatPlot'",
+                  "type": "repr"
+                },
                 "dockable": {
-                  "type": "repr",
-                  "repr": "True"
+                  "repr": "True",
+                  "type": "repr"
                 },
                 "parent": {
-                  "type": "repr",
-                  "repr": "None"
-                },
-                "dock_widget_title": {
-                  "type": "repr",
-                  "repr": "u'Console'"
+                  "repr": "None",
+                  "type": "repr"
                 }
               },
               "groups": {}
             },
             "plugin": {
               "keys": {
-                "show_highlighted_only": {
-                  "type": "repr",
-                  "repr": "False"
+                "autoscroll": {
+                  "repr": "True",
+                  "type": "repr"
                 },
-                "message_limit": {
-                  "type": "repr",
-                  "repr": "20000"
+                "plot_type": {
+                  "repr": "0",
+                  "type": "repr"
                 },
-                "exclude_filters": {
-                  "type": "repr",
-                  "repr": "u'severity'"
+                "topics": {
+                  "repr": "''",
+                  "type": "repr"
                 },
-                "table_splitter": {
-                  "type": "repr(QByteArray.hex)",
-                  "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff000000010000000200000329000000000100000009010000000200')",
-                  "pretty-print": "       )       "
+                "x_limits": {
+                  "repr": "[0.0, 50.0]",
+                  "type": "repr"
                 },
-                "highlight_filters": {
-                  "type": "repr",
-                  "repr": "u'message'"
-                },
-                "paused": {
-                  "type": "repr",
-                  "repr": "False"
-                },
-                "settings_exist": {
-                  "type": "repr",
-                  "repr": "True"
-                },
-                "filter_splitter": {
-                  "type": "repr(QByteArray.hex)",
-                  "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff000000010000000200000072000000720100000009010000000200')",
-                  "pretty-print": "       r r     "
+                "y_limits": {
+                  "repr": "[-50.0, 50.0]",
+                  "type": "repr"
                 }
               },
-              "groups": {
-                "exclude_filter_0": {
-                  "keys": {
-                    "enabled": {
-                      "type": "repr",
-                      "repr": "True"
-                    },
-                    "itemlist": {
-                      "type": "repr",
-                      "repr": "u''"
-                    }
-                  },
-                  "groups": {}
-                },
-                "highlight_filter_0": {
-                  "keys": {
-                    "regex": {
-                      "type": "repr",
-                      "repr": "False"
-                    },
-                    "text": {
-                      "type": "repr",
-                      "repr": "u''"
-                    },
-                    "enabled": {
-                      "type": "repr",
-                      "repr": "True"
-                    }
-                  },
-                  "groups": {}
-                }
-              }
+              "groups": {}
             }
           }
-        }
-      }
-    },
-    "mainwindow": {
-      "keys": {
-        "geometry": {
-          "type": "repr(QByteArray.hex)",
-          "repr(QByteArray.hex)": "QtCore.QByteArray('01d9d0cb000200000000000000000089000005b70000041b00000000000000a5000005b70000041b000000010000000005b8')",
-          "pretty-print": "                         "
         },
-        "state": {
-          "type": "repr(QByteArray.hex)",
-          "repr(QByteArray.hex)": "QtCore.QByteArray('000000ff00000000fd0000000100000003000005b80000034bfc0100000004fc000000000000030f0000000000fffffffc0200000002fb00000026007200710074005f007200760069007a005f005f005200560069007a005f005f0031005f005f0100000016000002820000000000000000fb0000006a007200710074005f0065007a005f007000750062006c00690073006800650072005f005f0045007a005000750062006c00690073006800650072005f005f0031005f005f0045007a005000750062006c006900730068006500720050006c007500670069006e00550069010000029e000000c30000000000000000fc00000315000002a30000000000fffffffc0200000003fb00000030005f005f0044006f0063006b0057006900640067006500740043006f006e007400610069006e00650072005f005f00310100000016000001a90000000000000000fc00000016000002310000000000fffffffc0100000002fc000003150000014f0000000000fffffffc0200000002fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0031005f005f00440061007400610050006c006f00740057006900640067006500740100000016000001160000000000000000fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0032005f005f00440061007400610050006c006f00740057006900640067006500740100000132000001150000000000000000fc0000046a0000014e0000000000fffffffc0200000002fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0034005f005f00440061007400610050006c006f00740057006900640067006500740100000016000001160000000000000000fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0036005f005f00440061007400610050006c006f00740057006900640067006500740100000132000001150000000000000000fc0000024d000001140000000000fffffffc0100000002fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0033005f005f00440061007400610050006c006f007400570069006400670065007401000003150000014f0000000000000000fb00000042007200710074005f0070006c006f0074005f005f0050006c006f0074005f005f0035005f005f00440061007400610050006c006f0074005700690064006700650074010000046a0000014e0000000000000000fb00000030005f005f0044006f0063006b0057006900640067006500740043006f006e007400610069006e00650072005f005f003201000004360000013f0000000000000000fb0000004c007200710074005f0063006f006e0073006f006c0065005f005f0043006f006e0073006f006c0065005f005f0031005f005f0043006f006e0073006f006c0065005700690064006700650074010000078e0000019f0000000000000000000000000000000000000004000000040000000800000008fc00000001000000030000000100000036004d0069006e0069006d0069007a006500640044006f0063006b00570069006400670065007400730054006f006f006c0062006100720000000000ffffffff0000000000000000')",
-          "pretty-print": "                                                                                                                                      0__DockWidgetContainer__1            1                    Brqt_plot__Plot__1__DataPlotWidget          Brqt_plot__Plot__2__DataPlotWidget          j N                                                                                        2                   Brqt_plot__Plot__3__DataPlotWidget          Brqt_plot__Plot__5__DataPlotWidget          0__DockWidgetContainer__2          Lrqt_console__Console__1__ConsoleWidget                            6MinimizedDockWidgetsToolbar        "
-        }
-      },
-      "groups": {
-        "toolbar_areas": {
-          "keys": {
-            "MinimizedDockWidgetsToolbar": {
-              "type": "repr",
-              "repr": "8"
+        "plugin__rqt_plot__Plot__2": {
+          "keys": {},
+          "groups": {
+            "dock_widget__DataPlotWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'PyQtGraph (2)'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            },
+            "plugin": {
+              "keys": {
+                "autoscroll": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "plot_type": {
+                  "repr": "0",
+                  "type": "repr"
+                },
+                "topics": {
+                  "repr": "['/rocket_state/pose/position/y', '/rocket_state/pose/position/x']",
+                  "type": "repr"
+                },
+                "x_limits": {
+                  "repr": "[-1.1681530475616455, 48.831846952438354]",
+                  "type": "repr"
+                },
+                "y_limits": {
+                  "repr": "[-100.0, 100.0]",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
             }
-          },
-          "groups": {}
+          }
+        },
+        "plugin__rqt_plot__Plot__3": {
+          "keys": {},
+          "groups": {
+            "dock_widget__DataPlotWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'PyQtGraph (3)'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            },
+            "plugin": {
+              "keys": {
+                "autoscroll": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "plot_type": {
+                  "repr": "0",
+                  "type": "repr"
+                },
+                "topics": {
+                  "repr": "['/rocket_state/twist/linear/x', '/rocket_state/twist/linear/y']",
+                  "type": "repr"
+                },
+                "x_limits": {
+                  "repr": "[-0.9638395309448242, 49.036160469055176]",
+                  "type": "repr"
+                },
+                "y_limits": {
+                  "repr": "[-50.0, 50.0]",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__rqt_plot__Plot__4": {
+          "keys": {},
+          "groups": {
+            "dock_widget__DataPlotWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'PyQtGraph (4)'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            },
+            "plugin": {
+              "keys": {
+                "autoscroll": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "plot_type": {
+                  "repr": "0",
+                  "type": "repr"
+                },
+                "topics": {
+                  "repr": "''",
+                  "type": "repr"
+                },
+                "x_limits": {
+                  "repr": "[0.0, 50.0]",
+                  "type": "repr"
+                },
+                "y_limits": {
+                  "repr": "[-1.0, 2500.0]",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__rqt_plot__Plot__5": {
+          "keys": {},
+          "groups": {
+            "dock_widget__DataPlotWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'PyQtGraph (5)'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            },
+            "plugin": {
+              "keys": {
+                "autoscroll": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "plot_type": {
+                  "repr": "0",
+                  "type": "repr"
+                },
+                "topics": {
+                  "repr": "'/rocket_state/twist/linear/z'",
+                  "type": "repr"
+                },
+                "x_limits": {
+                  "repr": "[-1.0613069534301758, 48.938693046569824]",
+                  "type": "repr"
+                },
+                "y_limits": {
+                  "repr": "[-10.0, 250.0]",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__rqt_plot__Plot__6": {
+          "keys": {},
+          "groups": {
+            "dock_widget__DataPlotWidget": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'PyQtGraph (6)'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            },
+            "plugin": {
+              "keys": {
+                "autoscroll": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "plot_type": {
+                  "repr": "0",
+                  "type": "repr"
+                },
+                "topics": {
+                  "repr": "'/rocket_state/pose/position/z'",
+                  "type": "repr"
+                },
+                "x_limits": {
+                  "repr": "[-1.0210778713226318, 48.97892212867737]",
+                  "type": "repr"
+                },
+                "y_limits": {
+                  "repr": "[-1.0, 2500.0]",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__rqt_rviz__RViz__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'rocket_config.rviz[*] - RViz'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            },
+            "plugin": {
+              "keys": {
+                "hide_menu": {
+                  "repr": "False",
+                  "type": "repr"
+                },
+                "rviz_config_file": {
+                  "repr": "'/home/username/catkin_ws/src/real_time_simulator/GUI/rocket_config.rviz'",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
         }
       }
     }

@@ -3,10 +3,10 @@
 # Date   : 5 May 2019
 # EPFL Rocket Team, 1015 Lausanne, Switzerland
 
-from Rocket.Body import Body
-from Rocket.Fins import Fins
-from Rocket.Motor import Motor
-from Rocket.Parachute import Parachute
+from aero.Rocket.Body import Body
+from aero.Rocket.Fins import Fins
+from aero.Rocket.Motor import Motor
+from aero.Rocket.Parachute import Parachute
 
 
 class Stage:

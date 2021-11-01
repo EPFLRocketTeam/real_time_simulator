@@ -2,9 +2,9 @@
 # Last update : 16 October 2020
 # EPFL Rocket Team, 1015 Lausanne, Switzerland
 
-from Rocket.Rocket import Rocket
-from Functions.Models.barrowman_lift import barrowman_lift
-from Functions.Models.robert_galejs_lift import robert_galejs_lift
+from aero.Rocket.Rocket import Rocket
+from aero.Functions.Models.barrowman_lift import barrowman_lift
+from aero.Functions.Models.robert_galejs_lift import robert_galejs_lift
 import numpy as np
 
 

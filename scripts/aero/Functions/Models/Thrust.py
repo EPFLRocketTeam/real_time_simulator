@@ -1,4 +1,4 @@
-from Rocket import Rocket
+from aero.Rocket import Rocket
 import numpy as np
 from scipy.interpolate import interp1d
 
