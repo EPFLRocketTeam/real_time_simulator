@@ -15,8 +15,7 @@ sudo apt install libboost-dev
 4. Install python dependencies:
 ```bash
 sudo apt install python3-pip
-pip3 install rospkg dataclasses scipy numpy pyqtgraph
-pip install scipy pyserial
+pip3 install rospkg dataclasses scipy numpy pyqtgraph pyserial
 ```
 
 5. If you have never installed another ROS package before:
@@ -33,13 +32,11 @@ Clone or download repository in your catkin workspace (usually ~/catkin_ws/src i
 ```bash
 cd ~/catkin_ws/src
 git clone https://github.com/EPFLRocketTeam/real_time_simulator.git
-git clone https://github.com/OTL/rqt_ez_publisher.git
-cd rqt_ez_publisher
-git branch noetic-devel
+git clone -b noetic-devel https://github.com/OTL/rqt_ez_publisher.git
 cd ~/catkin_ws
 catkin_make
 source ~/.bashrc
-rqt --force-discover
+rqt --force-discover # Then close windows
 ```
 
 
@@ -56,5 +53,5 @@ git update-index --assume-unchanged GUI/rocket_GUI.perspective
 Once everything is installed, you can use the test_simu.sh script to simulate a basic flight and check that everything is properly working
 ```bash
 roscd real_time_simulator/
-./bash_scripts/test_simu.sh 
+./bash_scripts/test_simu.sh # Then ctrl+c inside terminal to stop simulation
 ```
