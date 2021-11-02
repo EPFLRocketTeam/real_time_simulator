@@ -53,5 +53,6 @@ git update-index --assume-unchanged GUI/rocket_GUI.perspective
 Once everything is installed, you can use the test_simu.sh script to simulate a basic flight and check that everything is properly working
 ```bash
 roscd real_time_simulator/
+mkdir log
 ./bash_scripts/test_simu.sh # Then ctrl+c inside terminal to stop simulation
 ```
