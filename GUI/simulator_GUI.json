@@ -1,0 +1,187 @@
+{
+  "configById": {
+    "3D Panel!s7uads": {
+      "checkedKeys": [
+        "name:Topics",
+        "t:/rocket_visualization",
+        "t:/move_base_simple/goal",
+        "t:/foxglove/grid"
+      ],
+      "expandedKeys": [
+        "name:Topics"
+      ],
+      "followTf": "world",
+      "followOrientation": false,
+      "cameraState": {
+        "distance": 18.8009460877135,
+        "perspective": true,
+        "phi": 1.3265438048582654,
+        "targetOffset": [
+          0.945903808752022,
+          -2.9322517452877497,
+          0
+        ],
+        "thetaOffset": 2.8397250567823877,
+        "fovy": 0.7853981633974483,
+        "near": 0.01,
+        "far": 5000
+      },
+      "modifiedNamespaceTopics": [],
+      "pinTopics": false,
+      "settingsByKey": {},
+      "autoSyncCameraState": false,
+      "autoTextBackgroundColor": true,
+      "diffModeEnabled": true,
+      "useThemeBackgroundColor": true,
+      "customBackgroundColor": "#000000"
+    },
+    "Publish!2swlug2": {
+      "topicName": "/commands",
+      "datatype": "std_msgs/String",
+      "buttonText": "launch",
+      "buttonTooltip": "",
+      "buttonColor": "#a80202",
+      "advancedView": true,
+      "value": "{\n  \"data\": \"\"\n}"
+    },
+    "Plot!3pib5yl": {
+      "paths": [
+        {
+          "value": "/control_measured.force.z",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        }
+      ],
+      "minYValue": "",
+      "maxYValue": "",
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "followingViewWidth": 30
+    },
+    "Plot!2sq2nt3": {
+      "paths": [
+        {
+          "value": "/control_measured.force.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        },
+        {
+          "value": "/control_measured.force.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        }
+      ],
+      "minYValue": "",
+      "maxYValue": "",
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp"
+    },
+    "Plot!2ou2iyn": {
+      "paths": [
+        {
+          "value": "/rocket_state.twist.linear.z",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        },
+        {
+          "value": "",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        }
+      ],
+      "minYValue": "",
+      "maxYValue": "",
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "followingViewWidth": 0
+    },
+    "Plot!1n35rb8": {
+      "isSynced": true,
+      "paths": [
+        {
+          "value": "/rocket_state.pose.position.z",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        },
+        {
+          "value": "",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        }
+      ],
+      "showLegend": true
+    },
+    "Plot!zg8jo": {
+      "paths": [
+        {
+          "value": "/rocket_state.twist.linear.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        },
+        {
+          "value": "/rocket_state.twist.linear.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        }
+      ],
+      "isSynced": true
+    },
+    "Plot!z528b9": {
+      "paths": [
+        {
+          "value": "/rocket_state.pose.position.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        },
+        {
+          "value": "/rocket_state.pose.position.y",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        }
+      ],
+      "isSynced": true
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "linkedGlobalVariables": [],
+  "playbackConfig": {
+    "speed": 5,
+    "messageOrder": "receiveTime"
+  },
+  "layout": {
+    "direction": "row",
+    "first": {
+      "first": "3D Panel!s7uads",
+      "second": "Publish!2swlug2",
+      "direction": "column",
+      "splitPercentage": 60.5515587529976
+    },
+    "second": {
+      "first": {
+        "first": "Plot!3pib5yl",
+        "second": "Plot!2sq2nt3",
+        "direction": "row"
+      },
+      "second": {
+        "first": {
+          "first": "Plot!2ou2iyn",
+          "second": "Plot!1n35rb8",
+          "direction": "column"
+        },
+        "second": {
+          "first": "Plot!zg8jo",
+          "second": "Plot!z528b9",
+          "direction": "column"
+        },
+        "direction": "row"
+      },
+      "direction": "column",
+      "splitPercentage": 36.81528662420382
+    },
+    "splitPercentage": 35.769474002584616
+  }
+}
