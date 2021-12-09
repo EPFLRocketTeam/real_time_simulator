@@ -18,7 +18,7 @@
 ''
 
   <node name="aerodynamic" pkg="real_time_simulator" type="aerodynamic.py" cwd = "node" />
-  <node name="disturbance" pkg="real_time_simulator" type="disturbance.py" cwd = "node"/>
+  <node name="disturbance" pkg="real_time_simulator" type="disturbance.py" cwd = "node" output ="screen"/>
 
   <node name="integrator" pkg="real_time_simulator" type="integrator" cwd = "node" output ="screen"/>
   
@@ -28,5 +28,3 @@
   <node pkg="rosbag" type="record" name="recorder" args="record -a -O $(find real_time_simulator)/log/log.bag"/>
 
 </launch>
-
-
