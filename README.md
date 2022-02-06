@@ -1,3 +1,5 @@
+Please check the [documentation](http://wiki.ros.org/real_time_simulator/Installation) for the latest installation procedure, as well as tutorials on how to use the framework.
+
 # Installation
 *These steps have been tested on Ubuntu 20.04, making ROS Noetic work on newer versions of ubuntu might be possible but is a little bit trickier*
 
