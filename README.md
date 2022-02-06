@@ -58,3 +58,7 @@ roscd real_time_simulator/
 mkdir log
 ./bash_scripts/test_simu.sh # Then ctrl+c inside terminal to stop simulation
 ```
+
+## Authors
+
+Albéric de Lajarte (albericlajarte@gmail.com)
