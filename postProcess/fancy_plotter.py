@@ -132,6 +132,8 @@ def load_log_file(attr, old, new):
     i = i+1
 
   # Guidance optimal trajectory
+  target_positionX = []
+  target_positionY = []
   target_positionZ = []
   target_speedZ = []
   target_prop_mass = []
@@ -142,6 +144,8 @@ def load_log_file(attr, old, new):
     new_waypoint = msg.trajectory
 
     time_target.append([point.time for point in new_waypoint])
+    target_positionX.append([point.position.x for point in new_waypoint])
+    target_positionY.append([point.position.y for point in new_waypoint])
     target_positionZ.append([point.position.z for point in new_waypoint])
     target_speedZ.append([point.speed.z for point in new_waypoint])
     target_prop_mass.append([point.propeller_mass for point in new_waypoint])
@@ -149,8 +153,7 @@ def load_log_file(attr, old, new):
     
   bag.close()
 
-  target_data = [target_positionZ, target_speedZ, target_prop_mass, thrust_target, time_target]
-
+  target_data = [target_positionZ, target_speedZ, target_prop_mass, thrust_target, time_target, target_positionX, target_positionY]
   print("Apogee: {}".format(max(simu_data[2])))
 
   # Synchronize time
@@ -326,6 +329,8 @@ f_force.scatter('t', 'torqueZ', source=source_control, marker = "+", line_dash='
 # Map target from guidance to plots
 f_thrust.line('t', 'thrust', source=source_target, line_alpha=0.5, line_width = 3, color="Orange")
 f_posZ.line('t', 'posZ', source=source_target, line_alpha=0.5, line_width = 3, color="Teal")
+f_posXY.line('t', 'posX', source=source_target, line_alpha=0.5, line_width = 3, color="SteelBlue")
+f_posXY.line('t', 'posY', source=source_target, line_alpha=0.5, line_width = 3, color="Coral")
 f_speedZ.line('t', 'speedZ', source=source_target, line_alpha=0.5, line_width = 3, color="Teal")
 f_mass.line('t', 'mass', source=source_target, line_alpha=0.5, line_width = 3, color="SeaGreen")
 
@@ -458,6 +463,8 @@ def update_plot():
     select_target =  np.logical_and(target_path[4]>tStart, target_path[4] <tEnd)
 
     source_target.data = dict(t=target_path[4][select_target],
+                              posX=target_path[5][select_target],
+                              posY=target_path[6][select_target],
                               posZ=target_path[0][select_target],
                               speedZ=target_path[1][select_target],
                               mass=target_path[2][select_target],

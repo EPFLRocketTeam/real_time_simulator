@@ -141,7 +141,7 @@ public:
         // Subscribe to aero message
         rocket_aero_sub = nh.subscribe("rocket_aero", 100, &IntegratorNode::rocketAeroCallback, this);
         // Subscribe to perturbations message
-        rocket_perturbation_sub = nh.subscribe("disturbance_pub", 100,
+        rocket_perturbation_sub = nh.subscribe("disturbance_pub", 1,
                                                &IntegratorNode::rocketPerturbationCallback, this);
 
         // Create state publisher
@@ -156,7 +156,8 @@ public:
         // State machine ------------------------------------------
         if (current_fsm.state_machine.compare("Idle") == 0) {
 
-        } else {
+        } 
+        else {
             // Update current time
             current_fsm.time_now = ros::Time::now().toSec() - time_zero;
 
@@ -172,8 +173,8 @@ public:
                 }
             } else if (current_fsm.state_machine.compare("Launch") == 0) {
                 auto dynamics_flight = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
-                    rocket.dynamics_flight(x, xdot, rocket_control, aero_control, perturbation_control, t);
-                };
+                    rocket.dynamics_flight(x, xdot, rocket_control, aero_control, perturbation_control, t);};
+
                 stepper.do_step(dynamics_flight, X, 0, xout, 0 + integration_period);
 
                 // End of burn -> no more thrust
@@ -185,8 +186,8 @@ public:
                         0, 0,
                         0, 0;
                 auto dynamics_flight = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
-                    rocket.dynamics_flight(x, xdot, rocket_control, aero_control, perturbation_control, t);
-                };
+                    rocket.dynamics_flight(x, xdot, rocket_control, aero_control, perturbation_control, t);};
+
                 stepper.do_step(dynamics_flight, X, 0, xout, 0 + integration_period);
             }
 
@@ -225,21 +226,21 @@ public:
         //std::cout << "Fast integration time: " << 1000*(ros::Time::now().toSec()-time_now) << "ms \n";
     }
 
-// Callback function to store last received control
+    // Callback function to store last received control
     void rocketControlCallback(const real_time_simulator::Control::ConstPtr &control_law) {
         rocket_control << control_law->force.x, control_law->torque.x,
                 control_law->force.y, control_law->torque.y,
                 control_law->force.z, control_law->torque.z;
     }
 
-// Callback function to store last received aero force and torque
+    // Callback function to store last received aero force and torque
     void rocketAeroCallback(const real_time_simulator::Control::ConstPtr &rocket_aero) {
         aero_control << rocket_aero->force.x, rocket_aero->torque.x,
                 rocket_aero->force.y, rocket_aero->torque.y,
                 rocket_aero->force.z, rocket_aero->torque.z;
     }
 
-// Callback function to store last received aero force and torque
+    // Callback function to store last received aero force and torque
     void rocketPerturbationCallback(const real_time_simulator::Control::ConstPtr &perturbation) {
         perturbation_control << perturbation->force.x, perturbation->torque.x,
                 perturbation->force.y, perturbation->torque.y,
