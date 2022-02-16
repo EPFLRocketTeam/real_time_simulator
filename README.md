@@ -6,7 +6,7 @@ Please check the [documentation](http://wiki.ros.org/real_time_simulator/Install
 After installing Ubuntu 20.04:
 1. Install ROS Noetic ([Official documentation](http://wiki.ros.org/noetic/Installation/Ubuntu))
 2. Install Eigen:
-Download eigen version >3.4 [here](https://gitlab.com/libeigen/eigen), open the folder in a terminal
+Download eigen version 3.4.0 [here](https://eigen.tuxfamily.org/index.php?title=Main_Page), open the folder in a terminal
 ```bash
 sudo cp -r -t /usr/local/include/ Eigen/ unsupported/
 ```
