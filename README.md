@@ -62,4 +62,3 @@ mkdir log
 ## Authors
 
 Albéric de Lajarte (albericlajarte@gmail.com)
-
