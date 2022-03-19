@@ -35,7 +35,6 @@ find_package(catkin REQUIRED COMPONENTS
         visualization_msgs
         tf2_ros
         rocket_utils
-        #polympc-ros
         )
 
 ## System dependencies are found with CMake's conventions
@@ -71,9 +70,10 @@ catkin_python_setup()
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-#add_message_files(
-#        FILES
-#)
+add_message_files(
+        FILES
+        Update.msg
+)
 
 ## Generate services in the 'srv' folder
 add_service_files(
