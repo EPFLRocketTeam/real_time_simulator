@@ -184,6 +184,7 @@ include_directories(
 catkin_install_python(PROGRAMS
         scripts/aerodynamic.py
         scripts/disturbance.py
+        scripts/foxglove_interface.py
         interface_hardware/test_interface.py
         interface_hardware/pcan_interface.py
         interface_hardware/usb_interface.py

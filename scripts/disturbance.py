@@ -19,21 +19,15 @@
 #
 # -----------------------
 
-from turtle import update
 import rospy
 
 import numpy as np
 import math
-import time
 from scipy.spatial.transform import Rotation as R
 
 from rocket_utils.msg import Control
 from rocket_utils.msg import FSM
 from rocket_utils.msg import State
-from real_time_simulator.msg import Update
-
-
-from std_msgs.msg import String
 
 
 def fsm_callback(fsm):
@@ -49,39 +43,6 @@ def control_callback(control):
 	global current_control
 	current_control = control
 
-launch_check = 0
-test_check = 0
-def command_callback(command):
-	global launch_check
-	global test_check
-	print("command")
-	print(command)
-	if command.data == "launch":
-		if launch_check<1:
-			#Launches simulation
-			print("Launch")
-			launch_check = launch_check + 1
-			command_msg = String()
-			comm_pub.publish(command_msg)
-			
-			time.sleep(0.5)
-	if command.data == "test":
-		test_check += 1
-		print("Message recieved")
-		msg = String()
-		msg.data = "This message has been print" + str(test_check)
-		test_pub.publish(msg)
-		time.sleep(0.5)
-		
-
-def update_callback(command):
-	# Handle update
-	print("Update")
-	print(command.config)
-	print(command.parameter)
-	print(command.value)
-		
-
 class Rocket:
 	dry_mass = 0
 	propellant_mass = 0
@@ -93,7 +54,7 @@ class Rocket:
 
 	ground_altitude = 0
 	groung_temperature = 0
-
+	
 
 	target_apogee = np.zeros(3)
 	Cd = np.zeros(3)
@@ -102,15 +63,6 @@ class Rocket:
 	diameter = np.zeros(3)
 
 	def __init__(self):
-		# Publisher for test topic
-		global test_pub
-		test_pub = rospy.Publisher('tests', String, queue_size=10)
-
-		# Publisher for commands topic
-		global comm_pub
-		comm_pub = rospy.Publisher('commands', String, queue_size=10)
-
-		# Get parameters
 		rocket_data = rospy.get_param("/rocket")
 		env_data = rospy.get_param("/environment")
 		
@@ -134,13 +86,13 @@ class Rocket:
 		self.surface[0] = self.diameter[1]*self.length
 		self.surface[1] = self.surface[0]
 		self.surface[2] = self.diameter[1]*self.diameter[1]/4 * 3.14159
-    
-    
-def getPression(self, z):
-	return 101325*np.exp(-0.00012*(z+ self.ground_altitude))
+		
+		
+	def getPression(self, z):
+		return 101325*np.exp(-0.00012*(z+ self.ground_altitude))
 
-def getDensity(self, z):
-	return self.getPression(z)/(287.058*self.ground_temperature)
+	def getDensity(self, z):
+		return self.getPression(z)/(287.058*self.ground_temperature)
 
 
 class Disturbance:
@@ -235,23 +187,15 @@ if __name__ == '__main__':
 
 	# Subscribe to rocket_state 
 	rospy.Subscriber("rocket_state", State, rocket_state_callback)
-	
 
 	# Publisher for disturbance control
 	disturbance_pub = rospy.Publisher('disturbance_pub', Control, queue_size=10)
-	
-	# Subscribe to commands
-	rospy.Subscriber("commands", String, command_callback)
-
-	rospy.Subscriber("updates", Update, update_callback)
-	
-	
 
 	rocket = Rocket()
 	chaos = Disturbance()
 
   # Disturbance rate in Hz
-	rate = rospy.Rate(1)
+	rate = rospy.Rate(100)
 
 	while not rospy.is_shutdown():
 
