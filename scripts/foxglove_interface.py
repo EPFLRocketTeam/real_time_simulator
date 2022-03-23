@@ -6,10 +6,17 @@
 #
 # -----------------------
 
+from glob import glob
 import rospy
+import roslaunch
+import rospkg
+from yaml import load, dump
+from catkin_pkg.topological_order import topological_order 
 import time
 from std_msgs.msg import String
 from real_time_simulator.msg import Update
+import shlex
+from psutil import Popen
 
 
 def tests(data):
@@ -17,6 +24,8 @@ def tests(data):
 
 test_value = 0
 launch_value = 0
+global aList
+aList = []
 def instruction_callback(instruction):
     global launch_value
     global test_value
@@ -34,8 +43,88 @@ def instruction_callback(instruction):
         print("reset")
     if(instruction.data == "stop"):
         print("stop")
+    if(instruction.data == "get_packages"):
+        res = topological_order("/home/mathieu/catkin_ws/src")
+        
+        print(res)
     if(instruction.data == "load_nodes"):
         print("loading nodes")
+    if(instruction.data == "stop_node"):
+        for p in aList:
+            p.terminate()
+        aList.clear()
+    if(instruction.data == "launch_node"):
+        #node = roslaunch.core.Node("rqt_gui","rqt_gui")
+        #launch = roslaunch.scriptapi.ROSLaunch()
+        #launch.start()
+        #process = launch.launch(node)
+        #print(process.is_alive)
+        
+        Popen(
+            shlex.split('rosparam set /gnc_package "test_rocket_gnc"')
+        )
+        Popen(
+            shlex.split('rosparam set /simulation 3')
+        )
+        Popen(
+            shlex.split('rosparam load /home/mathieu/catkin_ws/src/test_rocket_gnc/config/rocket_parameters.yaml /rocket')
+        )
+        Popen(
+            shlex.split('rosparam load /home/mathieu/catkin_ws/src/test_rocket_gnc/config/environment_parameters.yaml /environment')
+        )
+        Popen(
+            shlex.split('rosparam load /home/mathieu/catkin_ws/src/real_time_simulator/config/perturbations_parameters.yaml /perturbation')
+        )
+        Popen(
+            shlex.split('rosparam load /home/mathieu/catkin_ws/src/real_time_simulator/config/visualization_parameters.yaml /visualization')
+        )
+        node_process = Popen(
+            shlex.split('rosrun test_rocket_gnc test_rocket_control')
+        )
+        aList.append(node_process)
+        Popen(
+            shlex.split('rosrun test_rocket_gnc test_rocket_navigation')
+        )
+        aList.append(node_process)
+        node_process = Popen(
+            shlex.split('rosrun test_rocket_gnc test_rocket_guidance')
+        )
+        aList.append(node_process)
+        node_process = Popen(
+            shlex.split('rosrun test_rocket_gnc test_rocket_fsm')
+        )
+        aList.append(node_process)
+        node_process = Popen(
+            shlex.split('rosrun test_rocket_gnc av_interface.py')
+        )
+        aList.append(node_process)
+        node_process = Popen(
+            shlex.split('rosrun real_time_simulator aerodynamic.py')
+        )
+        aList.append(node_process)
+        node_process = Popen(
+            shlex.split('rosrun real_time_simulator foxglove_interface.py')
+        )
+        aList.append(node_process)
+        node_process = Popen(
+            shlex.split('rosrun real_time_simulator disturbance.py')
+        )
+        aList.append(node_process)
+        node_process = Popen(
+            shlex.split('rosrun real_time_simulator integrator')
+        )
+        aList.append(node_process)
+        node_process = Popen(
+            shlex.split('rosrun real_time_simulator GUI_interface')
+        )
+        aList.append(node_process)
+        node_process = Popen(
+            shlex.split('rosrun rosbag record')
+        )
+        aList.append(node_process)
+
+        
+        
     if(instruction.data == "test"):
         test_value += 1
         msg = String()
