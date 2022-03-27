@@ -158,8 +158,8 @@ int main(int argc, char **argv) {
 
     init_marker(rocket_marker, "rocket marker", 0.75, 0.75, 0.75, stl_alpha);
     init_marker(kalman_marker, "rocket kalman marker", 0.75, 0.75, 0.75, 0.5);
-    init_marker(thrust_vector, "thrust vector", 1, 0.5, 0);
-    init_marker(mpc_horizon, "mpc horizon", 0.1, 0.3, 0.7, 0.4);
+    init_marker(thrust_vector, "thrust vector", 1, 0.5, 0, 0.7);
+    init_marker(mpc_horizon, "mpc horizon", 0.1, 0.3, 0.7, 0.9);
     init_marker(target_trajectory, "target trajectory", 0.15, 0.5, 0.25, 0.4);
     init_marker(target_apogee, "target trajectory", 0.15, 0.5, 0.25, 0.5);
 
