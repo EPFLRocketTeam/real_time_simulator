@@ -3,16 +3,17 @@
 #include "geometry_msgs/Vector3.h"
 #include "Eigen/Geometry"
 #include "atmosphere.hpp"
+#include "real_time_simulator/SetWind.h"
+#include "real_time_simulator/WindType.h"
 #define dt 0.01
-
-
-
 int main(int argc, char **argv){
     dryden_model::DrydenWind wind_dryden;
     wind_dryden.initialize(0.4, 0.4, 0.4, 0.5, 0.5, 0.5, 2.0);
     ros::init(argc, argv, "wind_generator");
     ros::NodeHandle nh("wind_generator");
-    ros::Publisher dryden_wind_pub = nh.advertise<geometry_msgs::Vector3>("wind_dryden", 1, false);
+    ros::Publisher dryden_wind_pub = nh.advertise<geometry_msgs::Vector3>("/wind", 1, false);
+
+
     ros::Timer dryden_timer = nh.createTimer(ros::Duration(dt), [&](const ros::TimerEvent&){
         Eigen::Vector3d wind_vector = wind_dryden.getWind(dt);
         geometry_msgs::Vector3 wind_msg;

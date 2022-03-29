@@ -1,0 +1,3 @@
+uint8 OFF=0
+uint8 STATIC=1
+uint8 REALISTIC=2

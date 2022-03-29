@@ -78,6 +78,7 @@ add_message_files(
         Waypoint.msg
         Sensor.msg
         Trajectory.msg
+        WindType.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -85,6 +86,7 @@ add_service_files(
         FILES
         GetFSM.srv
         GetWaypoint.srv
+        SetWind.srv
 )
 
 ## Generate actions in the 'action' folder
