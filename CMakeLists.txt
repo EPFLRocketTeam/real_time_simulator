@@ -79,6 +79,7 @@ add_message_files(
         Sensor.msg
         Trajectory.msg
         Update.msg
+        Data.msg
 )
 
 ## Generate services in the 'srv' folder

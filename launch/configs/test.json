@@ -1,0 +1,73 @@
+{
+    "listParam": [
+        {
+            "name": "/gnc_package",
+            "value": "test_rocket_gnc"
+        },
+        {
+            "name": "/simulation",
+            "value": "3"
+        }
+    ],
+    "listParamFiles": [
+        {
+            "file": "../../../src/test_rocket_gnc/config/rocket_parameters.yaml",
+            "param": "/rocket"
+        },
+        {
+            "file": "../../../src/test_rocket_gnc/config/environment_parameters.yaml",
+            "param": "/environment"
+        },
+        {
+            "file": "../../../src/real_time_simulator/config/perturbations_parameters.yaml",
+            "param": "/perturbation"
+        },
+        {
+            "file": "../../../src/real_time_simulator/config/visualization_parameters.yaml",
+            "param": "/visualization"
+        }
+    ],
+    "listNodes": [
+        {
+            "package": "test_rocket_gnc",
+            "file": "test_rocket_control"
+        },
+        {
+            "package": "test_rocket_gnc",
+            "file": "test_rocket_navigation"
+        },
+        {
+            "package": "test_rocket_gnc",
+            "file": "test_rocket_guidance"
+        },
+        {
+            "package": "test_rocket_gnc",
+            "file": "test_rocket_fsm"
+        },
+        {
+            "package": "test_rocket_gnc",
+            "file": "av_interface.py"
+        },
+        {
+            "package": "real_time_simulator",
+            "file": "aerodynamic.py"
+        },
+        {
+            "package": "real_time_simulator",
+            "file": "disturbance.py"
+        },
+        {
+            "package": "real_time_simulator",
+            "file": "integrator"
+        },
+        {
+            "package": "real_time_simulator",
+            "file": "GUI_interface"
+        },
+        {
+            "package": "rosbag",
+            "file": "record -a -O ../../../src/real_time_simulator/log/log.bag"
+        }
+        
+    ]
+}
