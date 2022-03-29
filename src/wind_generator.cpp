@@ -50,9 +50,16 @@ class WindGenerator{
             this->main_timer = nh.createTimer(ros::Duration(this->dt), [&](const ros::TimerEvent&){
                 this->wind_publisher.publish(wind_components);
             });
+            break;
         }
             
         case real_time_simulator::WindType::STATIC:
+        {
+            this->main_timer = nh.createTimer(ros::Duration(this->dt), [&](const ros::TimerEvent&){
+                this->wind_publisher.publish(wind_components);
+            });
+            break;
+        }
             this->main_timer = nh.createTimer(ros::Duration(this->dt), [&](const ros::TimerEvent&){
                 this->wind_publisher.publish(wind_components);
             });
@@ -68,9 +75,9 @@ class WindGenerator{
             this->wind_dryden = wind_dryden;
             this->wind_gust = wind_gust;
             this->main_timer = this->nh.createTimer(ros::Duration(this->dt), [&](const ros::TimerEvent&){
-                Eigen::Vector3d wind_vector_dryden = wind_dryden.getWind(this->dt);
+                Eigen::Vector3d wind_vector_dryden = this->wind_dryden.getWind(this->dt);
                 Eigen::Vector3d wind_vector_gust;
-                wind_gust.getGustVelNED(wind_vector_gust);
+                this->wind_gust.getGustVelNED(wind_vector_gust);
                 
                 Eigen::Vector3d wind_vector = wind_vector_dryden + wind_vector_gust;
                 geometry_msgs::Vector3 wind_msg;
@@ -78,7 +85,9 @@ class WindGenerator{
                 wind_msg.y = wind_vector.y();
                 wind_msg.z = wind_vector.z();
                 this->wind_publisher.publish(wind_msg);
+                ROS_ERROR("A");
             });
+            break;
         }
             
         
@@ -94,7 +103,7 @@ class WindGenerator{
 
 
 int main(int argc, char **argv){
-    double dt = 0.1;
+    double dt = 0.01;
     
     ros::init(argc, argv, "wind_generator");
     ros::NodeHandle nh("wind_generator");
