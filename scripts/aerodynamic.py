@@ -22,6 +22,7 @@ import rospy
 from real_time_simulator.msg import FSM
 from real_time_simulator.msg import State
 from real_time_simulator.msg import Control
+from geometry_msgs.msg import Vector3;
 from real_time_simulator.msg import Sensor
 
 import numpy as np
@@ -117,7 +118,7 @@ def init_integrator():
 	Bellalui_2.set_motor_Isp(rocket_data["Isp"])
   
 	US_Atmos = stdAtmosUS(env_data["ground_altitude"], env_data["temperature"], env_data["pressure"], env_data["humidity"] )
-	US_Atmos.set_wind( env_data["wind_speed"], 180-env_data["wind_direction"])
+	US_Atmos.set_wind([0,0,0])
   
 	SimObj = Simulator3D(Bellalui_2, US_Atmos)
 	return SimObj
@@ -148,6 +149,8 @@ if __name__ == '__main__':
 
 	# Subscribe to fsm 
 	rospy.Subscriber("fsm_pub", FSM, fsm_callback)
+
+	rospy.Subscriber("/wind", Vector3, lambda msg:rocket_sim.Environment.set_wind([msg.x, msg.y, msg.z]))
 
 	# Publisher for aero force
 	rocket_aero_pub = rospy.Publisher('rocket_aero', Control, queue_size=10)
