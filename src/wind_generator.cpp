@@ -83,7 +83,7 @@ class WindGenerator{
                 geometry_msgs::Vector3 wind_msg;
                 wind_msg.x = wind_vector.x();
                 wind_msg.y = wind_vector.y();
-                wind_msg.z = wind_vector.z();
+                wind_msg.z = 0; // wind_vector.z();
                 this->wind_publisher.publish(wind_msg);
                 ROS_ERROR("A");
             });
