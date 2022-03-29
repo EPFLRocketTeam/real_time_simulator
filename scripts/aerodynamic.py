@@ -150,7 +150,7 @@ if __name__ == '__main__':
 	# Subscribe to fsm 
 	rospy.Subscriber("fsm_pub", FSM, fsm_callback)
 
-	rospy.Subscriber("/wind", Vector3, lambda msg:rocket_sim.Environment.set_wind([msg.x, msg.y, msg.z]))
+	rospy.Subscriber("/wind_speed", Vector3, lambda msg:rocket_sim.Environment.set_wind([msg.x, msg.y, msg.z]))
 
 	# Publisher for aero force
 	rocket_aero_pub = rospy.Publisher('rocket_aero', Control, queue_size=10)
