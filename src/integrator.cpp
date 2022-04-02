@@ -37,8 +37,10 @@
 
 #include <chrono>
 #include <random>
+#include <vector>
 
 #include "rocket.hpp"
+#include "actuator/Gimbal.hpp"
 
 using namespace std;
 using namespace boost::numeric::odeint;
@@ -75,8 +77,11 @@ private:
     // publishers
     ros::Publisher rocket_state_pub;
     ros::Publisher rocket_sensor_pub;
-    ros::Publisher fsm_pub;
+    ros::Publisher fsm_pub; 
+
 public:
+    
+    std::vector<Actuator*> actuatorList;
     float integration_period = 10e-3;
 
     IntegratorNode(ros::NodeHandle &nh) {
@@ -130,6 +135,9 @@ public:
         rocket.sensor_baro = 0;
 
         xout = X;
+
+        // Initialize actuator list
+        actuatorList.push_back(new Gimbal(nh));
     }
 
     void initTopics(ros::NodeHandle &nh) {

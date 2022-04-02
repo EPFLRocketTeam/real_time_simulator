@@ -78,6 +78,7 @@ add_message_files(
         Waypoint.msg
         Sensor.msg
         Trajectory.msg
+        Gimbal.msg
 )
 
 ## Generate services in the 'srv' folder
