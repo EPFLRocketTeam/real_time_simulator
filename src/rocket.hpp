@@ -143,8 +143,16 @@ public:
 
         n.getParam("/environment/ground_altitude", h0);
 
-        // Initialize actuator list
-        actuatorList.push_back(new Gimbal(n, integration_period));
+        // Fill in actuator list
+        XmlRpc::XmlRpcValue yamlActuatorList;
+        n.getParam("/actuator/gimbal", yamlActuatorList);
+
+        for (int i = 0; i < yamlActuatorList.size(); i++) {
+            XmlRpc::XmlRpcValue sublist = yamlActuatorList[i];
+
+            actuatorList.push_back(new Gimbal(n, integration_period, sublist));
+        }
+
     }
 
     void dynamics_flight(const state &x,
@@ -239,7 +247,6 @@ public:
         Actuator::control rocket_control;
         rocket_control.setZero();
         for(unsigned int i=0; i<actuatorList.size(); i++) rocket_control += actuatorList[i]->getActuatorWrench(x);
-        std::cout << rocket_control << std::endl << std::endl;
 
         // Force in inertial frame: gravity
         Matrix<double, 3, 1> gravity;

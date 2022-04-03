@@ -28,7 +28,7 @@ class Gimbal : public Actuator{
         stateType gimbalStateOut;
 
         // Dynamic parameters (2nd order linear system)
-        double inertia, damping, stifness, reactivity;
+        double inertia, damping, stiffness, reactivity;
 
         double timestep;
         double previousTime;
@@ -36,30 +36,37 @@ class Gimbal : public Actuator{
         using stepper_type = runge_kutta_dopri5<stateType, double, stateType, double, vector_space_algebra>;
         stepper_type stepper;
 
-        Gimbal(ros::NodeHandle &nh, double integrationTimestep){
+        Gimbal(ros::NodeHandle &nh, double integrationTimestep, XmlRpc::XmlRpcValue gimbalParam){
 
-            minRange << -10*DEG2RAD, -10*DEG2RAD, 500;
-            maxRange << 10*DEG2RAD, 10*DEG2RAD, 1000;
+            minRange << gimbalParam["minRange"][0], gimbalParam["minRange"][1], gimbalParam["minRange"][2];
+            maxRange << gimbalParam["maxRange"][0], gimbalParam["maxRange"][1], gimbalParam["maxRange"][2];
+            minRange.head(2) *= DEG2RAD;
+            maxRange.head(2) *= DEG2RAD;
 
             gimbalState << 0, 0, 0, 0, maxRange[2];
+            gimbalCommand.thrust = maxRange[2];
 
-            positionCM << 0, 0, -2;
+            positionCM << gimbalParam["positionCM"][0], gimbalParam["positionCM"][1], gimbalParam["positionCM"][2];
 
-            inertia = 0.1;
-            damping = 1;
-            stifness = 2;
-            reactivity = 15;
+            inertia = gimbalParam["inertia"];
+            damping = gimbalParam["damping"];
+            stiffness = gimbalParam["stiffness"];
+            reactivity = gimbalParam["reactivity"];
 
-            actuatorPublisher = nh.advertise<real_time_simulator::Gimbal>("gimbal_state", 1);
-            actuatorSubscriber = nh.subscribe("command_gimbal", 1,
+            // Create state and command message with gimbal ID
+            int id = gimbalParam["id"];
+            actuatorPublisher = nh.advertise<real_time_simulator::Gimbal>("gimbal_state_"+std::to_string(id), 1);
+            actuatorSubscriber = nh.subscribe("gimbal_command_"+std::to_string(id), 1,
                                             &Gimbal::gimbalCommandCallback, this);
 
             previousTime = 0;
             timestep = integrationTimestep;
             
-            // Thread to integrate state. Duration defines interval time in seconds
+            // Thread to integrate gimbal state. Duration defines interval time in seconds
+            double sensorFrequency = gimbalParam["sensorFrequency"];
+
             integrator_thread = nh.createTimer(
-                    ros::Duration(timestep), [&](const ros::TimerEvent &) {
+                    ros::Duration(1.0/sensorFrequency), [&](const ros::TimerEvent &) {
                         sendFeedback();
                     });
 
@@ -127,7 +134,7 @@ class Gimbal : public Actuator{
             angleCommand << gimbalCommand.outer_angle, gimbalCommand.inner_angle;
             
             // Angular acceleration proportional to angle error
-            xdot.head(2) = ( stifness*(angleCommand - x.segment(2, 2)) - damping*x.head(2)) / inertia;
+            xdot.head(2) = ( stiffness*(angleCommand - x.segment(2, 2)) - damping*x.head(2)) / inertia;
 
             xdot.segment(2, 2) = x.head(2);
 
