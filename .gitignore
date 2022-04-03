@@ -1,3 +1,4 @@
 *.pyc
 GUI/rocket_GUI.perspective
 log.bag
+.vscode

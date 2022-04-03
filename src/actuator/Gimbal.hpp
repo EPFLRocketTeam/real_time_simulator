@@ -67,10 +67,8 @@ class Gimbal : public Actuator{
             computeStateActuator();
             real_time_simulator::Gimbal gimbalFeedback;
 
-            //Map<VectorXd>(gimbalFeedback.angle_command.data(), gimbalState.segment(2, 2).size()) = gimbalState.segment(2, 2);
-
-            gimbalFeedback.angle[0] = gimbalState[2];
-            gimbalFeedback.angle[1] = gimbalState[3];
+            gimbalFeedback.inner_angle = gimbalState[2];
+            gimbalFeedback.outer_angle = gimbalState[3];
             gimbalFeedback.thrust = gimbalState[4];
 
             actuatorPublisher.publish(gimbalFeedback);
@@ -91,9 +89,8 @@ class Gimbal : public Actuator{
         // Dynamic equation of the gimbal
         void actuatorDynamic(const stateType &x , stateType &xdot , const double t){
 
-            //Vector2d angleCommand(gimbalCommand.angle_command.data());
             Vector2d angleCommand;
-            angleCommand << gimbalCommand.angle[0], gimbalCommand.angle[1];
+            angleCommand << gimbalCommand.inner_angle, gimbalCommand.outer_angle;
             
             // Angular acceleration proportional to angle error
             xdot.head(2) = ( stifness*(angleCommand - x.segment(2, 2)) - damping*x.head(2)) / inertia;
@@ -106,7 +103,8 @@ class Gimbal : public Actuator{
         // Callback function to store last received gimbal command
         void gimbalCommandCallback(const real_time_simulator::Gimbal::ConstPtr &command) {
 
-            gimbalCommand.angle = command->angle;
+            gimbalCommand.inner_angle = command->inner_angle;
+            gimbalCommand.outer_angle = command->outer_angle;
             gimbalCommand.thrust = command->thrust;
         }
 

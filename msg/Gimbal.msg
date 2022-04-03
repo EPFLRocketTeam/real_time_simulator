@@ -1,3 +1,4 @@
-float32[2] angle
+float32 inner_angle
+float32 outer_angle
 float32 thrust
 
