@@ -6,6 +6,8 @@
 
 #include "real_time_simulator/Control.h"
 
+#include "actuator/Gimbal.hpp"
+
 #include "geometry_msgs/Vector3.h"
 #include "std_msgs/String.h"
 
@@ -29,6 +31,8 @@ using namespace Eigen;
 
 class Rocket {
 public:
+    using state = Matrix<double, 14, 1>;
+
     float dry_mass;
     float propellant_mass;
     float Isp;
@@ -67,8 +71,7 @@ public:
     float gyro_noise, gyro_bias;
     float baro_noise, baro_bias;
 
-    using state = Matrix<double, 14, 1>;
-    using control = Matrix<double, 3, 2>;
+    std::vector<Actuator*> actuatorList;
 
     void update_CM(float current_prop_mass) {
         total_CM = total_length - (dry_CM * dry_mass + propellant_CM * current_prop_mass) /
@@ -85,7 +88,7 @@ public:
     }
 
 
-    void init(ros::NodeHandle n) {
+    void init(ros::NodeHandle n, double integration_period) {
         n.getParam("/rocket/minTorque", minTorque);
         n.getParam("/rocket/maxTorque", maxTorque);
         n.getParam("/rocket/maxThrust", maxThrust);
@@ -140,13 +143,14 @@ public:
 
         n.getParam("/environment/ground_altitude", h0);
 
+        // Initialize actuator list
+        actuatorList.push_back(new Gimbal(n, integration_period));
     }
 
     void dynamics_flight(const state &x,
                          state &xdot,
-                         control &rocket_control,
-                         control &aero_control,
-                         control &perturbation_control,
+                         Actuator::control &aero_control,
+                         Actuator::control &perturbation_control,
                          const double &t) {
         // -------------- Simulation variables -----------------------------
         double g0 = 3.986e14 / pow(6371e3 + h0 + x(2), 2);  // Earth gravity in [m/s^2]
@@ -159,11 +163,15 @@ public:
         Matrix<double, 3, 3> rot_matrix = attitude.toRotationMatrix();
         //std::cout << (180/3.14)*std::acos(x(9)*x(9) - x(6)*x(6) - x(7)*x(7) + x(8)*x(8)) << "\n";
 
+        // Get wrench from actuator list
+        Actuator::control rocket_control;
+        rocket_control.setZero();
+        for(unsigned int i=0; i<actuatorList.size(); i++) rocket_control += actuatorList[i]->getActuatorWrench(x);
 
         // Force in inertial frame: gravity
         Matrix<double, 3, 1> gravity;
         gravity << 0, 0, g0 * mass;
-
+        
         // Total force in inertial frame [N]
         Matrix<double, 3, 1> total_force;
         total_force = rot_matrix * rocket_control.col(0) - gravity + aero_control.col(0) + perturbation_control.col(0);
@@ -215,8 +223,7 @@ public:
 
     void dynamics_rail(const state &x,
                        state &xdot,
-                       control &rocket_control,
-                       control &aero_control,
+                       Actuator::control &aero_control,
                        const double &t) {
         // -------------- Simulation variables -----------------------------
         double g0 = 3.986e14 / pow(6371e3 + x(2), 2);  // Earth gravity in [m/s^2]
@@ -227,6 +234,12 @@ public:
         Quaternion<double> attitude(x(9), x(6), x(7), x(8));
         attitude.normalize();
         Matrix<double, 3, 3> rot_matrix = attitude.toRotationMatrix();
+
+        // Get wrench from actuator list
+        Actuator::control rocket_control;
+        rocket_control.setZero();
+        for(unsigned int i=0; i<actuatorList.size(); i++) rocket_control += actuatorList[i]->getActuatorWrench(x);
+        std::cout << rocket_control << std::endl << std::endl;
 
         // Force in inertial frame: gravity
         Matrix<double, 3, 1> gravity;

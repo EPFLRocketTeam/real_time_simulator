@@ -40,7 +40,6 @@
 #include <vector>
 
 #include "rocket.hpp"
-#include "actuator/Gimbal.hpp"
 
 using namespace std;
 using namespace boost::numeric::odeint;
@@ -58,11 +57,11 @@ private:
     Rocket rocket;
 
     //last updated rocket force & torque
-    Rocket::control rocket_control;
+    Actuator::control rocket_control;
     //last updated aerodynamic force & torque
-    Rocket::control aero_control;
+    Actuator::control aero_control;
     //last updated perturbations force & torque
-    Rocket::control perturbation_control;
+    Actuator::control perturbation_control;
     //last requested fsm
     real_time_simulator::FSM current_fsm;
     double time_zero;
@@ -81,8 +80,7 @@ private:
 
 public:
     
-    std::vector<Actuator*> actuatorList;
-    float integration_period = 10e-3;
+    double integration_period = 5e-3;
 
     IntegratorNode(ros::NodeHandle &nh) {
         // Initialize publishers and subscribers
@@ -90,7 +88,7 @@ public:
 
         /* ---------- Variable initialization  ---------- */
         // Initialize rocket class with useful parameters
-        rocket.init(nh);
+        rocket.init(nh, integration_period);
 
         // Initialize fsm
         current_fsm.time_now = 0;
@@ -100,12 +98,12 @@ public:
 
         // Initialize external forces
         aero_control << 0, 0,
-                0, 0,
-                0, 0;
+                        0, 0,
+                        0, 0;
 
         rocket_control << 0, 0,
-                0, 0,
-                rocket.maxThrust[2], 0;
+                          0, 0,
+                          rocket.maxThrust[2], 0;
 
         //Get initial orientation and convert in Radians
         float roll = 0, zenith = 0, azimuth = 0.0;
@@ -135,9 +133,6 @@ public:
         rocket.sensor_baro = 0;
 
         xout = X;
-
-        // Initialize actuator list
-        actuatorList.push_back(new Gimbal(nh));
     }
 
     void initTopics(ros::NodeHandle &nh) {
@@ -171,7 +166,7 @@ public:
 
             if (current_fsm.state_machine.compare("Rail") == 0) {
                 auto dynamics_rail = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
-                    rocket.dynamics_rail(x, xdot, rocket_control, aero_control, t);
+                    rocket.dynamics_rail(x, xdot, aero_control, t);
                 };
                 stepper.do_step(dynamics_rail, X, 0, xout, 0 + integration_period);
 
@@ -181,7 +176,7 @@ public:
                 }
             } else if (current_fsm.state_machine.compare("Launch") == 0) {
                 auto dynamics_flight = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
-                    rocket.dynamics_flight(x, xdot, rocket_control, aero_control, perturbation_control, t);};
+                    rocket.dynamics_flight(x, xdot, aero_control, perturbation_control, t);};
 
                 stepper.do_step(dynamics_flight, X, 0, xout, 0 + integration_period);
 
@@ -190,11 +185,9 @@ public:
                     current_fsm.state_machine = "Coast";
                 }
             } else if (current_fsm.state_machine.compare("Coast") == 0) {
-                rocket_control << 0, 0,
-                        0, 0,
-                        0, 0;
+                
                 auto dynamics_flight = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
-                    rocket.dynamics_flight(x, xdot, rocket_control, aero_control, perturbation_control, t);};
+                    rocket.dynamics_flight(x, xdot, aero_control, perturbation_control, t);};
 
                 stepper.do_step(dynamics_flight, X, 0, xout, 0 + integration_period);
             }
