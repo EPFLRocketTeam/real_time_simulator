@@ -28,6 +28,17 @@ drag_assymetry:           # Amount of drag force distributed on X and Y surface 
   - -0.2
   - 0.5
 
+# For future:
+# Cd_std:
+#   - 0.1
+#   - 0.1
+#   - 0.1
+dry_I_std:
+  - 0.1
+  - 0.1
+  - 0.1
+dry_CM_std: 0.1
+
 air_density_bias: 20      # Error bias in percentage of the air density
 
 # Sensor parameters

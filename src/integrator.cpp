@@ -85,7 +85,7 @@ public:
 
         /* ---------- Variable initialization  ---------- */
         // Initialize rocket class with useful parameters
-        rocket.init(nh);
+        rocket.init(nh, true);
 
         // Initialize fsm
         current_fsm.time_now = 0;

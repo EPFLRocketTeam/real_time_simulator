@@ -85,7 +85,7 @@ public:
     }
 
 
-    void init(ros::NodeHandle n) {
+    void init(ros::NodeHandle n, bool noisy_parameters=false) {
         n.getParam("/rocket/minTorque", minTorque);
         n.getParam("/rocket/maxTorque", maxTorque);
         n.getParam("/rocket/maxThrust", maxThrust);
@@ -139,6 +139,20 @@ public:
         n.getParam("/perturbation/baro_bias", baro_bias);
 
         n.getParam("/environment/ground_altitude", h0);
+
+        if(noisy_parameters){
+            std::default_random_engine gen;
+            std::vector<float> dry_I_std;
+            n.getParam("/perturbation/dry_I_std", dry_I_std);
+            for(size_t i = 0; i < 3; i++){
+                std::normal_distribution<float> dist(dry_Inertia[i], dry_I_std[i]);
+                dry_Inertia[i] = dist(gen);
+            }
+            float dry_CM_std;
+            n.getParam("/perturbation/dry_CM_std", dry_CM_std);
+            std::normal_distribution<float> dist(dry_CM, dry_CM_std);
+            dry_CM = dist(gen);
+        }
 
     }
 
