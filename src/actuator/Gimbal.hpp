@@ -2,6 +2,7 @@
 
 #include "Actuator.hpp"
 #include "real_time_simulator/Gimbal.h"
+#include "real_time_simulator/Control.h"
 #include <boost/numeric/odeint/stepper/runge_kutta_dopri5.hpp>
 
 
@@ -80,6 +81,15 @@ class Gimbal : public Actuator{
             // Update state of actuator
             computeStateActuator();
 
+            Actuator::control gimbalWrench = computeActuatorWrench();
+
+            return gimbalWrench;
+        }
+
+    private:
+
+        Actuator::control computeActuatorWrench(){
+
             double outerAngle = gimbalState[2];
             double innerAngle = gimbalState[3];
 
@@ -97,22 +107,19 @@ class Gimbal : public Actuator{
             gimbalWrench.col(0) = thrustVector;
             gimbalWrench.col(1) = positionCM.cross(thrustVector);
 
-            //std::cout << gimbalWrench << std::endl << std::endl;
-
             return gimbalWrench;
         }
 
-    private:
-
         void sendFeedback(){
-            
-            real_time_simulator::Gimbal gimbalFeedback;
 
-            gimbalFeedback.outer_angle = gimbalState[2];
-            gimbalFeedback.inner_angle = gimbalState[3];
-            gimbalFeedback.thrust = gimbalState[4];
+            // Send latest gimbal state as feedback
+            real_time_simulator::Gimbal gimbalStateMsg;
 
-            actuatorPublisher.publish(gimbalFeedback);
+            gimbalStateMsg.outer_angle = gimbalState[2];
+            gimbalStateMsg.inner_angle = gimbalState[3];
+            gimbalStateMsg.thrust = gimbalState[4];
+
+            actuatorPublisher.publish(gimbalStateMsg);
         }
 
         void computeStateActuator(){

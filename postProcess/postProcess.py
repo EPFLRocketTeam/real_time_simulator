@@ -99,7 +99,7 @@ for topic, msg, t in bag.read_messages(topics=['/control_pub']):
   z_torque = np.append(z_torque, [[msg.torque.z]]) 
   time_force = np.append(time_force, [[t.to_sec()]]) 
 
-for topic, msg, t in bag.read_messages(topics=['/control_measured']):
+for topic, msg, t in bag.read_messages(topics=['/simu_actuator']):
   new_force = msg.force
   measured_force = np.append(measured_force, [[new_force.x, new_force.y, new_force.z]], axis = 0)
   time_actuation = np.append(time_actuation, [[t.to_sec()]]) 

@@ -62,6 +62,8 @@ public:
 
     std::vector<float> J_inv{0, 0, 0};
 
+    Actuator::control rocket_control;
+
     // Sensor data
     Vector3d sensor_acc;
     Vector3d sensor_gyro;
@@ -172,7 +174,6 @@ public:
         //std::cout << (180/3.14)*std::acos(x(9)*x(9) - x(6)*x(6) - x(7)*x(7) + x(8)*x(8)) << "\n";
 
         // Get wrench from actuator list
-        Actuator::control rocket_control;
         rocket_control.setZero();
         for(unsigned int i=0; i<actuatorList.size(); i++) rocket_control += actuatorList[i]->getActuatorWrench(x);
 
@@ -244,7 +245,6 @@ public:
         Matrix<double, 3, 3> rot_matrix = attitude.toRotationMatrix();
 
         // Get wrench from actuator list
-        Actuator::control rocket_control;
         rocket_control.setZero();
         for(unsigned int i=0; i<actuatorList.size(); i++) rocket_control += actuatorList[i]->getActuatorWrench(x);
 

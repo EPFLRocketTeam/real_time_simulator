@@ -17,33 +17,14 @@ gimbal:
    sensorFrequency: 50.0
    minRange: [-10.0,-10.0,0.0]
    maxRange: [10.0,10.0,2000.0]
-   positionCM: [0.0,0.0,-2.0]
+   positionCM: [0.1,0.0,-2.0]
 
  - id: 1
-   inertia: 0.2
-   damping: 2.0 
-   stiffness: 4.0
-   reactivity: 30.0
-   sensorFrequency: 100.0
-   minRange: [-20.0,-20.0,0.0]
-   maxRange: [20.0,20.0,2000.0]
-   positionCM: [0.0,0.0,-4.0]
-
-# gimbal: 
-#   - inertia: 0.1
-#   - damping: 1
-#   - stiffness: 2
-#   - reactivity : 15
-#   - sensorFrequency: 50
-  # minRange:
-  #   - -10
-  #   - -10
-  #   - 0
-  # maxRange:
-  #   10
-  #   10
-  #   2000,
-  # positionCM:
-  #   0
-  #   0
-  #   -2,
+   inertia: 0.1
+   damping: 1.0 
+   stiffness: 2.0
+   reactivity: 15.0
+   sensorFrequency: 50.0
+   minRange: [-10.0,-10.0,0.0]
+   maxRange: [10.0,10.0,2000.0]
+   positionCM: [-0.1,0.0,-2.0]

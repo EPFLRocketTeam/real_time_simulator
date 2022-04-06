@@ -76,6 +76,7 @@ private:
     // publishers
     ros::Publisher rocket_state_pub;
     ros::Publisher rocket_sensor_pub;
+    ros::Publisher rocket_forces_pub;
     ros::Publisher fsm_pub; 
 
 public:
@@ -153,6 +154,8 @@ public:
         rocket_sensor_pub = nh.advertise<real_time_simulator::Sensor>("simu_sensor_pub", 10);
         // Create timer publisher and associated thread (100Hz)
         fsm_pub = nh.advertise<real_time_simulator::FSM>("fsm_pub", 10);
+
+        rocket_forces_pub = nh.advertise<real_time_simulator::Control>("simu_actuator", 10);
     }
 
     void step() {
@@ -282,6 +285,21 @@ public:
 
         rocket_sensor_pub.publish(sensor_msg);
     }
+
+    void sendActuatorForce(){
+
+        real_time_simulator::Control actuatorMsg;
+
+        actuatorMsg.force.x = rocket.rocket_control(0, 0);
+        actuatorMsg.force.y = rocket.rocket_control(1, 0);
+        actuatorMsg.force.z = rocket.rocket_control(2, 0);
+
+        actuatorMsg.torque.x = rocket.rocket_control(0, 1);
+        actuatorMsg.torque.y = rocket.rocket_control(1, 1);
+        actuatorMsg.torque.z = rocket.rocket_control(2, 1);
+
+        rocket_forces_pub.publish(actuatorMsg);
+    }
 };
 
 
@@ -293,16 +311,31 @@ int main(int argc, char **argv) {
 
     IntegratorNode integrator_node(nh);
 
+    std::vector<double> timestep;
+
     // Thread to integrate state. Duration defines interval time in seconds
     ros::Timer integrator_thread = nh.createTimer(
             ros::Duration(integrator_node.integration_period), [&](const ros::TimerEvent &) {
+                //double t0 = ros::Time::now().toSec();
                 integrator_node.step();
+                // timestep.push_back(ros::Time::now().toSec() - t0);
+
+                // if(timestep.size() > 1000) {
+                //     std::cout << std::accumulate(timestep.begin(), timestep.end(),
+                //                 decltype(timestep)::value_type(0)) << std::endl;
+                //     timestep.clear();
+                // }
             });
 
     double sensor_period;
     nh.getParam("/perturbation/sensor_period", sensor_period);
     ros::Timer sensor_thread = nh.createTimer(ros::Duration(sensor_period), [&](const ros::TimerEvent &) {
         integrator_node.send_fake_sensor();
+    });
+
+
+    ros::Timer actuator_thread = nh.createTimer(ros::Duration(20e-3), [&](const ros::TimerEvent &) {
+        integrator_node.sendActuatorForce();
     });
 
     // Automatic callback of service and publisher from here
