@@ -21,7 +21,7 @@ import time
 
 import rosbag
 
-tStart = 0
+tStart = -1
 tEnd = 30
 
 # Simulated state
@@ -41,8 +41,8 @@ prop_mass_est = np.zeros((1,1))
 time_state_est = np.zeros((1,1))
 
 # Controled forces and torque
-control_force = np.zeros((1,3))
-z_torque = np.zeros((1,1))
+command_gimbal = np.zeros((1,2))
+command_thrust = np.zeros((1,1))
 time_force = np.zeros((1,1))
 
 # Measured force from AV
@@ -93,10 +93,9 @@ for topic, msg, t in bag.read_messages(topics=['/kalman_rocket_state']):
     prop_mass_est = np.append(prop_mass_est, [[new_mass]])
     time_state_est = np.append(time_state_est, [[t.to_sec()]])
 
-for topic, msg, t in bag.read_messages(topics=['/control_pub']):
-  new_force = msg.force
-  control_force = np.append(control_force, [[new_force.x, new_force.y, new_force.z]], axis = 0)
-  z_torque = np.append(z_torque, [[msg.torque.z]]) 
+for topic, msg, t in bag.read_messages(topics=['/gimbal_state_0']):
+  command_gimbal = np.append(command_gimbal, [[msg.outer_angle, msg.inner_angle]], axis = 0)
+  command_thrust = np.append(command_thrust, [[msg.thrust]], axis = 0)
   time_force = np.append(time_force, [[t.to_sec()]]) 
 
 for topic, msg, t in bag.read_messages(topics=['/simu_actuator']):
@@ -140,8 +139,8 @@ position_est = position_est[1:]
 attitude_est = attitude_est[1:]
 time_state_est = time_state_est[1:]
 
-control_force = control_force[1:]
-z_torque = z_torque[1:]
+command_gimbal = np.rad2deg(command_gimbal[1:])
+command_thrust = command_thrust[1:]
 time_force = time_force[1:]
 
 measured_force = measured_force[1:]
@@ -222,13 +221,13 @@ l = axe[1][3].plot(time_state[select], omega[:, 2][select],  label = 'Z', color 
 axe[1][3].set_title("Angular speed [deg/s]")
 axe[1][3].legend()
 
-l = axe[2][2].plot(time_force[select_force], control_force[:, 0][select_force], label = "X")
-l = axe[2][2].plot(time_force[select_force], control_force[:, 1][select_force], label = "Y")
-axe[2][2].set_title('Thrust force [N]')
+l = axe[2][2].plot(time_force[select_force], command_gimbal[:, 0][select_force], label = "X")
+l = axe[2][2].plot(time_force[select_force], command_gimbal[:, 1][select_force], label = "Y")
+axe[2][2].set_title('Gimbal angle [°]')
 axe[2][2].legend()
 
-l = axe[2][3].plot(time_force[select_force], z_torque[select_force], label = 'Z torque [N.m]', color = "green")
-axe[2][3].legend()
+# l = axe[2][3].plot(time_force[select_force], z_torque[select_force], label = 'Z torque [N.m]', color = "green")
+# axe[2][3].legend()
 
 l = axe[2][1].plot(time_actuation[select_actuation], measured_force[:, 2][select_actuation], label = "Z force [N]", linewidth=2, marker = "+")
 axe[2][1].legend()
@@ -272,7 +271,7 @@ if 1:
   l = axe[2][0].plot(time_state_est[select_est][::point_spacing], prop_mass_est[select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated mass [kg]")
   axe[2][0].legend()
 
-  l = axe[2][1].plot(time_force[select_force], control_force[:, 2][select_force], marker = '+', linestyle=':', label = "Commanded Z force [N]")
+  l = axe[2][1].plot(time_force[select_force], command_thrust[select_force], marker = '+', linestyle=':', label = "Commanded Z force [N]")
   axe[2][1].legend()
 
 # Plot Guidance optimal trajectory (if needed)

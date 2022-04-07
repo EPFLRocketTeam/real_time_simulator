@@ -131,6 +131,10 @@ class Gimbal : public Actuator{
             stepper.do_step(dynamics, gimbalState, 0, gimbalStateOut, 0 + timestep);
             gimbalState = gimbalStateOut;
 
+            gimbalState(2) = std::min(std::max(gimbalStateOut(2), minRange(0)), maxRange(0));
+            gimbalState(3) = std::min(std::max(gimbalStateOut(3), minRange(1)), maxRange(1));
+            gimbalState(4) = std::min(std::max(gimbalStateOut(4), minRange(2)), maxRange(2));
+
             previousTime += timestep;
         }
 
@@ -154,6 +158,15 @@ class Gimbal : public Actuator{
             gimbalCommand.outer_angle = command->outer_angle;
             gimbalCommand.inner_angle = command->inner_angle;
             gimbalCommand.thrust = command->thrust;
+
+            if(gimbalCommand.inner_angle > maxRange(0))  gimbalCommand.inner_angle = maxRange(0);
+            if(gimbalCommand.inner_angle < minRange(0))  gimbalCommand.inner_angle = minRange(0);
+
+            if(gimbalCommand.outer_angle > maxRange(1))  gimbalCommand.outer_angle = maxRange(1);
+            if(gimbalCommand.outer_angle < minRange(1))  gimbalCommand.outer_angle = minRange(1);
+
+            if(gimbalCommand.thrust > maxRange(2))  gimbalCommand.thrust = maxRange(2);
+            if(gimbalCommand.thrust < minRange(2))  gimbalCommand.thrust = minRange(2);
         }
 
 
