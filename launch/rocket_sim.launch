@@ -15,7 +15,7 @@
   <group ns="visualization">
     <rosparam file="$(find real_time_simulator)/config/visualization_parameters.yaml" />
   </group>
-''
+
 
   <node name="aerodynamic" pkg="real_time_simulator" type="aerodynamic.py" cwd = "node" />
   <node name="disturbance" pkg="real_time_simulator" type="disturbance.py" cwd = "node"/>

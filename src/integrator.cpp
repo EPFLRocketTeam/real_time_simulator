@@ -77,7 +77,7 @@ private:
     ros::Publisher rocket_sensor_pub;
     ros::Publisher fsm_pub;
 public:
-    float integration_period = 10e-3;
+    float integration_period = 1e-3;
 
     IntegratorNode(ros::NodeHandle &nh) {
         // Initialize publishers and subscribers
