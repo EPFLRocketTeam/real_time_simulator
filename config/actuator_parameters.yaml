@@ -15,16 +15,17 @@ gimbal:
    stiffness: 2.0
    reactivity: 15.0
    sensorFrequency: 50.0
-   minRange: [-10.0,-10.0,0.0]
-   maxRange: [10.0,10.0,2000.0]
-   positionCM: [0.1,0.0,-2.0]
+   minRange: [-2.0,-2.0,0.0]
+   maxRange: [2.0,2.0,2000.0]
+   positionCM: [0.0,0.0,-2.0]
 
- - id: 1
+CMG:
+ - id: 0
    inertia: 0.1
    damping: 1.0 
    stiffness: 2.0
    reactivity: 15.0
    sensorFrequency: 50.0
-   minRange: [-10.0,-10.0,0.0]
-   maxRange: [10.0,10.0,2000.0]
-   positionCM: [-0.1,0.0,-2.0]
+   minRange: [-2.0,-2.0,-10.0]
+   maxRange: [2.0,2.0,10.0]
+   positionCM: [0.0,0.0,-2.0]

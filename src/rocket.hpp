@@ -7,6 +7,7 @@
 #include "real_time_simulator/Control.h"
 
 #include "actuator/Gimbal.hpp"
+#include "actuator/ControlMomentGyro.hpp"
 
 #include "geometry_msgs/Vector3.h"
 #include "std_msgs/String.h"
@@ -147,12 +148,24 @@ public:
 
         // Fill in actuator list
         XmlRpc::XmlRpcValue yamlActuatorList;
-        n.getParam("/actuator/gimbal", yamlActuatorList);
 
+        // Get all gimbal actuators
+        n.getParam("/actuator/gimbal", yamlActuatorList);
+        // std::cout << "Gimbal list " << yamlActuatorList << std::endl << std::endl;
         for (int i = 0; i < yamlActuatorList.size(); i++) {
             XmlRpc::XmlRpcValue sublist = yamlActuatorList[i];
 
             actuatorList.push_back(new Gimbal(n, integration_period, sublist));
+        }
+
+        // Get all CMG actuators
+        n.getParam("/actuator/CMG", yamlActuatorList);
+        // std::cout << "CMG list " << yamlActuatorList << std::endl << std::endl;
+
+        for (int i = 0; i < yamlActuatorList.size(); i++) {
+            XmlRpc::XmlRpcValue sublist = yamlActuatorList[i];
+
+            actuatorList.push_back(new ControlMomentGyro(n, integration_period, sublist));
         }
 
     }
