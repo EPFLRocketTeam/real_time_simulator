@@ -30,6 +30,9 @@ class Gimbal : public Actuator{
         // Dynamic parameters (2nd order linear system)
         double inertia, damping, stiffness, reactivity;
 
+        // Torque constant for gimbal acceleration
+        double mechanic_inertia;
+
         double timestep;
         double previousTime;
 
@@ -52,6 +55,7 @@ class Gimbal : public Actuator{
             damping = gimbalParam["damping"];
             stiffness = gimbalParam["stiffness"];
             reactivity = gimbalParam["reactivity"];
+            mechanic_inertia = gimbalParam["mechanic_inertia"];
 
             // Create state and command message with gimbal ID
             int id = gimbalParam["id"];
@@ -76,9 +80,13 @@ class Gimbal : public Actuator{
             
             // Reduce thrust to zero when there are no propellant left
             if(rocketState[13] <= 0) gimbalCommand.thrust = 0;
-
+            
+            double previousInnerAngleVelocity = gimbalState[0];
             // Update state of actuator
             computeStateActuator();
+            double innerAngleAcceleration((gimbalState[0] - previousInnerAngleVelocity) / timestep);
+            Vector3d gimbalInertiaMoment(Vector3d::Zero());
+            gimbalInertiaMoment(0) = innerAngleAcceleration * mechanic_inertia;
 
             double outerAngle = gimbalState[2];
             double innerAngle = gimbalState[3];
@@ -95,10 +103,10 @@ class Gimbal : public Actuator{
             
             Actuator::control gimbalWrench;
             gimbalWrench.col(0) = thrustVector;
-            gimbalWrench.col(1) = positionCM.cross(thrustVector);
+            gimbalWrench.col(1) = positionCM.cross(thrustVector) + gimbalInertiaMoment;
 
             //std::cout << gimbalWrench << std::endl << std::endl;
-
+            ROS_ERROR_STREAM("\n" << gimbalCommand);
             return gimbalWrench;
         }
 

@@ -149,7 +149,6 @@ public:
 
         for (int i = 0; i < yamlActuatorList.size(); i++) {
             XmlRpc::XmlRpcValue sublist = yamlActuatorList[i];
-
             actuatorList.push_back(new Gimbal(n, integration_period, sublist));
         }
 
