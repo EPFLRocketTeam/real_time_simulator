@@ -41,9 +41,11 @@ prop_mass_est = np.zeros((1,1))
 time_state_est = np.zeros((1,1))
 
 # Controled forces and torque
-command_gimbal = np.zeros((1,2))
-command_thrust = np.zeros((1,1))
-time_force = np.zeros((1,1))
+feedback_gimbal = np.zeros((1,2))
+feedback_thrust = np.zeros((1,1))
+time_gimbal = np.zeros((1,1))
+feedback_torque = np.zeros((1,1))
+time_cmg = np.zeros((1,1))
 
 # Measured force from AV
 measured_force = np.zeros((1,3))
@@ -94,9 +96,13 @@ for topic, msg, t in bag.read_messages(topics=['/kalman_rocket_state']):
     time_state_est = np.append(time_state_est, [[t.to_sec()]])
 
 for topic, msg, t in bag.read_messages(topics=['/gimbal_state_0']):
-  command_gimbal = np.append(command_gimbal, [[msg.outer_angle, msg.inner_angle]], axis = 0)
-  command_thrust = np.append(command_thrust, [[msg.thrust]], axis = 0)
-  time_force = np.append(time_force, [[t.to_sec()]]) 
+  feedback_gimbal = np.append(feedback_gimbal, [[msg.outer_angle, msg.inner_angle]], axis = 0)
+  feedback_thrust = np.append(feedback_thrust, [[msg.thrust]], axis = 0)
+  time_gimbal = np.append(time_gimbal, [[t.to_sec()]]) 
+
+for topic, msg, t in bag.read_messages(topics=['/cmg_state_0']):
+  feedback_torque = np.append(feedback_torque, [[msg.torque]], axis = 0)
+  time_cmg = np.append(time_cmg, [[t.to_sec()]]) 
 
 for topic, msg, t in bag.read_messages(topics=['/simu_actuator']):
   new_force = msg.force
@@ -139,15 +145,19 @@ position_est = position_est[1:]
 attitude_est = attitude_est[1:]
 time_state_est = time_state_est[1:]
 
-command_gimbal = np.rad2deg(command_gimbal[1:])
-command_thrust = command_thrust[1:]
-time_force = time_force[1:]
+feedback_gimbal = np.rad2deg(feedback_gimbal[1:])
+feedback_thrust = feedback_thrust[1:]
+time_gimbal = time_gimbal[1:]
+
+feedback_torque = feedback_torque[1:]
+time_cmg = time_cmg[1:]
 
 measured_force = measured_force[1:]
 
 
 # Synchronize time
-time_force = time_force - time_init
+time_gimbal = time_gimbal - time_init
+time_cmg = time_cmg - time_init
 time_state = time_state - time_init
 time_state_est = time_state_est - time_init
 time_actuation = time_actuation - time_init
@@ -168,7 +178,8 @@ omega_est = np.rad2deg(omega_est)
 
 select = np.logical_and(time_state>tStart, time_state <tEnd)
 select_est = np.logical_and(time_state_est>tStart, time_state_est <tEnd)
-select_force = np.logical_and(time_force>tStart, time_force <tEnd) 
+select_gimbal = np.logical_and(time_gimbal>tStart, time_gimbal <tEnd) 
+select_cmg = np.logical_and(time_cmg>tStart, time_cmg <tEnd) 
 select_actuation = np.logical_and(time_actuation>tStart, time_actuation <tEnd) 
 select_target = np.zeros_like(time_target, dtype = bool)
 
@@ -221,12 +232,15 @@ l = axe[1][3].plot(time_state[select], omega[:, 2][select],  label = 'Z', color 
 axe[1][3].set_title("Angular speed [deg/s]")
 axe[1][3].legend()
 
-l = axe[2][2].plot(time_force[select_force], command_gimbal[:, 0][select_force], label = "X")
-l = axe[2][2].plot(time_force[select_force], command_gimbal[:, 1][select_force], label = "Y")
+l = axe[2][2].plot(time_gimbal[select_gimbal], feedback_gimbal[:, 0][select_gimbal], label = "X")
+l = axe[2][2].plot(time_gimbal[select_gimbal], feedback_gimbal[:, 1][select_gimbal], label = "Y")
 axe[2][2].set_title('Gimbal angle [°]')
 axe[2][2].legend()
 
-# l = axe[2][3].plot(time_force[select_force], z_torque[select_force], label = 'Z torque [N.m]', color = "green")
+l = axe[2][3].plot(time_cmg[select_cmg], feedback_torque[select_cmg], color = "green")
+axe[2][3].set_title("CMG Z torque [N.m]")
+
+# l = axe[2][3].plot(time_gimbal[select_gimbal], z_torque[select_gimbal], label = 'Z torque [N.m]', color = "green")
 # axe[2][3].legend()
 
 l = axe[2][1].plot(time_actuation[select_actuation], measured_force[:, 2][select_actuation], label = "Z force [N]", linewidth=2, marker = "+")
@@ -271,7 +285,7 @@ if 1:
   l = axe[2][0].plot(time_state_est[select_est][::point_spacing], prop_mass_est[select_est][::point_spacing], marker = '+', linestyle=':', label = "Estimated mass [kg]")
   axe[2][0].legend()
 
-  l = axe[2][1].plot(time_force[select_force], command_thrust[select_force], marker = '+', linestyle=':', label = "Commanded Z force [N]")
+  l = axe[2][1].plot(time_gimbal[select_gimbal], feedback_thrust[select_gimbal], marker = '+', linestyle=':', label = "Commanded Z force [N]")
   axe[2][1].legend()
 
 # Plot Guidance optimal trajectory (if needed)

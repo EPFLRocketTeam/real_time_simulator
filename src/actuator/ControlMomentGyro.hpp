@@ -95,7 +95,8 @@ class ControlMomentGyro : public Actuator{
                                 -cos(innerAngle) * sin(outerAngle),
                                 cos(innerAngle) * cos(outerAngle); 
 
-            Vector3d torqueVector = torqueDirection * cmgState[4];
+            // Torque felt by rocket is the opposite of torque applied to CMG !
+            Vector3d torqueVector = (-1) * torqueDirection * cmgState[4];
                     
             
             Actuator::control cmgWrench;

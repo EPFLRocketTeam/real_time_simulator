@@ -124,7 +124,7 @@ public:
         Quaterniond q(init_angle);
 
         // Init state X
-        X << 0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, rocket.propellant_mass;
+        X << 0, 0, 0,   0, 0, 0,   0.0, 0.0, 0.0, 1.0,   0.0, 0.0, 0.0,   rocket.propellant_mass;
         X.segment(6, 4) = q.coeffs();
 
         // Init sensors
