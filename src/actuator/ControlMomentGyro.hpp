@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Actuator.hpp"
-#include "real_time_simulator/ControlMomentGyroMsg.h"
-#include "real_time_simulator/Control.h"
+#include "rocket_utils/GyroMomentControl.h"
+#include "rocket_utils/Control.h"
 #include <boost/numeric/odeint/stepper/runge_kutta_dopri5.hpp>
 
 
@@ -24,7 +24,7 @@ class ControlMomentGyro : public Actuator{
 
         Vector3d positionCM; // Vector from center of mass to CMG joint
 
-        real_time_simulator::ControlMomentGyroMsg cmgCommand;
+        rocket_utils::GyroMomentControl cmgCommand;
         stateType cmgState;
         stateType cmgStateOut;
 
@@ -55,7 +55,7 @@ class ControlMomentGyro : public Actuator{
 
             // Create state and command message with CMG ID
             int id = cmgParam["id"];
-            actuatorPublisher = nh.advertise<real_time_simulator::ControlMomentGyroMsg>("cmg_state_"+std::to_string(id), 1);
+            actuatorPublisher = nh.advertise<rocket_utils::GyroMomentControl>("cmg_state_"+std::to_string(id), 1);
             actuatorSubscriber = nh.subscribe("cmg_command_"+std::to_string(id), 1,
                                             &ControlMomentGyro::cmgCommandCallback, this);
 
@@ -109,7 +109,7 @@ class ControlMomentGyro : public Actuator{
         void sendFeedback(){
 
             // Send latest CMG state as feedback
-            real_time_simulator::ControlMomentGyroMsg cmgStateMsg;
+            rocket_utils::GyroMomentControl cmgStateMsg;
 
             cmgStateMsg.outer_angle = cmgState[2];
             cmgStateMsg.inner_angle = cmgState[3];
@@ -149,7 +149,7 @@ class ControlMomentGyro : public Actuator{
         }
 
         // Callback function to store last received CMG command
-        void cmgCommandCallback(const real_time_simulator::ControlMomentGyroMsg::ConstPtr &command) {
+        void cmgCommandCallback(const rocket_utils::GyroMomentControl::ConstPtr &command) {
 
             cmgCommand.outer_angle = command->outer_angle;
             cmgCommand.inner_angle = command->inner_angle;

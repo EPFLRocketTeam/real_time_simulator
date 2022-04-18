@@ -7,7 +7,7 @@
 #include <boost/numeric/odeint.hpp>
 #include <boost/numeric/odeint/stepper/runge_kutta_dopri5.hpp>
 
-#include "real_time_simulator/Control.h"
+#include "rocket_utils/Control.h"
 
 class Actuator{
 

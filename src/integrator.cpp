@@ -22,11 +22,11 @@
 
 #include "ros/ros.h"
 
-#include "real_time_simulator/FSM.h"
-#include "real_time_simulator/State.h"
-#include "real_time_simulator/Sensor.h"
+#include "rocket_utils/FSM.h"
+#include "rocket_utils/State.h"
+#include "rocket_utils/Sensor.h"
 
-#include "real_time_simulator/Control.h"
+#include "rocket_utils/Control.h"
 
 #include "std_msgs/String.h"
 #include <boost/numeric/odeint/stepper/runge_kutta_dopri5.hpp>
@@ -63,7 +63,7 @@ private:
     //last updated perturbations force & torque
     Actuator::control perturbation_control;
     //last requested fsm
-    real_time_simulator::FSM current_fsm;
+    rocket_utils::FSM current_fsm;
     double time_zero;
     double rail_length;
 
@@ -92,7 +92,6 @@ public:
         rocket.init(nh, integration_period);
 
         // Initialize fsm
-        current_fsm.time_now = 0;
         current_fsm.state_machine = "Idle";
 
         nh.param<double>("/environment/rail_length", rail_length, 0);
@@ -149,13 +148,13 @@ public:
                                                &IntegratorNode::rocketPerturbationCallback, this);
 
         // Create state publisher
-        rocket_state_pub = nh.advertise<real_time_simulator::State>("rocket_state", 10);
+        rocket_state_pub = nh.advertise<rocket_utils::State>("rocket_state", 10);
         // Create fake sensors publisher
-        rocket_sensor_pub = nh.advertise<real_time_simulator::Sensor>("simu_sensor_pub", 10);
+        rocket_sensor_pub = nh.advertise<rocket_utils::Sensor>("simu_sensor_pub", 10);
         // Create timer publisher and associated thread (100Hz)
-        fsm_pub = nh.advertise<real_time_simulator::FSM>("fsm_pub", 10);
+        fsm_pub = nh.advertise<rocket_utils::FSM>("fsm_pub", 10);
 
-        rocket_forces_pub = nh.advertise<real_time_simulator::Control>("simu_actuator", 10);
+        rocket_forces_pub = nh.advertise<rocket_utils::Control>("simu_actuator", 10);
     }
 
     void step() {
@@ -164,9 +163,6 @@ public:
 
         } 
         else {
-            // Update current time
-            current_fsm.time_now = ros::Time::now().toSec() - time_zero;
-
             if (current_fsm.state_machine.compare("Rail") == 0) {
                 auto dynamics_rail = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
                     rocket.dynamics_rail(x, xdot, aero_control, t);
@@ -201,7 +197,7 @@ public:
         }
 
         // Parse state and publish it on the /fast_rocket_state topic
-        real_time_simulator::State current_state;
+        rocket_utils::State current_state;
 
         current_state.pose.position.x = X(0);
         current_state.pose.position.y = X(1);
@@ -231,21 +227,21 @@ public:
     }
 
     // Callback function to store last received control
-    void rocketControlCallback(const real_time_simulator::Control::ConstPtr &control_law) {
+    void rocketControlCallback(const rocket_utils::Control::ConstPtr &control_law) {
         rocket_control << control_law->force.x, control_law->torque.x,
                 control_law->force.y, control_law->torque.y,
                 control_law->force.z, control_law->torque.z;
     }
 
     // Callback function to store last received aero force and torque
-    void rocketAeroCallback(const real_time_simulator::Control::ConstPtr &rocket_aero) {
+    void rocketAeroCallback(const rocket_utils::Control::ConstPtr &rocket_aero) {
         aero_control << rocket_aero->force.x, rocket_aero->torque.x,
                 rocket_aero->force.y, rocket_aero->torque.y,
                 rocket_aero->force.z, rocket_aero->torque.z;
     }
 
     // Callback function to store last received aero force and torque
-    void rocketPerturbationCallback(const real_time_simulator::Control::ConstPtr &perturbation) {
+    void rocketPerturbationCallback(const rocket_utils::Control::ConstPtr &perturbation) {
         perturbation_control << perturbation->force.x, perturbation->torque.x,
                 perturbation->force.y, perturbation->torque.y,
                 perturbation->force.z, perturbation->torque.z;
@@ -271,7 +267,7 @@ public:
         std::normal_distribution<double> gyro_noise(rocket.gyro_bias, rocket.gyro_noise);
         std::normal_distribution<double> baro_noise(rocket.baro_bias, rocket.baro_noise);
 
-        real_time_simulator::Sensor sensor_msg;
+        rocket_utils::Sensor sensor_msg;
 
         sensor_msg.IMU_acc.x = rocket.sensor_acc(0) + acc_noise(generator);
         sensor_msg.IMU_acc.y = rocket.sensor_acc(1) + acc_noise(generator);
@@ -288,7 +284,7 @@ public:
 
     void sendActuatorForce(){
 
-        real_time_simulator::Control actuatorMsg;
+        rocket_utils::Control actuatorMsg;
 
         actuatorMsg.force.x = rocket.rocket_control(0, 0);
         actuatorMsg.force.y = rocket.rocket_control(1, 0);

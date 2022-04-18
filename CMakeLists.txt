@@ -34,6 +34,7 @@ find_package(catkin REQUIRED COMPONENTS
         genmsg
         visualization_msgs
         tf2_ros
+        rocket_utils
         #polympc-ros
         )
 
@@ -70,24 +71,14 @@ catkin_python_setup()
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-        FILES
-        Control.msg
-        State.msg
-        FSM.msg
-        Waypoint.msg
-        Sensor.msg
-        Trajectory.msg
-        GimbalMsg.msg
-        ControlMomentGyroMsg.msg
-)
+#add_message_files(
+#        FILES
+#)
 
 ## Generate services in the 'srv' folder
-add_service_files(
-        FILES
-        GetFSM.srv
-        GetWaypoint.srv
-)
+#add_service_files(
+#        FILES
+#)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -97,12 +88,11 @@ add_service_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-        DEPENDENCIES
-        std_msgs
-        geometry_msgs
-        #visualization_msgs
-)
+#generate_messages(
+#        DEPENDENCIES
+#        std_msgs
+#        geometry_msgs
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -244,9 +234,8 @@ catkin_install_python(PROGRAMS
 
 add_executable(integrator src/integrator.cpp)
 target_link_libraries(integrator Eigen3::Eigen ${catkin_LIBRARIES})
-add_dependencies(integrator ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_dependencies(integrator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(GUI_interface src/GUI_interface.cpp)
 target_link_libraries(GUI_interface ${catkin_LIBRARIES})
-add_dependencies(GUI_interface ${${PROJECT_NAME}_EXPORTED_TARGETS})
-
+add_dependencies(GUI_interface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

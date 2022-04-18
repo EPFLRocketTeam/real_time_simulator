@@ -1,10 +1,10 @@
 #include "ros/ros.h"
 
-#include "real_time_simulator/FSM.h"
-#include "real_time_simulator/State.h"
-#include "real_time_simulator/Sensor.h"
+#include "rocket_utils/FSM.h"
+#include "rocket_utils/State.h"
+#include "rocket_utils/Sensor.h"
 
-#include "real_time_simulator/Control.h"
+#include "rocket_utils/Control.h"
 
 #include "actuator/Gimbal.hpp"
 #include "actuator/ControlMomentGyro.hpp"

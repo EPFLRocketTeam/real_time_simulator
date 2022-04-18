@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Actuator.hpp"
-#include "real_time_simulator/GimbalMsg.h"
-#include "real_time_simulator/Control.h"
+#include "rocket_utils/GimbalControl.h"
+#include "rocket_utils/Control.h"
 #include <boost/numeric/odeint/stepper/runge_kutta_dopri5.hpp>
 
 
@@ -24,7 +24,7 @@ class Gimbal : public Actuator{
 
         Vector3d positionCM; // Vector from center of mass to gimbal joint
 
-        real_time_simulator::GimbalMsg gimbalCommand;
+        rocket_utils::GimbalControl gimbalCommand;
         stateType gimbalState;
         stateType gimbalStateOut;
 
@@ -56,7 +56,7 @@ class Gimbal : public Actuator{
 
             // Create state and command message with gimbal ID
             int id = gimbalParam["id"];
-            actuatorPublisher = nh.advertise<real_time_simulator::GimbalMsg>("gimbal_state_"+std::to_string(id), 1);
+            actuatorPublisher = nh.advertise<rocket_utils::GimbalControl>("gimbal_state_"+std::to_string(id), 1);
             actuatorSubscriber = nh.subscribe("gimbal_command_"+std::to_string(id), 1,
                                             &Gimbal::gimbalCommandCallback, this);
 
@@ -113,7 +113,7 @@ class Gimbal : public Actuator{
         void sendFeedback(){
 
             // Send latest gimbal state as feedback
-            real_time_simulator::GimbalMsg gimbalStateMsg;
+            rocket_utils::GimbalControl gimbalStateMsg;
 
             gimbalStateMsg.outer_angle = gimbalState[2];
             gimbalStateMsg.inner_angle = gimbalState[3];
@@ -153,7 +153,7 @@ class Gimbal : public Actuator{
         }
 
         // Callback function to store last received gimbal command
-        void gimbalCommandCallback(const real_time_simulator::GimbalMsg::ConstPtr &command) {
+        void gimbalCommandCallback(const rocket_utils::GimbalControl::ConstPtr &command) {
 
             gimbalCommand.outer_angle = command->outer_angle;
             gimbalCommand.inner_angle = command->inner_angle;

@@ -8,7 +8,7 @@ cd ~/catkin_ws
 catkin_make
 source ~/catkin_ws/devel/setup.sh
 
-(sleep 5;rostopic pub /control_measured real_time_simulator/Control "torque:
+(sleep 5;rostopic pub /control_measured rocket_utils/Control "torque:
   x: 0.0
   y: 0.0
   z: 0.0
