@@ -56,8 +56,6 @@ private:
 
     Rocket rocket;
 
-    //last updated rocket force & torque
-    Actuator::control rocket_control;
     //last updated aerodynamic force & torque
     Actuator::control aero_control;
     //last updated perturbations force & torque
@@ -101,10 +99,6 @@ public:
                         0, 0,
                         0, 0;
 
-        rocket_control << 0, 0,
-                          0, 0,
-                          rocket.maxThrust[2], 0;
-
         //Get initial orientation and convert in Radians
         float roll = 0, zenith = 0, azimuth = 0.0;
         nh.getParam("/environment/rocket_roll", roll);
@@ -138,9 +132,7 @@ public:
     void initTopics(ros::NodeHandle &nh) {
         // Subscribe to commands
         command_sub = nh.subscribe("commands", 10, &IntegratorNode::processCommand, this);
-        // Subscribe to control message from control node
-        rocket_control_sub = nh.subscribe("control_measured", 100,
-                                          &IntegratorNode::rocketControlCallback, this);
+
         // Subscribe to aero message
         rocket_aero_sub = nh.subscribe("rocket_aero", 100, &IntegratorNode::rocketAeroCallback, this);
         // Subscribe to perturbations message
@@ -224,13 +216,6 @@ public:
         fsm_pub.publish(current_fsm);
 
         //std::cout << "Fast integration time: " << 1000*(ros::Time::now().toSec()-time_now) << "ms \n";
-    }
-
-    // Callback function to store last received control
-    void rocketControlCallback(const rocket_utils::Control::ConstPtr &control_law) {
-        rocket_control << control_law->force.x, control_law->torque.x,
-                control_law->force.y, control_law->torque.y,
-                control_law->force.z, control_law->torque.z;
     }
 
     // Callback function to store last received aero force and torque

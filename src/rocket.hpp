@@ -146,6 +146,8 @@ public:
 
         n.getParam("/environment/ground_altitude", h0);
 
+        rocket_control.setZero();
+
         // Fill in actuator list
         XmlRpc::XmlRpcValue yamlActuatorList;
 
