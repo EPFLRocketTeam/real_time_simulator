@@ -44,8 +44,8 @@ class Gimbal : public Actuator{
             minRange.head(2) *= DEG2RAD;
             maxRange.head(2) *= DEG2RAD;
 
-            gimbalState << 0, 0, 0, 0, maxRange[2];
-            gimbalCommand.thrust = maxRange[2];
+            gimbalState << 0, 0, 0, 0, 0;
+            gimbalCommand.thrust = 0;
 
             positionCM << gimbalParam["positionCM"][0], gimbalParam["positionCM"][1], gimbalParam["positionCM"][2];
 
