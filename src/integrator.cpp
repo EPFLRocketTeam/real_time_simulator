@@ -45,6 +45,11 @@ using namespace std;
 using namespace boost::numeric::odeint;
 using namespace Eigen;
 
+enum LaunchTriggerType{
+    COMMAND,
+    THRUST
+};
+
 class IntegratorNode {
 private:
     typedef runge_kutta_dopri5<double> stepper_type;
@@ -75,11 +80,13 @@ private:
     ros::Publisher rocket_state_pub;
     ros::Publisher rocket_sensor_pub;
     ros::Publisher rocket_forces_pub;
-    ros::Publisher fsm_pub; 
+    ros::Publisher fsm_pub;
 
 public:
-    
+
     double integration_period = 5e-3;
+
+    LaunchTriggerType launch_trigger_type;
 
     IntegratorNode(ros::NodeHandle &nh) {
         // Initialize publishers and subscribers
@@ -93,6 +100,13 @@ public:
         current_fsm.state_machine = "Idle";
 
         nh.param<double>("/environment/rail_length", rail_length, 0);
+
+        std::string launch_trigger_type_string;
+        nh.param<std::string>("launch_trigger_type", launch_trigger_type_string, "Thrust");
+
+        if (launch_trigger_type_string == "Thrust") launch_trigger_type = LaunchTriggerType::THRUST;
+        else if (launch_trigger_type_string == "Command") launch_trigger_type = LaunchTriggerType::COMMAND;
+        else throw std::runtime_error("Invalid launch trigger type.");
 
         // Initialize external forces
         aero_control << 0, 0,
@@ -152,8 +166,15 @@ public:
     void step() {
         // State machine ------------------------------------------
         if (current_fsm.state_machine.compare("Idle") == 0) {
-
-        } 
+            if (launch_trigger_type == LaunchTriggerType::THRUST){
+                Rocket::state xdot;
+                rocket.dynamics_rail(X, xdot, aero_control, 0);
+                double z_acc = xdot(5);
+                if (z_acc > 0){
+                    initLaunch();
+                }
+            }
+        }
         else {
             if (current_fsm.state_machine.compare("Rail") == 0) {
                 auto dynamics_rail = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
@@ -176,7 +197,7 @@ public:
                     current_fsm.state_machine = "Coast";
                 }
             } else if (current_fsm.state_machine.compare("Coast") == 0) {
-                
+
                 auto dynamics_flight = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
                     rocket.dynamics_flight(x, xdot, aero_control, perturbation_control, t);};
 
@@ -210,9 +231,11 @@ public:
 
         current_state.propeller_mass = X(13);
 
+        current_state.header.stamp = ros::Time::now();
+
         rocket_state_pub.publish(current_state);
 
-        // Publish time + state machine    
+        // Publish time + state machine
         fsm_pub.publish(current_fsm);
 
         //std::cout << "Fast integration time: " << 1000*(ros::Time::now().toSec()-time_now) << "ms \n";
@@ -235,12 +258,17 @@ public:
     void processCommand(const std_msgs::String &command) {
         if (command.data.compare("Coast") == 0) {
             current_fsm.state_machine = "Coast";
-        } else {
+        } else if(launch_trigger_type == LaunchTriggerType::COMMAND) {
             //received launch command
-            time_zero = ros::Time::now().toSec();
-            if (rail_length == 0) current_fsm.state_machine = "Launch";
-            else current_fsm.state_machine = "Rail";
+            initLaunch();
         }
+    }
+
+    // Start the integration
+    void initLaunch(){
+        time_zero = ros::Time::now().toSec();
+        if (rail_length == 0) current_fsm.state_machine = "Launch";
+        else current_fsm.state_machine = "Rail";
     }
 
     void send_fake_sensor() {
@@ -278,6 +306,8 @@ public:
         actuatorMsg.torque.x = rocket.rocket_control(0, 1);
         actuatorMsg.torque.y = rocket.rocket_control(1, 1);
         actuatorMsg.torque.z = rocket.rocket_control(2, 1);
+
+        actuatorMsg.header.stamp = ros::Time::now();
 
         rocket_forces_pub.publish(actuatorMsg);
     }
