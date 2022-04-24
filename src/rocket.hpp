@@ -309,7 +309,7 @@ public:
         xdot.tail(1) << -rocket_control.col(0).norm() / (Isp * g0);
 
         // Fake sensor data update -----------------
-        sensor_acc = (total_force + rot_matrix.transpose() * gravity) / mass;
+        sensor_acc = (total_force + rot_matrix.transpose() * gravity) / mass; // error ?
 
         sensor_gyro << 0.0, 0.0, 0.0;
  
