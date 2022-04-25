@@ -1,0 +1,1 @@
+{"files": [{"name": "test_rocket_SIL.launch", "package": "test_rocket_gnc"}, {"name": "rocket_test_save.launch", "package": "test_rocket_gnc"}, {"name": "rocket_simulation_SIL.launch", "package": "real_time_simulator"}]}
