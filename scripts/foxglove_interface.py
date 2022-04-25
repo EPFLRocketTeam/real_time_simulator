@@ -6,10 +6,11 @@
 #
 # -----------------------
 
+from matplotlib.font_manager import json_dump
 import rospy
-import json
 from os import listdir, rename
-from os.path import isfile, join, isdir
+from os.path import isfile, join, isdir,exists
+import json
 import rosnode
 from yaml import load, dump
 from datetime import datetime
@@ -18,8 +19,11 @@ import time
 from std_msgs.msg import String
 from real_time_simulator.msg import Update
 from real_time_simulator.msg import Data
+from real_time_simulator.msg import DataMessage
 import shlex
 from psutil import Popen
+from bs4 import BeautifulSoup
+import re
 
 # List of all launched processes
 aList = []
@@ -41,8 +45,8 @@ configFile = ""
 
 # Internal constants regarding ros path
 relativePathToSrc = "../../../src/"
-configsPath = relativePathToSrc + "real_time_simulator/launch/configs/"
 bagFilePath = relativePathToSrc + "real_time_simulator/log/"
+recentOpenedPath = relativePathToSrc + "real_time_simulator/launch/recentOpened.json"
 
 # Callback for the instruction topic
 def instruction_callback(instruction):
@@ -83,9 +87,38 @@ def instruction_callback(instruction):
     if(instruction.data == "get_configs"):
         # Get all config files
         print("Get config ------------")
-        onlyfiles = [f for f in listdir(configsPath) if isfile(join(configsPath, f))]
 
-        # Get all Launch files
+        # Get recent configs
+        data = {}
+        with open(recentOpenedPath) as f:
+            data = json.load(f)
+        
+        # Check if recent configs exist and send the ones that exist
+        res = []
+        out = {}
+        validFiles = []
+        files = data["files"]
+        valid = True
+        for file in files:
+            if(exists(relativePathToSrc + file["package"] + "/launch/" + file["name"])):
+                res.append(file["name"])
+                validFiles.append(file)
+            else:
+                valid = False
+
+        if(not valid):
+            out["files"] = validFiles
+            with open(recentOpenedPath, "w") as f:
+                json.dump(out, f)
+
+        msg = Data()
+        msg.command = "recent_configs"
+        msg.data = res
+        comm_data.publish(msg) 
+
+        #Get all config files
+        onlyfiles = []
+
         res = topological_order(relativePathToSrc)
         launchFiles = {}
         for elem in res:
@@ -107,47 +140,92 @@ def instruction_callback(instruction):
         print("Stopping nodes --------")
         for p in aList:
             p.terminate()
+
+        for node in nodes:
+            if(node[0] != "recorder"):
+                v = 'rosnode kill ' + node[0]
+                Popen(
+                    shlex.split(v)
+                )
         aList.clear()
         launch_value -= 1
         newName = datetime.now().strftime("%Y_%m_%d_%H%M%S") + ".bag"
         rename(bagFilePath + "log.bag", bagFilePath + newName)
-    
+
     # Instruction to launch the system
     if(instruction.data == "launch_node"):
         print("Launch config --------")
-        if(".launch" in configFile):
-            process = Popen(
-                shlex.split('roslaunch ' + launchFiles[configFile] + ' ' + configFile)
+        for node in nodes:
+            v = 'rosrun ' + node[1] + ' ' + node[2] + ' ' + node[3] + ' __name:=' + node[0]
+            print(v)
+            node_process = Popen(
+                shlex.split(v)
             )
-            aList.append(process)
-        else:
-            data = {}
-            with open(configsPath + configFile) as f:
-                data = json.load(f)
-            
-            p = data["listParam"]
-            pf = data["listParamFiles"]
-            n = data["listNodes"]
-            for param in p:
-                params.append((param["name"], param["value"]))
-                param_process = Popen(
-                    shlex.split('rosparam set ' + param["name"] + ' ' + param["value"])
-                )
-                aList.append(param_process)
+            aList.append(node_process)
 
-            for param in pf:
-                paramFiles.append((param["file"], param["param"]))
-                param_process = Popen(
-                    shlex.split('rosparam load ' + param["file"] + ' ' + param["param"])
-                )
-                aList.append(param_process)
+    #Instruction to save the configuration
+    if(instruction.data == "save_config"):
+        soup = BeautifulSoup("<launch></launch>", 'html.parser')
+        for param in params:
+            p = soup.new_tag("param")
+            p['name'] = param[0]
+            p['value'] = param[1]
+            soup.launch.append(p)
 
-            for node in n:
-                nodes.append((node["package"], node["file"]))
-                node_process = Popen(
-                    shlex.split('rosrun ' + node["package"] + ' ' + node["file"])
-                )
-                aList.append(node_process)
+        for file in paramFiles:
+            group = soup.new_tag("group")
+            group['ns'] = file[1]
+            f = soup.new_tag("rosparam")
+            f['file'] = file[0]
+            group.append(f)
+            soup.launch.append(group)
+        soup.launch.append("")
+
+        for node in nodes:
+            n = soup.new_tag("node")
+            n['name'] = node[0]
+            n['pkg'] = node[1]
+            n['type'] = node[2]
+            if(node[3] != ""):
+                n['args'] = node[3]
+            if(node[4] != ""):
+                n['cwd'] = node[4]
+            if(node[5] != ""):
+                n['output'] = node[5]
+            soup.launch.append(n)
+        p = relativePathToSrc + launchFiles[configFile] + "/launch/rocket_test_save.launch"
+        print(p)
+        
+        with open(p, "w") as f:
+            f.write(str(soup.prettify()))
+    
+    # Launch instruction
+    if(instruction.data == "launch_config"):
+        print("Launching config " + configFile)
+
+        # Get recent configs
+        data = {}
+        with open(recentOpenedPath) as f:
+            data = json.load(f)
+
+        res = {}
+        files = []
+        files.append({"name":configFile, "package": launchFiles[configFile]})
+        count = 0
+        for file in data["files"]:
+            if(file["name"] != configFile and file["package"] != "" and count < 2):
+                files.append(file)
+                count += 1
+        res["files"] = files
+        with open(recentOpenedPath, "w") as f:
+            json.dump(res, f)
+        
+
+    # Launch instruction
+    if(instruction.data == "stop_config"):
+        print("Stop config " + configFile)
+
+
     
     # Instruction to execute the test code (for dev, when testing and experimenting with new concepts)
     if(instruction.data == "test"):
@@ -163,11 +241,83 @@ def dataCallBack(data):
     global configFile
     print("data recieved--------------")
     print(data)
+
+    # Select the configuration
     if(data.command == "select_config"):
         print("Setting config")
         configFile = data.data[0]
+        
+        p = relativePathToSrc + launchFiles[configFile] + "/launch/" + configFile
+        print(p)
+        
+        with open(p) as f:
+            soup = BeautifulSoup(f, 'html.parser')
+        
+        print("Extract params :")
+        for param in soup.find_all('param'):
+            v = 'param -> name=' + param.get('name') + ' value=' + param.get('value')
+            print(v)
+            params.append((param.get('name'), param.get('value')))
+            comm = 'rosparam set ' + param.get('name') + ' ' + param.get('value')
+            print(comm)
+            param_process = Popen(
+                shlex.split(comm)
+            )
+            aList.append(param_process)
+
+        print("Extract param files :")
+        for group in soup.find_all('group'):
+            pack = group.get('ns')
+            for file in group.find_all('rosparam'):
+                f = file.get('file')
+                m = re.search('\$\(find (.+?)\)', f)
+                if(m):
+                    src = m.group(1)
+                    f = f.replace('$(find ' + src + ')', relativePathToSrc + src)
+                    print(src)
+                paramFiles.append((f, pack))
+                v = 'rosparam load ' + f + ' /' + pack
+                print(v)
+                param_process = Popen(
+                shlex.split(v)
+                )
+                aList.append(param_process)
+
+        print("Extract nodes :")
+        for node in soup.find_all('node'):
+            args = ""
+            o = node.get('output')
+            if(o == None):
+                o = ""
+            cwd = node.get('cwd')
+            if(cwd == None):
+                cwd = ""
+            par = node.get('args')
+            if(par != None):
+                m = re.search('\$\(find (.+?)\)', par)
+                if(m):
+                    src = m.group(1)
+                    par = par.replace('$(find ' + src + ')', relativePathToSrc + src)
+                args += par
+            nodes.append((node.get('name'),node.get('pkg'),node.get('type'),args,cwd,o))
+    
+    # Update a parameter
+    if(data.command == "update_param"):
+        comm = 'rosparam set /environment/apogee "[0, 0, 2000]"'
+        print(comm)
+        param_process = Popen(
+            shlex.split(comm)
+        )
+        aList.append(param_process)
 
 
+def modifyCallback(m):
+    print("Modify recieved")
+    comm = 'rosparam set /' + m.config + '/' + m.parameter + ' ' + m.value
+    Popen(
+        shlex.split(comm)
+    )
+    print(m)
 # Initialises all publishers
 def caller():
     # Publisher for test topic
@@ -189,7 +339,8 @@ def listener():
 
     rospy.Subscriber("instructions", String, instruction_callback)
     rospy.Subscriber("data", Data, dataCallBack)
-
+    rospy.Subscriber("updates", Update, modifyCallback)
+    
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
 
