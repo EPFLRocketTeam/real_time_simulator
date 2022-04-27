@@ -40,62 +40,60 @@ class WindGenerator{
         this->main_timer.stop();
         wind_components = req.wind_components;
         noise_components = req.noise_components;
-        switch (req.wind_type)
-        {
-        case real_time_simulator::WindType::OFF:
-        {
-            wind_components.x = 0;
-            wind_components.y = 0;
-            wind_components.z = 0;
-            this->main_timer = nh.createTimer(ros::Duration(this->dt), [&](const ros::TimerEvent&){
-                this->wind_publisher.publish(wind_components);
-            });
-            break;
-        }
-            
-        case real_time_simulator::WindType::STATIC:
-        {
-            this->main_timer = nh.createTimer(ros::Duration(this->dt), [&](const ros::TimerEvent&){
-                this->wind_publisher.publish(wind_components);
-            });
-            break;
-        }
-            this->main_timer = nh.createTimer(ros::Duration(this->dt), [&](const ros::TimerEvent&){
-                this->wind_publisher.publish(wind_components);
-            });
-        case real_time_simulator::WindType::REALISTIC:
-        {
-            dryden_model::DrydenWind wind_dryden;
-            wind_dryden.initialize(0.0,0.0,0.0, noise_components.x, noise_components.y, noise_components.z, this->altitude);
-            atmosphere_models::turbulence_models::discrete::DiscreteGustModel wind_gust;
-            wind_gust.setup(
-                this->dt, std::atan2(wind_components.x, wind_components.y) * 180.0 / M_PI, 
-                std::sqrt(wind_components.x*wind_components.x+wind_components.y*wind_components.y)
-                );
-            this->wind_dryden = wind_dryden;
-            this->wind_gust = wind_gust;
-            this->main_timer = this->nh.createTimer(ros::Duration(this->dt), [&](const ros::TimerEvent&){
-                Eigen::Vector3d wind_vector_dryden = this->wind_dryden.getWind(this->dt);
-                Eigen::Vector3d wind_vector_gust;
-                this->wind_gust.getGustVelNED(wind_vector_gust);
-                
-                Eigen::Vector3d wind_vector = wind_vector_dryden + wind_vector_gust;
-                geometry_msgs::Vector3 wind_msg;
-                wind_msg.x = wind_vector.x();
-                wind_msg.y = wind_vector.y();
-                wind_msg.z = 0; // wind_vector.z();
-                this->wind_publisher.publish(wind_msg);
-                ROS_ERROR("A");
-            });
-            break;
-        }
-            
         
-        default:
-            ROS_WARN_STREAM("Unrecognized wind type number " << req.wind_type);
-            return false;
-           
-        }
+        switch (req.wind_type){
+            case real_time_simulator::WindType::OFF:
+            {
+                wind_components.x = 0;
+                wind_components.y = 0;
+                wind_components.z = 0;
+                this->main_timer = nh.createTimer(ros::Duration(this->dt), [&](const ros::TimerEvent&){
+                    this->wind_publisher.publish(wind_components);
+                });
+                break;
+            }
+                
+            case real_time_simulator::WindType::STATIC:
+            {
+                this->main_timer = nh.createTimer(ros::Duration(this->dt), [&](const ros::TimerEvent&){
+                    this->wind_publisher.publish(wind_components);
+                });
+                break;
+            }
+
+            case real_time_simulator::WindType::REALISTIC:
+            {
+                dryden_model::DrydenWind wind_dryden;
+                wind_dryden.initialize(0.0,0.0,0.0, noise_components.x, noise_components.y, noise_components.z, this->altitude);
+                atmosphere_models::turbulence_models::discrete::DiscreteGustModel wind_gust;
+                wind_gust.setup(
+                    this->dt, std::atan2(wind_components.x, wind_components.y) * 180.0 / M_PI, 
+                    std::sqrt(wind_components.x*wind_components.x+wind_components.y*wind_components.y)
+                    );
+                this->wind_dryden = wind_dryden;
+                this->wind_gust = wind_gust;
+                this->main_timer = this->nh.createTimer(ros::Duration(this->dt), [&](const ros::TimerEvent&){
+                    Eigen::Vector3d wind_vector_dryden = this->wind_dryden.getWind(this->dt);
+                    Eigen::Vector3d wind_vector_gust;
+                    this->wind_gust.getGustVelNED(wind_vector_gust);
+                    
+                    Eigen::Vector3d wind_vector = wind_vector_dryden + wind_vector_gust;
+                    geometry_msgs::Vector3 wind_msg;
+                    wind_msg.x = wind_vector.x();
+                    wind_msg.y = wind_vector.y();
+                    wind_msg.z = 0; // wind_vector.z();
+                    this->wind_publisher.publish(wind_msg);
+                    // ROS_ERROR("A");
+                });
+                break;
+            }
+                
+            
+            default:
+                ROS_WARN_STREAM("Unrecognized wind type number " << req.wind_type);
+                return false;
+            
+            }
         return true;
     }
 
