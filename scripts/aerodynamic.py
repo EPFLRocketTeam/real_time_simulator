@@ -141,6 +141,9 @@ if __name__ == '__main__':
 	current_fsm.time_now = 0
 	current_fsm.state_machine = "Idle"
 
+	# Simulation object
+	rocket_sim = init_integrator()
+
 	# Subscribe to rocket state
 	rospy.Subscriber("rocket_state", State, rocket_state_callback)
 
@@ -154,9 +157,6 @@ if __name__ == '__main__':
 
 	# Publisher for aero force
 	rocket_aero_pub = rospy.Publisher('rocket_aero', Control, queue_size=10)
-
-	# Simulation object
-	rocket_sim = init_integrator()
 
 	rate = rospy.Rate(30) # In Hz
 

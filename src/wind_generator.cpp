@@ -20,6 +20,26 @@ class WindGenerator{
         real_time_simulator::SetWindResponse res;
         req.wind_type = real_time_simulator::WindType::OFF;
         this->setWindCallback(req, res);
+
+        // Getting wind parameters
+        double windSpeed, windDirection, windVariability;
+        nh.getParam("/environment/wind_speed", windSpeed);
+        nh.getParam("/environment/wind_direction", windDirection);
+        nh.getParam("/environment/wind_variation", windVariability);
+
+        windDirection *= M_PI/180;
+
+        // Setting wind speed in NED frame
+        wind_components.x = windSpeed*cos(windDirection);
+        wind_components.y = windSpeed*sin(windDirection);
+        wind_components.z = 0;
+
+        // Setting variability of wind in NED frame
+        noise_components.x = windVariability*windSpeed*cos(windDirection);
+        noise_components.y = windVariability*windSpeed*sin(windDirection);
+        noise_components.z = 0;
+
+        setWindModel(real_time_simulator::WindType::REALISTIC);
     }
     private:
 
@@ -41,7 +61,14 @@ class WindGenerator{
         wind_components = req.wind_components;
         noise_components = req.noise_components;
         
-        switch (req.wind_type){
+        setWindModel(req.wind_type);
+        
+        return true;
+    }
+
+    bool setWindModel(uint8_t wind_type){
+
+        switch (wind_type){
             case real_time_simulator::WindType::OFF:
             {
                 wind_components.x = 0;
@@ -67,7 +94,7 @@ class WindGenerator{
                 wind_dryden.initialize(0.0,0.0,0.0, noise_components.x, noise_components.y, noise_components.z, this->altitude);
                 atmosphere_models::turbulence_models::discrete::DiscreteGustModel wind_gust;
                 wind_gust.setup(
-                    this->dt, std::atan2(wind_components.x, wind_components.y) * 180.0 / M_PI, 
+                    this->dt, std::atan2(wind_components.y, wind_components.x) * 180.0 / M_PI, 
                     std::sqrt(wind_components.x*wind_components.x+wind_components.y*wind_components.y)
                     );
                 this->wind_dryden = wind_dryden;
@@ -83,25 +110,23 @@ class WindGenerator{
                     wind_msg.y = wind_vector.y();
                     wind_msg.z = 0; // wind_vector.z();
                     this->wind_publisher.publish(wind_msg);
-                    // ROS_ERROR("A");
                 });
                 break;
             }
                 
             
-            default:
-                ROS_WARN_STREAM("Unrecognized wind type number " << req.wind_type);
-                return false;
-            
+                default:
+                    ROS_WARN_STREAM("Unrecognized wind type number " << wind_type);
+                    return false;
             }
-        return true;
-    }
+            return true;
+        }
 
 };
 
 
 int main(int argc, char **argv){
-    double dt = 0.01;
+    double dt = 10e-3;
     
     ros::init(argc, argv, "wind_generator");
     ros::NodeHandle nh("wind_generator");

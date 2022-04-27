@@ -130,7 +130,7 @@ public:
             gust_isScheduled = true;
         }
 
-        n_vGust = {-Vgust * cos(windFrom), -Vgust * sin(windFrom), 0};
+        n_vGust = {Vgust * cos(windFrom), Vgust * sin(windFrom), 0};
 
         t_now += dt;
     }
