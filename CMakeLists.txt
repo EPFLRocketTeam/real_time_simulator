@@ -240,10 +240,6 @@ catkin_install_python(PROGRAMS
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-if (NOT TARGET wind-dynamics)
-  include_directories(src/wind-dynamics/include)
-  add_subdirectory(src/wind-dynamics)
-endif()
 
 add_executable(integrator src/integrator.cpp)
 target_link_libraries(integrator Eigen3::Eigen ${catkin_LIBRARIES})
@@ -253,7 +249,7 @@ add_executable(GUI_interface src/GUI_interface.cpp)
 target_link_libraries(GUI_interface ${catkin_LIBRARIES})
 add_dependencies(GUI_interface ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
-add_executable(wind_generator src/wind_generator.cpp)
+add_executable(wind_generator src/wind_dynamic/wind_generator.cpp)
 target_link_libraries(wind_generator ${catkin_LIBRARIES})
 add_dependencies(wind_generator ${${PROJECT_NAME}_EXPORTED_TARGETS})
 

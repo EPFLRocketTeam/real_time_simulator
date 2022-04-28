@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "wind-dynamics/dryden_model.h"
+#include "dryden_model.h"
 #include "geometry_msgs/Vector3.h"
 #include "Eigen/Geometry"
 #include "atmosphere.hpp"
