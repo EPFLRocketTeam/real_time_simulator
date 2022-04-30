@@ -4,6 +4,10 @@
       <rosparam file="$(find real_time_simulator)/config/rocket_parameters.yaml" />
   </group>
 
+  <group ns="actuator">
+      <rosparam file="$(find real_time_simulator)/config/actuator_parameters.yaml" />
+  </group>
+
   <group ns="environment">
       <rosparam file="$(find real_time_simulator)/config/environment_parameters.yaml" />
   </group>
@@ -16,7 +20,6 @@
     <rosparam file="$(find real_time_simulator)/config/visualization_parameters.yaml" />
   </group>
 
-
   <node name="aerodynamic" pkg="real_time_simulator" type="aerodynamic.py" cwd = "node" />
   <node name="disturbance" pkg="real_time_simulator" type="disturbance.py" cwd = "node"/>
 
@@ -24,10 +27,10 @@
   <node name="wind_generator" pkg="real_time_simulator" type="wind_generator" cwd = "node" output ="screen"/>
   
   <node name="GUI_interface" pkg="real_time_simulator" type="GUI_interface" />
+  <node pkg="rosbag" type="record" name="recorder" args="record -a -O $(find real_time_simulator)/log/log.bag"/>
   
   <node name="rqt_gui" pkg="rqt_gui" type="rqt_gui" args="--perspective-file $(find real_time_simulator)/GUI/rocket_GUI.perspective"/> 
-  <node pkg="rosbag" type="record" name="recorder" args="record -a -O $(find real_time_simulator)/log/log.bag"/>
-
+  
 </launch>
 
 

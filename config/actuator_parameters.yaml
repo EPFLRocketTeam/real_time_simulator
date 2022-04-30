@@ -1,0 +1,31 @@
+#------------- Actuator parameters --------------------
+#
+# Defines set of parameters for each type of actuator you need:
+#   - dynamic parameters
+#   - kinematic parameters
+#   - ranges
+# ----------------------------------------------------
+
+# BE CAREFUL TO USE EXACTLY THE CORRECT FORMATTING OR YOU WILL RECEIVE 
+# AN ERROR "XmlRpc::XmlRpcException" WHEN LOADING THE FILE
+gimbal:
+ - id: 0
+   inertia: 0.1
+   damping: 1.0 
+   stiffness: 2.0
+   reactivity: 15.0
+   sensorFrequency: 50.0
+   minRange: [-2.0,-2.0,0.0]
+   maxRange: [2.0,2.0,2000.0]
+   positionCM: [0.0,0.0,-2.0]
+
+CMG:
+ - id: 0
+   inertia: 0.1
+   damping: 1.0 
+   stiffness: 2.0
+   reactivity: 15.0
+   sensorFrequency: 50.0
+   minRange: [-2.0,-2.0,-10.0]
+   maxRange: [2.0,2.0,10.0]
+   positionCM: [0.0,0.0,-2.0]

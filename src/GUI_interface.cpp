@@ -15,10 +15,10 @@
 
 #include "ros/ros.h"
 
-#include "real_time_simulator/State.h"
-#include "real_time_simulator/Control.h"
-#include "real_time_simulator/Waypoint.h"
-#include "real_time_simulator/Trajectory.h"
+#include "rocket_utils/State.h"
+#include "rocket_utils/Control.h"
+#include "rocket_utils/Waypoint.h"
+#include "rocket_utils/Trajectory.h"
 
 #include <visualization_msgs/Marker.h>
 
@@ -34,42 +34,42 @@
 #include "nav_msgs/Path.h"
 
 // global variable with last received rocket state
-real_time_simulator::State current_state;
+rocket_utils::State current_state;
 
-void rocket_stateCallback(const real_time_simulator::State::ConstPtr &rocket_state) {
+void rocket_stateCallback(const rocket_utils::State::ConstPtr &rocket_state) {
     current_state.pose = rocket_state->pose;
     current_state.twist = rocket_state->twist;
     current_state.propeller_mass = rocket_state->propeller_mass;
 }
 
 // Global variable with last received rocket navigation state
-real_time_simulator::State current_nav_state;
+rocket_utils::State current_nav_state;
 
-void rocket_nav_stateCallback(const real_time_simulator::State::ConstPtr &rocket_state) {
+void rocket_nav_stateCallback(const rocket_utils::State::ConstPtr &rocket_state) {
     current_nav_state.pose = rocket_state->pose;
     current_nav_state.twist = rocket_state->twist;
     current_nav_state.propeller_mass = rocket_state->propeller_mass;
 }
 
 // global variable with last received rocket control
-real_time_simulator::Control current_control;
+rocket_utils::Control current_control;
 
-void controlCallback(const real_time_simulator::Control::ConstPtr &control) {
+void controlCallback(const rocket_utils::Control::ConstPtr &control) {
     current_control.torque = control->torque;
     current_control.force = control->force;
 }
 
 // global variable with the MPC trajectory
-real_time_simulator::Trajectory current_mpc_horizon;
+rocket_utils::Trajectory current_mpc_horizon;
 
-void mpcHorizonCallback(const real_time_simulator::Trajectory::ConstPtr &traj) {
+void mpcHorizonCallback(const rocket_utils::Trajectory::ConstPtr &traj) {
     current_mpc_horizon = *traj;
 }
 
 // global variable with the MPC trajectory
-real_time_simulator::Trajectory current_target_trajectory;
+rocket_utils::Trajectory current_target_trajectory;
 
-void targetTrajCallback(const real_time_simulator::Trajectory::ConstPtr &traj) {
+void targetTrajCallback(const rocket_utils::Trajectory::ConstPtr &traj) {
     current_target_trajectory = *traj;
 }
 
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 
     //Initialize trajectory
     for (int i = 0; i < 11; i++) {
-        real_time_simulator::Waypoint waypoint;
+        rocket_utils::Waypoint waypoint;
         waypoint.position.x = 0;
         waypoint.position.y = 0;
         waypoint.position.z = 0;
