@@ -34,7 +34,6 @@ find_package(catkin REQUIRED COMPONENTS
         genmsg
         visualization_msgs
         tf2_ros
-        #polympc-ros
         )
 
 ## System dependencies are found with CMake's conventions
@@ -78,7 +77,6 @@ add_message_files(
         Waypoint.msg
         Sensor.msg
         Trajectory.msg
-        WindType.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -136,7 +134,7 @@ generate_messages(
 catkin_package(
         #  INCLUDE_DIRS include
         #  LIBRARIES real_time_simulator
-        CATKIN_DEPENDS roscpp rospy std_msgs message_runtime geometry_msgs #polympc-ros
+        CATKIN_DEPENDS roscpp rospy std_msgs message_runtime geometry_msgs
         #  DEPENDS system_lib
 )
 
