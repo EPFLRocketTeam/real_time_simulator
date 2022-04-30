@@ -169,8 +169,8 @@ public:
             if (launch_trigger_type == LaunchTriggerType::THRUST){
                 Rocket::state xdot;
                 rocket.dynamics_rail(X, xdot, aero_control, 0);
-                double z_velocity = xdot(5);
-                if (z_velocity > 0){
+                double z_acc = xdot(5);
+                if (z_acc > 0){
                     initLaunch();
                 }
             }

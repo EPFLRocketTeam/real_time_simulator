@@ -115,6 +115,8 @@ class ControlMomentGyro : public Actuator{
             cmgStateMsg.inner_angle = cmgState[3];
             cmgStateMsg.torque = cmgState[4];
 
+            cmgStateMsg.header.stamp = ros::Time::now();
+
             actuatorPublisher.publish(cmgStateMsg);
         }
 

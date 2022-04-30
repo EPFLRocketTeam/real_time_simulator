@@ -119,6 +119,8 @@ class Gimbal : public Actuator{
             gimbalStateMsg.inner_angle = gimbalState[3];
             gimbalStateMsg.thrust = gimbalState[4];
 
+            gimbalStateMsg.header.stamp = ros::Time::now();
+
             actuatorPublisher.publish(gimbalStateMsg);
         }
 
