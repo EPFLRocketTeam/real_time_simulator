@@ -84,7 +84,7 @@ private:
 
 public:
 
-    double integration_period = 5e-3;
+    double integration_period = 1e-3;
 
     LaunchTriggerType launch_trigger_type;
 
@@ -327,10 +327,10 @@ int main(int argc, char **argv) {
     // Thread to integrate state. Duration defines interval time in seconds
     ros::Timer integrator_thread = nh.createTimer(
             ros::Duration(integrator_node.integration_period), [&](const ros::TimerEvent &) {
-                //double t0 = ros::Time::now().toSec();
+                // double t0 = ros::Time::now().toSec();
                 integrator_node.step();
                 // timestep.push_back(ros::Time::now().toSec() - t0);
-
+                //
                 // if(timestep.size() > 1000) {
                 //     std::cout << std::accumulate(timestep.begin(), timestep.end(),
                 //                 decltype(timestep)::value_type(0)) << std::endl;

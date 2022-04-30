@@ -22,7 +22,7 @@ import time
 import rosbag
 
 tStart = -1
-tEnd = 30
+tEnd = 40
 
 # Simulated state
 position = np.zeros((1,3))
@@ -65,21 +65,22 @@ for topic, msg, t in bag.read_messages(topics=['/fsm_pub']):
   if msg.state_machine != "Idle":
     time_init = t.to_sec()
     break
-  
 
-for topic, msg, t in bag.read_messages(topics=['/rocket_state']):
-    new_pos = msg.pose.position
-    new_speed = msg.twist.linear
-    new_attitude = msg.pose.orientation    
-    new_omega = msg.twist.angular
-    new_mass = msg.propeller_mass
+# Reading every 10 messages to reduce parsing time
+stateMsg = list(bag.read_messages(topics=['/rocket_state']))
+for msg in stateMsg[::10]:
+    new_pos = msg.message.pose.position
+    new_speed = msg.message.twist.linear
+    new_attitude = msg.message.pose.orientation    
+    new_omega = msg.message.twist.angular
+    new_mass = msg.message.propeller_mass
         
     position = np.append(position, [[new_pos.x, new_pos.y, new_pos.z]], axis = 0)
     speed = np.append(speed, [[new_speed.x, new_speed.y, new_speed.z]], axis = 0)
     attitude = np.append(attitude, [[ new_attitude.x, new_attitude.y, new_attitude.z, new_attitude.w]], axis = 0)
     omega = np.append(omega, [[new_omega.x, new_omega.y, new_omega.z]], axis = 0)
     prop_mass = np.append(prop_mass, [[new_mass]])
-    time_state = np.append(time_state, [[t.to_sec()]])
+    time_state = np.append(time_state, [[msg.message.header.stamp.to_sec()]])
 
 for topic, msg, t in bag.read_messages(topics=['/kalman_rocket_state']):
     new_pos = msg.pose.position
@@ -128,7 +129,10 @@ target_speedZ = np.array(target_speedZ)
 target_prop_mass = np.array(target_prop_mass)
 thrust_target = np.array(thrust_target)
 
-print("Apogee: {}".format(max(position[:, 2])))
+apogee_altitude = max(position[:, 2])
+idx_apogee = position[:, 2] == apogee_altitude
+print("Apogee position: {} {} {}".format(position[idx_apogee, 0], position[idx_apogee, 1], apogee_altitude))
+print("Apogee omega: {} {} {}".format(omega[idx_apogee, 0], omega[idx_apogee, 1], omega[idx_apogee, 2]))
 
 # Only keep ROS data
 prop_mass = prop_mass[1:]
