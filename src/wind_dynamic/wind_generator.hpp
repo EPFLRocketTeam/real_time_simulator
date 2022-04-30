@@ -5,7 +5,7 @@
 #include "geometry_msgs/Vector3.h"
 #include "Eigen/Geometry"
 #include "atmosphere.hpp"
-#include "real_time_simulator/SetWind.h"
+#include "rocket_utils/SetWind.h"
 
 enum WindType {
     OFF,
@@ -33,7 +33,7 @@ class WindGenerator{
         geometry_msgs::Vector3 wind_components;
         geometry_msgs::Vector3 noise_components;
 
-    bool setWindCallback(real_time_simulator::SetWindRequest& req, real_time_simulator::SetWindResponse& res);
+    bool setWindCallback(rocket_utils::SetWindRequest& req, rocket_utils::SetWindResponse& res);
 
     bool setWindModel(uint8_t wind_type);
 

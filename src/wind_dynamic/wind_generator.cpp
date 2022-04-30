@@ -7,8 +7,8 @@ WindGenerator::WindGenerator(double dt, ros::NodeHandle nh, double altitude = 2.
     this->altitude = altitude;
     this->wind_publisher = this->nh.advertise<geometry_msgs::Vector3>("/wind_speed", 10, false);
     this->wind_setter = this->nh.advertiseService("set_wind", &WindGenerator::setWindCallback, this);
-    real_time_simulator::SetWindRequest req;
-    real_time_simulator::SetWindResponse res;
+    rocket_utils::SetWindRequest req;
+    rocket_utils::SetWindResponse res;
     req.wind_type = WindType::OFF;
     this->setWindCallback(req, res);
 
@@ -34,7 +34,7 @@ WindGenerator::WindGenerator(double dt, ros::NodeHandle nh, double altitude = 2.
 }
     
 
-bool WindGenerator::setWindCallback(real_time_simulator::SetWindRequest& req, real_time_simulator::SetWindResponse& res){
+bool WindGenerator::setWindCallback(rocket_utils::SetWindRequest& req, rocket_utils::SetWindResponse& res){
     this->main_timer.stop();
     wind_components = req.wind_components;
     noise_components = req.noise_components;

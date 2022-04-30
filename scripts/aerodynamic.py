@@ -23,6 +23,7 @@ from rocket_utils.msg import FSM
 from rocket_utils.msg import State
 from rocket_utils.msg import Control
 from rocket_utils.msg import Sensor
+from geometry_msgs.msg import Vector3
 
 import numpy as np
 import math

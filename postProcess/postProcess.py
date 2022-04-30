@@ -252,7 +252,7 @@ axe[2][0].legend()
 
 # Plot Navigation estimated state (if needed)
 if 1:
-  point_spacing = 150
+  point_spacing = 50
 
   l = axe[0][0].plot(time_state_est[select_est][::point_spacing], position_est[:, 0][select_est][::point_spacing], label = 'Estimated X', marker = '+', linestyle=':', color = "c")
   l = axe[0][0].plot(time_state_est[select_est][::point_spacing], position_est[:, 1][select_est][::point_spacing], label = 'Estimated Y', marker = '+', linestyle=':', color = "r")

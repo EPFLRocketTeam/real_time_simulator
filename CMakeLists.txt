@@ -241,4 +241,4 @@ add_dependencies(GUI_interface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPO
 
 add_executable(wind_generator src/wind_dynamic/wind_generator.cpp)
 target_link_libraries(wind_generator ${catkin_LIBRARIES})
-add_dependencies(wind_generator ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_dependencies(wind_generator ${${PROJECT_NAME}_EXPORTED_TARGETS}  ${catkin_EXPORTED_TARGETS})
