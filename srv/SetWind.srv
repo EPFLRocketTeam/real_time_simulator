@@ -1,0 +1,4 @@
+uint8 wind_type
+geometry_msgs/Vector3 wind_components
+geometry_msgs/Vector3 noise_components
+---

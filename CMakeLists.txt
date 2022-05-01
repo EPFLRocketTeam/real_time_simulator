@@ -76,9 +76,10 @@ catkin_python_setup()
 #)
 
 ## Generate services in the 'srv' folder
-#add_service_files(
-#        FILES
-#)
+add_service_files(
+  FILES
+  SetWind.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -88,11 +89,11 @@ catkin_python_setup()
 # )
 
 ## Generate added messages and services with any dependencies listed here
-#generate_messages(
-#        DEPENDENCIES
-#        std_msgs
-#        geometry_msgs
-#)
+generate_messages(
+        DEPENDENCIES
+        std_msgs
+        geometry_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -240,5 +241,5 @@ target_link_libraries(GUI_interface ${catkin_LIBRARIES})
 add_dependencies(GUI_interface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(wind_generator src/wind_dynamic/wind_generator.cpp)
-target_link_libraries(wind_generator ${catkin_LIBRARIES})
+target_link_libraries(wind_generator Eigen3::Eigen ${catkin_LIBRARIES})
 add_dependencies(wind_generator ${${PROJECT_NAME}_EXPORTED_TARGETS}  ${catkin_EXPORTED_TARGETS})
