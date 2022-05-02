@@ -70,8 +70,9 @@ class SimulatorState(Enum):
     selection = 1
     parameters = 2
     preLaunch = 3
-    launched = 4
-    simulation = 5
+    launching = 4
+    launched = 5
+    simulation = 6
 
 launch_value = SimulatorState.selection
 
@@ -143,7 +144,7 @@ def instruction_callback(instruction):
     # Instruction to launch the system
     if(instruction.data == "launch_nodes"):
         print("Launch config --------")
-        launch_value = SimulatorState.launched
+        launch_value = SimulatorState.launching
         for node in nodes:
             v = 'rosrun ' + node[1] + ' ' + node[2] + ' ' + node[3] + ' __name:=' + node[0]
             print(v)
@@ -154,6 +155,8 @@ def instruction_callback(instruction):
         
         global client
         client = dynamic_reconfigure.client.Client("aerodynamic", timeout=30, config_callback=conf_callback)
+
+        launch_value = SimulatorState.launched
 
     # 4 -----------------------------------------------------
     
@@ -484,6 +487,8 @@ if __name__ == '__main__':
         if(launch_value is SimulatorState.parameters):
             msg.data = [configFile]
         if(launch_value is SimulatorState.preLaunch):
+            msg.data = [configFile]
+        if(launch_value is SimulatorState.launching):
             msg.data = [configFile]
         if(launch_value is SimulatorState.launched):
             msg.data = [configFile, str(speed), str(direction)]
