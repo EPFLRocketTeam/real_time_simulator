@@ -6,9 +6,10 @@
 #
 # -----------------------
 
+from tkinter.tix import INTEGER
 from matplotlib.font_manager import json_dump
 import rospy
-from os import listdir, rename
+from os import listdir, rename, kill
 from os.path import isfile, join, isdir,exists
 import json
 import rosnode
@@ -19,29 +20,60 @@ import time
 from std_msgs.msg import String
 from real_time_simulator.msg import Update
 from real_time_simulator.msg import Data
-from real_time_simulator.msg import DataMessage
 import shlex
 from psutil import Popen
 from bs4 import BeautifulSoup
 import re
+import signal
+from enum import Enum
+
+import dynamic_reconfigure.client
+# --------  Parameters  ---------------
+# - 1
 
 # List of all launched processes
-aList = []
-# List of parameters
-params = []
-# List of parameter files
-paramFiles = []
-# List of nodes
-nodes = []
+listSubProcesses = []
+
 # Map from launch file (.launch) to package
 launchFiles = {}
-# Test value
-test_value = 0
-# Counter to limit the number of launches
-launch_value = 0
+
+# - 2
+
 # Config file choosed for the simulation
 configFile = ""
 
+# List of parameters
+params = []
+
+# List of parameter files
+paramFiles = []
+
+# List of nodes
+nodes = []
+
+# List of parameter files prefix
+paramFilePrefixes = []
+
+# - 3
+
+# - 4
+speed = -1
+direction = -1
+# - 5
+
+
+# Test value
+test_value = 0
+# Counter to limit the number of launches
+
+class SimulatorState(Enum):
+    selection = 1
+    parameters = 2
+    preLaunch = 3
+    launched = 4
+    simulation = 5
+
+launch_value = SimulatorState.selection
 
 # Internal constants regarding ros path
 relativePathToSrc = "../../../src/"
@@ -54,114 +86,118 @@ def instruction_callback(instruction):
     global test_value
     global launchFiles
     print("Instruction recieved")
-    
-    # Instruction to start the simulation
-    if(instruction.data == "launch"):
-        # TODO : Probably to replace with a state machine : {Idle, Launched, ...?}
-        if(launch_value < 1):
-            print("Launch")
-            launch_value += 1
-            command = String()
-            comm_pub.publish(command)
-            time.sleep(0.5)
-    
-    # Instruction to reset the simulation
-    if(instruction.data == "reset"):
-        print("Reset simulation ---------")
+    # 1 -----------------------------------------------------
 
-    # Instruction to stop the simulation
-    if(instruction.data == "stop"):
-        print("Stop simulation ----------")
-
-    # Instruction to list all ROS packages
-    if(instruction.data == "get_packages"):
-        res = topological_order(relativePathToSrc)
-        rosnode.get_node_names
-        print("--------- Package list ---------")
-        print(res)
-        print("List of names : ")
-        for elem in res:
-            print(elem[0])
-    
     # Instruction to get all config that can be launched
     if(instruction.data == "get_configs"):
         # Get all config files
         print("Get config ------------")
+        getConfigs()
+
+    # 2 -----------------------------------------------------
+
+    # Instruction to stop the simulation
+    if(instruction.data == "clear_parameters"):
+        print("Clear parameters ----------")
+        launch_value = SimulatorState.selection
+        clearParameters()
+        getConfigs()
+
+     
+    if(instruction.data == "save_parameters"):
+        print("Saving parameters")
+        # TODO : Save parameters
+
+
+    # Launch instruction
+    if(instruction.data == "launch_config"):
+        print("Launching config " + configFile)
+        launch_value = SimulatorState.preLaunch
 
         # Get recent configs
         data = {}
         with open(recentOpenedPath) as f:
             data = json.load(f)
-        
-        # Check if recent configs exist and send the ones that exist
-        res = []
-        out = {}
-        validFiles = []
-        files = data["files"]
-        valid = True
-        for file in files:
-            if(exists(relativePathToSrc + file["package"] + "/launch/" + file["name"])):
-                res.append(file["name"])
-                validFiles.append(file)
-            else:
-                valid = False
 
-        if(not valid):
-            out["files"] = validFiles
-            with open(recentOpenedPath, "w") as f:
-                json.dump(out, f)
+        res = {}
+        files = []
+        files.append({"name":configFile, "package": launchFiles[configFile]})
+        count = 0
+        for file in data["files"]:
+            if(file["name"] != configFile and file["package"] != "" and count < 2):
+                files.append(file)
+                count += 1
+        res["files"] = files
+        with open(recentOpenedPath, "w") as f:
+            json.dump(res, f)
 
-        msg = Data()
-        msg.command = "recent_configs"
-        msg.data = res
-        comm_data.publish(msg) 
+    # 3 -----------------------------------------------------
 
-        #Get all config files
-        onlyfiles = []
-
-        res = topological_order(relativePathToSrc)
-        launchFiles = {}
-        for elem in res:
-            path = relativePathToSrc + elem[0] + "/launch/"
-            if(isdir(path)):
-                temp = [f for f in listdir(path) if isfile(join(path, f)) and "rocket_" in f]
-                onlyfiles = onlyfiles + temp
-                for file in temp:
-                    launchFiles[file] = elem[0]
-
-        # Give back the results
-        msg = Data()
-        msg.command = "configs"
-        msg.data = onlyfiles
-        comm_data.publish(msg) 
-
-    # Instuction to stop nodes
-    if(instruction.data == "stop_node"):
-        print("Stopping nodes --------")
-        for p in aList:
-            p.terminate()
-
-        for node in nodes:
-            if(node[0] != "recorder"):
-                v = 'rosnode kill ' + node[0]
-                Popen(
-                    shlex.split(v)
-                )
-        aList.clear()
-        launch_value -= 1
-        newName = datetime.now().strftime("%Y_%m_%d_%H%M%S") + ".bag"
-        rename(bagFilePath + "log.bag", bagFilePath + newName)
+    # Close config instruction
+    if(instruction.data == "close_config"):
+        print("Stop config " + configFile)
+        launch_value = SimulatorState.selection
+        # Clear parameters
+        clearParameters()
 
     # Instruction to launch the system
-    if(instruction.data == "launch_node"):
+    if(instruction.data == "launch_nodes"):
         print("Launch config --------")
+        launch_value = SimulatorState.launched
         for node in nodes:
             v = 'rosrun ' + node[1] + ' ' + node[2] + ' ' + node[3] + ' __name:=' + node[0]
             print(v)
             node_process = Popen(
                 shlex.split(v)
             )
-            aList.append(node_process)
+            listSubProcesses.append(node_process)
+        
+        global client
+        client = dynamic_reconfigure.client.Client("aerodynamic", timeout=30, config_callback=conf_callback)
+
+    # 4 -----------------------------------------------------
+    
+    # Instruction to start the simulation
+    if(instruction.data == "launch_simulation"):
+        print("Pressed launch, state = " + str(launch_value) + " =? " + str(SimulatorState.launched) + " -> " + str(launch_value is SimulatorState.launched))
+        if(launch_value is SimulatorState.launched):
+            print("Launch")
+            launch_value = SimulatorState.simulation
+            command = String()
+            comm_pub.publish(command)
+            time.sleep(0.5)
+
+    # Instuction to stop nodes
+    if(instruction.data == "stop_nodes"):
+        print("Stopping nodes --------")
+        for p in listSubProcesses:
+            kill(p.pid,signal.SIGINT)
+        
+        listSubProcesses.clear()
+        launch_value = SimulatorState.preLaunch
+
+    # 5 -----------------------------------------------------
+
+    # Instuction to stop nodes
+    if(instruction.data == "stop_simulation"):
+        print("Stopping nodes --------")
+        for p in listSubProcesses:
+            kill(p.pid,signal.SIGINT)
+        
+        listSubProcesses.clear()
+        launch_value = SimulatorState.preLaunch
+        newName = datetime.now().strftime("%Y_%m_%d_%H%M%S") + ".bag"
+        rename(bagFilePath + "log.bag", bagFilePath + newName)
+
+    
+    
+    # Instruction to reset the simulation
+    if(instruction.data == "restart_simulation"):
+        print("Reset simulation ---------")
+        launch_value = SimulatorState.launched
+
+
+    
 
     #Instruction to save the configuration
     if(instruction.data == "save_config"):
@@ -199,33 +235,8 @@ def instruction_callback(instruction):
         with open(p, "w") as f:
             f.write(str(soup.prettify()))
     
-    # Launch instruction
-    if(instruction.data == "launch_config"):
-        print("Launching config " + configFile)
-
-        # Get recent configs
-        data = {}
-        with open(recentOpenedPath) as f:
-            data = json.load(f)
-
-        res = {}
-        files = []
-        files.append({"name":configFile, "package": launchFiles[configFile]})
-        count = 0
-        for file in data["files"]:
-            if(file["name"] != configFile and file["package"] != "" and count < 2):
-                files.append(file)
-                count += 1
-        res["files"] = files
-        with open(recentOpenedPath, "w") as f:
-            json.dump(res, f)
-        
-
-    # Launch instruction
-    if(instruction.data == "stop_config"):
-        print("Stop config " + configFile)
-
-
+    print("Current state -> " + str(launch_value))
+    
     
     # Instruction to execute the test code (for dev, when testing and experimenting with new concepts)
     if(instruction.data == "test"):
@@ -236,15 +247,93 @@ def instruction_callback(instruction):
         test_pub.publish(msg)
         time.sleep(0.5)
 
+
+def clearParameters():
+    global params
+    global paramFiles
+    global nodes
+    global paramFilePrefixes
+    # Clear parameters
+
+    for param in params:
+        comm = "rosparam delete /" + param[0]
+        Popen(
+            shlex.split(comm)
+        )
+        
+    for prefix in paramFilePrefixes:
+        comm = "rosparam delete /" + prefix
+        Popen(
+            shlex.split(comm)
+        )
+
+    params = []
+    paramFiles = []
+    nodes = []
+    paramFilePrefixes = []
+
+def getConfigs():
+    global launchFiles
+    # Get recent configs
+    data = {}
+    launchFiles = {}
+    with open(recentOpenedPath) as f:
+        data = json.load(f)
+    
+    # Check if recent configs exist and send the ones that exist
+    res = []
+    out = {}
+    validFiles = []
+    files = data["files"]
+    valid = True
+    for file in files:
+        if(exists(relativePathToSrc + file["package"] + "/launch/" + file["name"])):
+            res.append(file["name"])
+            validFiles.append(file)
+        else:
+            valid = False
+
+    if(not valid):
+        out["files"] = validFiles
+        with open(recentOpenedPath, "w") as f:
+            json.dump(out, f)
+
+    msg = Data()
+    msg.command = "recent_configs"
+    msg.data = res
+    comm_data.publish(msg) 
+
+    #Get all config files
+    onlyfiles = []
+
+    res = topological_order(relativePathToSrc)
+    for elem in res:
+        path = relativePathToSrc + elem[0] + "/launch/"
+        if(isdir(path)):
+            temp = [f for f in listdir(path) if isfile(join(path, f)) and "rocket_" in f]
+            onlyfiles = onlyfiles + temp
+            for file in temp:
+                launchFiles[file] = elem[0]
+
+    # Give back the results
+    msg = Data()
+    msg.command = "configs"
+    msg.data = onlyfiles
+    comm_data.publish(msg) 
+
 # Callback for the data topic
 def dataCallBack(data):
+    global launch_value
     global configFile
     print("data recieved--------------")
     print(data)
 
+    # 1 -----------------------------------------------------
+
     # Select the configuration
     if(data.command == "select_config"):
         print("Setting config")
+        launch_value = SimulatorState.parameters
         configFile = data.data[0]
         
         p = relativePathToSrc + launchFiles[configFile] + "/launch/" + configFile
@@ -263,11 +352,14 @@ def dataCallBack(data):
             param_process = Popen(
                 shlex.split(comm)
             )
-            aList.append(param_process)
+            listSubProcesses.append(param_process)
 
         print("Extract param files :")
+        paramFilePrefixes.clear()
+        paramFiles.clear()
         for group in soup.find_all('group'):
             pack = group.get('ns')
+            paramFilePrefixes.append(pack)
             for file in group.find_all('rosparam'):
                 f = file.get('file')
                 m = re.search('\$\(find (.+?)\)', f)
@@ -281,9 +373,15 @@ def dataCallBack(data):
                 param_process = Popen(
                 shlex.split(v)
                 )
-                aList.append(param_process)
+                listSubProcesses.append(param_process)
+
+        msg = Data()
+        msg.command = "list_parameter_prefix"
+        msg.data = paramFilePrefixes
+        comm_data.publish(msg) 
 
         print("Extract nodes :")
+        nodes.clear()
         for node in soup.find_all('node'):
             args = ""
             o = node.get('output')
@@ -300,7 +398,9 @@ def dataCallBack(data):
                     par = par.replace('$(find ' + src + ')', relativePathToSrc + src)
                 args += par
             nodes.append((node.get('name'),node.get('pkg'),node.get('type'),args,cwd,o))
-    
+
+    # 2 -----------------------------------------------------
+
     # Update a parameter
     if(data.command == "update_param"):
         comm = 'rosparam set /environment/apogee "[0, 0, 2000]"'
@@ -308,8 +408,25 @@ def dataCallBack(data):
         param_process = Popen(
             shlex.split(comm)
         )
-        aList.append(param_process)
+        listSubProcesses.append(param_process)
 
+    # 3 -----------------------------------------------------
+
+    # 4 -----------------------------------------------------
+
+    if(data.command == "change_wind"):
+        global client
+        global speed
+        global direction
+        speed = data.data[0]
+        direction = data.data[1]
+        print("direction " + direction + " speed:" + speed)
+        client.update_configuration({"wind_speed" : speed, "wind_direction": direction})
+
+    # 5 -----------------------------------------------------
+
+
+    print("Current state -> " + str(launch_value))
 
 def modifyCallback(m):
     print("Modify recieved")
@@ -318,8 +435,11 @@ def modifyCallback(m):
         shlex.split(comm)
     )
     print(m)
+
+
 # Initialises all publishers
 def caller():
+    global launch_value
     # Publisher for test topic
     global test_pub
     test_pub = rospy.Publisher('tests', String, queue_size=10)
@@ -332,17 +452,19 @@ def caller():
     global comm_data
     comm_data = rospy.Publisher('data', Data, queue_size=10)
 
+def conf_callback(config):
+    print("Conf callback : ")
+    print(config)
+
 # Initialises all listened topics and give their callback
 def listener():
     
     rospy.init_node('foxglove_interface', anonymous=True)
+    
 
     rospy.Subscriber("instructions", String, instruction_callback)
     rospy.Subscriber("data", Data, dataCallBack)
     rospy.Subscriber("updates", Update, modifyCallback)
-    
-    # spin() simply keeps python from exiting until this node is stopped
-    rospy.spin()
 
 if __name__ == '__main__':
     try:
@@ -350,3 +472,24 @@ if __name__ == '__main__':
     except rospy.ROSInterruptException:
         pass
     listener()
+    
+    state_pub = rospy.Publisher('simulation_state', Data, queue_size=10)
+    state_rate = rospy.Rate(10)
+
+    while not rospy.is_shutdown():
+        msg = Data()
+        msg.command = str(launch_value.value)
+        if(launch_value is SimulatorState.selection):
+            msg.data = []
+        if(launch_value is SimulatorState.parameters):
+            msg.data = [configFile]
+        if(launch_value is SimulatorState.preLaunch):
+            msg.data = [configFile]
+        if(launch_value is SimulatorState.launched):
+            msg.data = [configFile, str(speed), str(direction)]
+        if(launch_value is SimulatorState.simulation):
+            msg.data = [configFile, str(speed), str(direction)]
+
+        state_pub.publish(msg)
+
+        state_rate.sleep()
