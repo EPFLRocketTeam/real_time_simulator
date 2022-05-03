@@ -7,12 +7,10 @@
 # -----------------------
 
 from tkinter.tix import INTEGER
-from matplotlib.font_manager import json_dump
 import rospy
 from os import listdir, rename, kill
 from os.path import isfile, join, isdir,exists
 import json
-import rosnode
 from datetime import datetime
 from rosparam import dump_params
 from catkin_pkg.topological_order import topological_order 
@@ -81,6 +79,121 @@ relativePathToSrc = "../../../src/"
 bagFilePath = relativePathToSrc + "real_time_simulator/log/"
 recentOpenedPath = relativePathToSrc + "real_time_simulator/launch/recentOpened.json"
 
+
+# Stop nodes (kill all nodes)
+def stop_simulation():
+    global listSubProcesses
+    global launch_value
+    for p in listSubProcesses:
+            kill(p.pid,signal.SIGINT)
+        
+    listSubProcesses.clear()
+    launch_value = SimulatorState.preLaunch
+    newName = datetime.now().strftime("%Y_%m_%d_%H%M%S") + ".bag"
+    rename(bagFilePath + "log.bag", bagFilePath + newName)
+
+
+# Launches ros nodes
+def launch_nodes():
+    global launch_value
+    launch_value = SimulatorState.launching
+
+    for node in nodes:
+        v = 'rosrun ' + node[1] + ' ' + node[2] + ' ' + node[3] + ' __name:=' + node[0]
+        print(v)
+        node_process = Popen(
+            shlex.split(v)
+        )
+        listSubProcesses.append(node_process)
+
+    global speed
+    global direction
+    global client
+    client = dynamic_reconfigure.client.Client("aerodynamic", timeout=30, config_callback=conf_callback)
+    env_data = rospy.get_param("/environment")
+    speed = env_data["wind_speed"]
+    direction = env_data["wind_direction"]
+    client.update_configuration({"wind_speed" : speed, "wind_direction": direction})
+    launch_value = SimulatorState.launched
+
+
+# Clears parameters from ros system
+def clearParameters():
+    global params
+    global paramFiles
+    global nodes
+    global paramFilePrefixes
+    # Clear parameters
+
+    for param in params:
+        comm = "rosparam delete /" + param[0]
+        Popen(
+            shlex.split(comm)
+        )
+        
+    for prefix in paramFilePrefixes:
+        comm = "rosparam delete /" + prefix
+        Popen(
+            shlex.split(comm)
+        )
+
+    params = []
+    paramFiles = []
+    nodes = []
+    paramFilePrefixes = []
+
+
+# Get all configs
+def getConfigs():
+    global launchFiles
+    # Get recent configs
+    data = {}
+    launchFiles = {}
+    with open(recentOpenedPath) as f:
+        data = json.load(f)
+    
+    # Check if recent configs exist and send the ones that exist
+    res = []
+    out = {}
+    validFiles = []
+    files = data["files"]
+    valid = True
+    for file in files:
+        if(exists(relativePathToSrc + file["package"] + "/launch/" + file["name"])):
+            res.append(file["name"])
+            validFiles.append(file)
+        else:
+            valid = False
+
+    if(not valid):
+        out["files"] = validFiles
+        with open(recentOpenedPath, "w") as f:
+            json.dump(out, f)
+
+    msg = Data()
+    msg.command = "recent_configs"
+    msg.data = res
+    comm_data.publish(msg) 
+
+    #Get all config files
+    onlyfiles = []
+
+    res = topological_order(relativePathToSrc)
+    for elem in res:
+        path = relativePathToSrc + elem[0] + "/launch/"
+        if(isdir(path)):
+            temp = [f for f in listdir(path) if isfile(join(path, f)) and "rocket_" in f]
+            onlyfiles = onlyfiles + temp
+            for file in temp:
+                launchFiles[file] = elem[0]
+
+    # Give back the results
+    msg = Data()
+    msg.command = "configs"
+    msg.data = onlyfiles
+    comm_data.publish(msg)
+
+
 # Callback for the instruction topic
 def instruction_callback(instruction):
     global launch_value
@@ -146,25 +259,7 @@ def instruction_callback(instruction):
     # Instruction to launch the system
     if(instruction.data == "launch_nodes"):
         print("Launch config --------")
-        launch_value = SimulatorState.launching
-
-        for node in nodes:
-            v = 'rosrun ' + node[1] + ' ' + node[2] + ' ' + node[3] + ' __name:=' + node[0]
-            print(v)
-            node_process = Popen(
-                shlex.split(v)
-            )
-            listSubProcesses.append(node_process)
-
-        global speed
-        global direction
-        global client
-        client = dynamic_reconfigure.client.Client("aerodynamic", timeout=30, config_callback=conf_callback)
-        env_data = rospy.get_param("/environment")
-        speed = env_data["wind_speed"]
-        direction = env_data["wind_direction"]
-        client.update_configuration({"wind_speed" : speed, "wind_direction": direction})
-        launch_value = SimulatorState.launched
+        launch_nodes()
 
     # 4 -----------------------------------------------------
     
@@ -192,23 +287,14 @@ def instruction_callback(instruction):
     # Instuction to stop nodes
     if(instruction.data == "stop_simulation"):
         print("Stopping nodes --------")
-        for p in listSubProcesses:
-            kill(p.pid,signal.SIGINT)
-        
-        listSubProcesses.clear()
-        launch_value = SimulatorState.preLaunch
-        newName = datetime.now().strftime("%Y_%m_%d_%H%M%S") + ".bag"
-        rename(bagFilePath + "log.bag", bagFilePath + newName)
-
-    
+        stop_simulation()
     
     # Instruction to reset the simulation
     if(instruction.data == "restart_simulation"):
         print("Reset simulation ---------")
-        launch_value = SimulatorState.launched
-
-
-    
+        # TODO : Implement (kill all nodes and recreate them)
+        stop_simulation()
+        launch_nodes()
 
     #Instruction to save the configuration
     if(instruction.data == "save_config"):
@@ -259,78 +345,6 @@ def instruction_callback(instruction):
         time.sleep(0.5)
 
 
-def clearParameters():
-    global params
-    global paramFiles
-    global nodes
-    global paramFilePrefixes
-    # Clear parameters
-
-    for param in params:
-        comm = "rosparam delete /" + param[0]
-        Popen(
-            shlex.split(comm)
-        )
-        
-    for prefix in paramFilePrefixes:
-        comm = "rosparam delete /" + prefix
-        Popen(
-            shlex.split(comm)
-        )
-
-    params = []
-    paramFiles = []
-    nodes = []
-    paramFilePrefixes = []
-
-def getConfigs():
-    global launchFiles
-    # Get recent configs
-    data = {}
-    launchFiles = {}
-    with open(recentOpenedPath) as f:
-        data = json.load(f)
-    
-    # Check if recent configs exist and send the ones that exist
-    res = []
-    out = {}
-    validFiles = []
-    files = data["files"]
-    valid = True
-    for file in files:
-        if(exists(relativePathToSrc + file["package"] + "/launch/" + file["name"])):
-            res.append(file["name"])
-            validFiles.append(file)
-        else:
-            valid = False
-
-    if(not valid):
-        out["files"] = validFiles
-        with open(recentOpenedPath, "w") as f:
-            json.dump(out, f)
-
-    msg = Data()
-    msg.command = "recent_configs"
-    msg.data = res
-    comm_data.publish(msg) 
-
-    #Get all config files
-    onlyfiles = []
-
-    res = topological_order(relativePathToSrc)
-    for elem in res:
-        path = relativePathToSrc + elem[0] + "/launch/"
-        if(isdir(path)):
-            temp = [f for f in listdir(path) if isfile(join(path, f)) and "rocket_" in f]
-            onlyfiles = onlyfiles + temp
-            for file in temp:
-                launchFiles[file] = elem[0]
-
-    # Give back the results
-    msg = Data()
-    msg.command = "configs"
-    msg.data = onlyfiles
-    comm_data.publish(msg) 
 
 # Callback for the data topic
 def dataCallBack(data):
