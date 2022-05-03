@@ -1,8 +1,7 @@
-# Visualization parameters
-stl_model: "package://real_time_simulator/GUI/Bellalui_1.stl"
-stl_model_scale: 1.0e-4
-stl_alpha: 1.0
-thrust_vector_length_scaling: 0.001
-thrust_vector_arrow_scaling: 1
-trajectory_line_width: 0.1
 CM_to_thrust_distance: 1.97
+stl_alpha: 1.0
+stl_model: package://real_time_simulator/GUI/Bellalui_1.stl
+stl_model_scale: 0.0001
+thrust_vector_arrow_scaling: 1
+thrust_vector_length_scaling: 0.001
+trajectory_line_width: 0.1

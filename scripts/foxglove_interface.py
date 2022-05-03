@@ -13,8 +13,8 @@ from os import listdir, rename, kill
 from os.path import isfile, join, isdir,exists
 import json
 import rosnode
-from yaml import load, dump
 from datetime import datetime
+from rosparam import dump_params
 from catkin_pkg.topological_order import topological_order 
 import time
 from std_msgs.msg import String
@@ -108,6 +108,8 @@ def instruction_callback(instruction):
     if(instruction.data == "save_parameters"):
         print("Saving parameters")
         # TODO : Save parameters
+        for file in paramFiles:
+            dump_params(file[0], file[1])
 
 
     # Launch instruction
@@ -145,6 +147,7 @@ def instruction_callback(instruction):
     if(instruction.data == "launch_nodes"):
         print("Launch config --------")
         launch_value = SimulatorState.launching
+
         for node in nodes:
             v = 'rosrun ' + node[1] + ' ' + node[2] + ' ' + node[3] + ' __name:=' + node[0]
             print(v)
@@ -152,10 +155,15 @@ def instruction_callback(instruction):
                 shlex.split(v)
             )
             listSubProcesses.append(node_process)
-        
+
+        global speed
+        global direction
         global client
         client = dynamic_reconfigure.client.Client("aerodynamic", timeout=30, config_callback=conf_callback)
-
+        env_data = rospy.get_param("/environment")
+        speed = env_data["wind_speed"]
+        direction = env_data["wind_direction"]
+        client.update_configuration({"wind_speed" : speed, "wind_direction": direction})
         launch_value = SimulatorState.launched
 
     # 4 -----------------------------------------------------
