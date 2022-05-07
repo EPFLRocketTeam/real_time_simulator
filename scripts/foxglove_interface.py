@@ -8,7 +8,7 @@
 
 from tkinter.tix import INTEGER
 import rospy
-from os import listdir, rename, kill
+from os import listdir, rename, kill, remove
 from os.path import isfile, join, isdir,exists
 import json
 from datetime import datetime
@@ -40,6 +40,10 @@ launchFiles = {}
 # Config file choosed for the simulation
 configFile = ""
 
+# Recent configs
+recentConfigs = []
+allConfigs = []
+
 # List of parameters
 params = []
 
@@ -66,7 +70,7 @@ test_value = 0
 
 class SimulatorState(Enum):
     selection = 1
-    parameters = 2
+    configs = 2
     preLaunch = 3
     launching = 4
     launched = 5
@@ -82,6 +86,7 @@ recentOpenedPath = relativePathToSrc + "real_time_simulator/launch/recentOpened.
 
 # Stop nodes (kill all nodes)
 def stop_simulation():
+
     global listSubProcesses
     global launch_value
     for p in listSubProcesses:
@@ -89,6 +94,11 @@ def stop_simulation():
         
     listSubProcesses.clear()
     launch_value = SimulatorState.preLaunch
+
+    # Rename the bag file to be unique
+    while(not exists(bagFilePath + "log.bag")):
+        pass
+    
     newName = datetime.now().strftime("%Y_%m_%d_%H%M%S") + ".bag"
     rename(bagFilePath + "log.bag", bagFilePath + newName)
 
@@ -106,6 +116,7 @@ def launch_nodes():
         )
         listSubProcesses.append(node_process)
 
+    # Set default values for wind speed and wind direction
     global speed
     global direction
     global client
@@ -146,6 +157,9 @@ def clearParameters():
 # Get all configs
 def getConfigs():
     global launchFiles
+    global recentConfigs
+    global allConfigs
+
     # Get recent configs
     data = {}
     launchFiles = {}
@@ -170,6 +184,7 @@ def getConfigs():
         with open(recentOpenedPath, "w") as f:
             json.dump(out, f)
 
+    recentConfigs = res
     msg = Data()
     msg.command = "recent_configs"
     msg.data = res
@@ -187,11 +202,13 @@ def getConfigs():
             for file in temp:
                 launchFiles[file] = elem[0]
 
+    allConfigs = onlyfiles
     # Give back the results
     msg = Data()
     msg.command = "configs"
     msg.data = onlyfiles
     comm_data.publish(msg)
+
 
 
 # Callback for the instruction topic
@@ -207,6 +224,7 @@ def instruction_callback(instruction):
         # Get all config files
         print("Get config ------------")
         getConfigs()
+        launch_value = SimulatorState.configs
 
     # 2 -----------------------------------------------------
 
@@ -216,6 +234,7 @@ def instruction_callback(instruction):
         launch_value = SimulatorState.selection
         clearParameters()
         getConfigs()
+        launch_value = SimulatorState.configs
 
      
     if(instruction.data == "save_parameters"):
@@ -223,29 +242,6 @@ def instruction_callback(instruction):
         # TODO : Save parameters
         for file in paramFiles:
             dump_params(file[0], file[1])
-
-
-    # Launch instruction
-    if(instruction.data == "launch_config"):
-        print("Launching config " + configFile)
-        launch_value = SimulatorState.preLaunch
-
-        # Get recent configs
-        data = {}
-        with open(recentOpenedPath) as f:
-            data = json.load(f)
-
-        res = {}
-        files = []
-        files.append({"name":configFile, "package": launchFiles[configFile]})
-        count = 0
-        for file in data["files"]:
-            if(file["name"] != configFile and file["package"] != "" and count < 2):
-                files.append(file)
-                count += 1
-        res["files"] = files
-        with open(recentOpenedPath, "w") as f:
-            json.dump(res, f)
 
     # 3 -----------------------------------------------------
 
@@ -280,6 +276,10 @@ def instruction_callback(instruction):
             kill(p.pid,signal.SIGINT)
         
         listSubProcesses.clear()
+
+        while(not exists(bagFilePath + "log.bag")):
+            pass
+        remove(bagFilePath + "log.bag")
         launch_value = SimulatorState.preLaunch
 
     # 5 -----------------------------------------------------
@@ -358,7 +358,7 @@ def dataCallBack(data):
     # Select the configuration
     if(data.command == "select_config"):
         print("Setting config")
-        launch_value = SimulatorState.parameters
+        launch_value = SimulatorState.preLaunch
         configFile = data.data[0]
         
         p = relativePathToSrc + launchFiles[configFile] + "/launch/" + configFile
@@ -423,6 +423,24 @@ def dataCallBack(data):
                     par = par.replace('$(find ' + src + ')', relativePathToSrc + src)
                 args += par
             nodes.append((node.get('name'),node.get('pkg'),node.get('type'),args,cwd,o))
+        
+        # Get recent configs
+        temp = {}
+        with open(recentOpenedPath) as f:
+            temp = json.load(f)
+
+        res = {}
+        files = []
+        files.append({"name":configFile, "package": launchFiles[configFile]})
+        count = 0
+        for file in temp["files"]:
+            if(file["name"] != configFile and file["package"] != "" and count < 2):
+                files.append(file)
+                count += 1
+        res["files"] = files
+        with open(recentOpenedPath, "w") as f:
+            json.dump(res, f)
+        
 
     # 2 -----------------------------------------------------
 
@@ -506,10 +524,10 @@ if __name__ == '__main__':
         msg.command = str(launch_value.value)
         if(launch_value is SimulatorState.selection):
             msg.data = []
-        if(launch_value is SimulatorState.parameters):
-            msg.data = [configFile]
+        if(launch_value is SimulatorState.configs):
+            msg.data = [str(len(recentConfigs)), str(len(allConfigs)), *recentConfigs, *allConfigs]
         if(launch_value is SimulatorState.preLaunch):
-            msg.data = [configFile]
+            msg.data = [configFile, str(len(paramFilePrefixes)), *paramFilePrefixes]
         if(launch_value is SimulatorState.launching):
             msg.data = [configFile]
         if(launch_value is SimulatorState.launched):
