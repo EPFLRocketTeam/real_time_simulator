@@ -6,24 +6,22 @@
 #
 # -----------------------
 
-from tkinter.tix import INTEGER
 import rospy
 from os import listdir, rename, kill, remove
 from os.path import isfile, join, isdir,exists
 import json
 from datetime import datetime
-from rosparam import dump_params
 from catkin_pkg.topological_order import topological_order 
 import time
 from std_msgs.msg import String
-from real_time_simulator.msg import Update
-from real_time_simulator.msg import Data
+from real_time_simulator.msg import Update, Data
 import shlex
 from psutil import Popen
 from bs4 import BeautifulSoup
 import re
 import signal
 from enum import Enum
+import ruamel.yaml
 
 import dynamic_reconfigure.client
 # --------  Parameters  ---------------
@@ -44,6 +42,8 @@ configFile = ""
 recentConfigs = []
 allConfigs = []
 
+# - 3
+
 # List of parameters
 params = []
 
@@ -56,7 +56,8 @@ nodes = []
 # List of parameter files prefix
 paramFilePrefixes = []
 
-# - 3
+# List of parameters that have been modified
+modifiedParameters = {}
 
 # - 4
 speed = -1
@@ -89,6 +90,7 @@ def stop_simulation():
 
     global listSubProcesses
     global launch_value
+
     for p in listSubProcesses:
             kill(p.pid,signal.SIGINT)
         
@@ -134,6 +136,7 @@ def clearParameters():
     global paramFiles
     global nodes
     global paramFilePrefixes
+    global modifiedParameters
     # Clear parameters
 
     for param in params:
@@ -152,6 +155,7 @@ def clearParameters():
     paramFiles = []
     nodes = []
     paramFilePrefixes = []
+    modifiedParameters = []
 
 
 # Get all configs
@@ -239,10 +243,25 @@ def instruction_callback(instruction):
      
     if(instruction.data == "save_parameters"):
         print("Saving parameters")
-        # TODO : Save parameters
         for file in paramFiles:
-            dump_params(file[0], file[1])
-
+            if(file[1] in modifiedParameters):
+                f = open(file[0], "r")
+                tmp = f.read()
+                f.close()
+                yaml = ruamel.yaml.YAML()
+                yaml.preserve_quotes = True
+                par = yaml.load(tmp)
+                print("Yaml file ---------")
+                print(par)
+                changed = modifiedParameters[file[1]]
+                
+                for p in changed:
+                    par[p] = rospy.get_param(file[1] + "/" + p)
+                f = open(file[0], "w")
+                yaml.dump(par, f)
+                f.close()
+                print(modifiedParameters[file[1]])
+        modifiedParameters.clear()
     # 3 -----------------------------------------------------
 
     # Close config instruction
@@ -472,11 +491,17 @@ def dataCallBack(data):
     print("Current state -> " + str(launch_value))
 
 def modifyCallback(m):
+    global modifiedParameters
     print("Modify recieved")
     comm = 'rosparam set /' + m.config + '/' + m.parameter + ' ' + m.value
     Popen(
         shlex.split(comm)
     )
+
+    if(m.config in modifiedParameters):
+        modifiedParameters[m.config].append(m.parameter)
+    else:
+        modifiedParameters[m.config] = [m.parameter]
     print(m)
 
 
