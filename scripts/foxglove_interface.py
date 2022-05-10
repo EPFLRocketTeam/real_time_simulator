@@ -230,6 +230,14 @@ def instruction_callback(instruction):
         getConfigs()
         launch_value = SimulatorState.configs
 
+    # Instruction to go back to home menu
+    if(instruction.data == "clear_configs"):
+        global recentConfigs
+        global allConfigs
+        recentConfigs = []
+        allConfigs = []
+        launch_value = SimulatorState.selection
+
     # 2 -----------------------------------------------------
 
     # Instruction to stop the simulation
