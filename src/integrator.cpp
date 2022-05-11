@@ -101,8 +101,8 @@ public:
 
         nh.param<double>("/environment/rail_length", rail_length, 0);
 
-        std::string launch_trigger_type_string;
-        nh.param<std::string>("launch_trigger_type", launch_trigger_type_string, "Thrust");
+        std::string launch_trigger_type_string = "Command";
+        //nh.param<std::string>("launch_trigger_type", launch_trigger_type_string, "Thrust");
 
         if (launch_trigger_type_string == "Thrust") launch_trigger_type = LaunchTriggerType::THRUST;
         else if (launch_trigger_type_string == "Command") launch_trigger_type = LaunchTriggerType::COMMAND;
@@ -176,6 +176,7 @@ public:
             }
         }
         else {
+            rocket.updateActuators(X);
             if (current_fsm.state_machine.compare("Rail") == 0) {
                 auto dynamics_rail = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
                     rocket.dynamics_rail(x, xdot, aero_control, t);
@@ -193,7 +194,7 @@ public:
                 stepper.do_step(dynamics_flight, X, 0, xout, 0 + integration_period);
 
                 // End of burn -> no more thrust
-                if (X(13) < 0) {
+                if (X(13) < -1) {
                     current_fsm.state_machine = "Coast";
                 }
             } else if (current_fsm.state_machine.compare("Coast") == 0) {

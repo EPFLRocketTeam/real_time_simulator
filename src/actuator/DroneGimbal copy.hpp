@@ -10,9 +10,9 @@
 
 using namespace Eigen;
 using namespace boost::numeric::odeint;
-using stateType = Matrix<double, 5, 1>; // theta_1_dot, theta_2_dot, theta_1, theta_2, thrust
+using gimbalStateType = Matrix<double, 5, 1>; // theta_1, theta_1_dot, theta_2, theta_2_dot, thrust
 
-class Gimbal : public Actuator{
+class DroneGimbal : public Actuator{
 
     public:
 
@@ -21,12 +21,16 @@ class Gimbal : public Actuator{
         // Ranges of two gimbal angles and thrust
         Vector3d minRange;
         Vector3d maxRange;
+        Vector3d minVel;
+        Vector3d maxVel;
 
         Vector3d positionCM; // Vector from center of mass to gimbal joint
 
+        double K;
+
         rocket_utils::GimbalControl gimbalCommand;
-        stateType gimbalState;
-        stateType gimbalStateOut;
+        gimbalStateType gimbalState;
+        gimbalStateType gimbalStateOut;
 
         // Dynamic parameters (2nd order linear system)
         double inertia, damping, stiffness, reactivity;
@@ -34,31 +38,35 @@ class Gimbal : public Actuator{
         double timestep;
         double previousTime;
 
-        using stepper_type = runge_kutta_dopri5<stateType, double, stateType, double, vector_space_algebra>;
+        using stepper_type = runge_kutta_dopri5<gimbalStateType, double, gimbalStateType, double, vector_space_algebra>;
         stepper_type stepper;
 
-        Gimbal(ros::NodeHandle &nh, double integrationTimestep, XmlRpc::XmlRpcValue gimbalParam){
-
+        DroneGimbal(ros::NodeHandle &nh, double integrationTimestep, XmlRpc::XmlRpcValue gimbalParam){
+            std::cout << "A" << std::endl;
             minRange << gimbalParam["minRange"][0], gimbalParam["minRange"][1], gimbalParam["minRange"][2];
             maxRange << gimbalParam["maxRange"][0], gimbalParam["maxRange"][1], gimbalParam["maxRange"][2];
             minRange.head(2) *= DEG2RAD;
             maxRange.head(2) *= DEG2RAD;
-
+            std::cout << "B" << std::endl;
+            minVel << gimbalParam["minVel"][0], gimbalParam["minVel"][1];
+            maxVel << gimbalParam["maxVel"][0], gimbalParam["maxVel"][1];
+            minVel.head(2) *= DEG2RAD;
+            maxVel.head(2) *= DEG2RAD;
+            std::cout << "C" << std::endl;
+            K = gimbalParam["K"];
+            std::cout << "C" << std::endl;
             gimbalState << 0, 0, 0, 0, 0;
             gimbalCommand.thrust = 0;
 
             positionCM << gimbalParam["positionCM"][0], gimbalParam["positionCM"][1], gimbalParam["positionCM"][2];
 
-            inertia = gimbalParam["inertia"];
-            damping = gimbalParam["damping"];
-            stiffness = gimbalParam["stiffness"];
-            reactivity = gimbalParam["reactivity"];
+            
 
             // Create state and command message with gimbal ID
             int id = gimbalParam["id"];
-            actuatorPublisher = nh.advertise<rocket_utils::GimbalControl>("gimbal_state_"+std::to_string(id), 1);
-            actuatorSubscriber = nh.subscribe("gimbal_command_"+std::to_string(id), 1,
-                                            &Gimbal::gimbalCommandCallback, this);
+            actuatorPublisher = nh.advertise<rocket_utils::GimbalControl>("drone_gimbal_state_"+std::to_string(id), 1);
+            actuatorSubscriber = nh.subscribe("drone_gimbal_command_"+std::to_string(id), 1,
+                                            &DroneGimbal::gimbalCommandCallback, this);
 
             previousTime = 0;
             timestep = integrationTimestep;
@@ -116,41 +124,51 @@ class Gimbal : public Actuator{
             rocket_utils::GimbalControl gimbalStateMsg;
             gimbalStateMsg.header.stamp = ros::Time::now();
 
-            gimbalStateMsg.outer_angle = gimbalState[2];
-            gimbalStateMsg.inner_angle = gimbalState[3];
+            gimbalStateMsg.outer_angle = gimbalState[0];
+            gimbalStateMsg.inner_angle = gimbalState[2];
             gimbalStateMsg.thrust = gimbalState[4];
-
-            gimbalStateMsg.header.stamp = ros::Time::now();
 
             actuatorPublisher.publish(gimbalStateMsg);
         }
 
         void computeStateActuator(){
 
-            auto dynamics = [this](const stateType &x , stateType &xdot , const double t) -> void {
+            auto dynamics = [this](const gimbalStateType &x , gimbalStateType &xdot , const double t) -> void {
                     actuatorDynamic(x, xdot, t);
                 };
 
             stepper.do_step(dynamics, gimbalState, 0, gimbalStateOut, 0 + timestep);
             gimbalState = gimbalStateOut;
 
-            gimbalState(2) = std::min(std::max(gimbalStateOut(2), minRange(0)), maxRange(0));
-            gimbalState(3) = std::min(std::max(gimbalStateOut(3), minRange(1)), maxRange(1));
-            gimbalState(4) = std::min(std::max(gimbalStateOut(4), minRange(2)), maxRange(2));
+            // gimbalState(2) = std::min(std::max(gimbalStateOut(2), minRange(0)), maxRange(0));
+            // gimbalState(3) = std::min(std::max(gimbalStateOut(3), minRange(1)), maxRange(1));
+            // gimbalState(4) = std::min(std::max(gimbalStateOut(4), minRange(2)), maxRange(2));
 
             previousTime += timestep;
         }
 
         // Dynamic equation of the gimbal
-        void actuatorDynamic(const stateType &x , stateType &xdot , const double t){
+        void actuatorDynamic(const gimbalStateType &x , gimbalStateType &xdot , const double t){
 
             Vector2d angleCommand;
             angleCommand << gimbalCommand.outer_angle, gimbalCommand.inner_angle;
+            angleCommand[0] = DEG2RAD * 200;
             
-            // Angular acceleration proportional to angle error
-            xdot.head(2) = ( stiffness*(angleCommand - x.segment(2, 2)) - damping*x.head(2)) / inertia;
-
-            xdot.segment(2, 2) = x.head(2);
+            
+            xdot[0] = x[1];
+            double t1(0);
+            if(x[1] > 0) t1 = x[1] / K;
+            // if (fabs(angleCommand[0] - x[0]) > a && (maxVel[0] - x[1]) < 1e-2) {xdot[1] = 0;std::cout << "----------------------------A";}
+            // else if (fabs(angleCommand[0] - x[0]) > a && (maxVel[0]-x[1]  ) > 1e-2) {xdot[1] = K;std::cout << "#####B";}
+            // else if (fabs(angleCommand[0] - x[0]) < a  && fabs(angleCommand[0] - x[0]) > 1e-2) {xdot[1] = -K;std::cout << "*****C";}
+            // else {xdot[1] = 0; xdot[0] = 0;}
+            if ((-K / 2. * t1 * t1 + x[1] * t1 + x[0] - angleCommand[0]) > 0  && fabs(angleCommand[0] - x[0]) > 0) {xdot[1] = -K; std::cout << "*************************C";}
+            else if ((-K / 2. * t1 * t1 + x[1] * t1 + x[0] - angleCommand[0]) < 0 && fabs(maxVel[0] - x[1]) < 1e-2) {xdot[1] = 0;std::cout << "-------A";}
+            else if ((-K / 2. * t1 * t1 + x[1] * t1 + x[0] - angleCommand[0]) < 0 && fabs(maxVel[0] - x[1]) > 1e-2) {xdot[1] = K;std::cout << "#####B";}
+            else if ((angleCommand[0] - x[0]) < 0) {xdot[1] = 0; xdot[0] = 0;}
+            // else {xdot[1] = 0; xdot[0] = 0;}
+            xdot.segment(2,2) << 0,0;
+            std::cout << std::endl << "a" <<x[0] << x[1] << std::endl;;  //<< x <<std::endl<< xdot <<std::endl<< maxVel <<std::endl;
 
             xdot[4] = reactivity*( gimbalCommand.thrust - x[4] );
         }

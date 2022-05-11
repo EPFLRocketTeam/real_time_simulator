@@ -7,6 +7,7 @@
 #include "rocket_utils/Control.h"
 
 #include "actuator/Gimbal.hpp"
+#include "actuator/DroneGimbal.hpp"
 #include "actuator/ControlMomentGyro.hpp"
 
 #include "geometry_msgs/Vector3.h"
@@ -169,6 +170,15 @@ public:
             actuatorList.push_back(new Gimbal(n, integration_period, sublist));
         }
 
+        // Get all gimbal actuators
+        n.getParam("/actuator/drone_gimbal", yamlActuatorList);
+        // std::cout << "Gimbal list " << yamlActuatorList << std::endl << std::endl;
+        for (int i = 0; i < yamlActuatorList.size(); i++) {
+            XmlRpc::XmlRpcValue sublist = yamlActuatorList[i];
+
+            actuatorList.push_back(new DroneGimbal(n, integration_period, sublist));
+        }
+
         // Get all CMG actuators
         n.getParam("/actuator/CMG", yamlActuatorList);
         // std::cout << "CMG list " << yamlActuatorList << std::endl << std::endl;
@@ -197,9 +207,7 @@ public:
         Matrix<double, 3, 3> rot_matrix = attitude.toRotationMatrix();
         //std::cout << (180/3.14)*std::acos(x(9)*x(9) - x(6)*x(6) - x(7)*x(7) + x(8)*x(8)) << "\n";
 
-        // Get wrench from actuator list
-        rocket_control.setZero();
-        for(unsigned int i=0; i<actuatorList.size(); i++) rocket_control += actuatorList[i]->getActuatorWrench(x);
+        
 
         // Force in inertial frame: gravity
         Matrix<double, 3, 1> gravity;
@@ -207,6 +215,7 @@ public:
         
         // Total force in inertial frame [N]
         Matrix<double, 3, 1> total_force;
+        
         total_force = rot_matrix * rocket_control.col(0) - gravity + aero_control.col(0) + perturbation_control.col(0);
         //std::cout << total_force.transpose() << "\n";
 
@@ -224,24 +233,31 @@ public:
                 rocket_control.col(1) + rot_matrix.transpose() * (aero_control.col(1) + perturbation_control.col(1));
 
         // -------------- Differential equation ---------------------
+        if(x[2] < 5e-2) {
+            xdot.setZero();
+            ROS_WARN_STREAM_THROTTLE(2, "Crash due to collision with ground");
 
-        // Position variation is speed
-        xdot.head(3) = x.segment(3, 3);
+        }
+        if ((x[2] <= 0.0 && total_force(2) <= 0.0 && x[5] <= 0)) xdot.setZero();
+        else {
+            // Position variation is speed
+            xdot.head(3) = x.segment(3, 3);
 
-        // Speed variation is Force/mass
-        xdot.segment(3, 3) = total_force / mass;
+            // Speed variation is Force/mass
+            xdot.segment(3, 3) = total_force / mass;
 
-        // Quaternion variation is 0.5*w◦q
-        xdot.segment(6, 4) = 0.5 * (omega_quat * attitude).coeffs();
+            // Quaternion variation is 0.5*w◦q
+            xdot.segment(6, 4) = 0.5 * (omega_quat * attitude).coeffs();
 
-        // Angular speed variation is Torque/Inertia
-        xdot.segment(10, 3) = rot_matrix * (total_torque.cwiseProduct(I_inv));
+            // Angular speed variation is Torque/Inertia
+            xdot.segment(10, 3) = rot_matrix * (total_torque.cwiseProduct(I_inv));
 
-        // Mass variation is proportional to total thrust
-        if (Isp != -1) {
-            xdot(13) = -rocket_control.col(0).norm() / (Isp * g0);
-        } else {
-            xdot(13) = 0;
+            // Mass variation is proportional to total thrust
+            if (Isp != -1) {
+                xdot(13) = -rocket_control.col(0).norm() / (Isp * g0);
+            } else {
+                xdot(13) = 0;
+            }
         }
 
 
@@ -253,6 +269,12 @@ public:
 	    sensor_mag = rot_matrix.transpose()*(mag_vector);
 
 	    sensor_baro = x(2);
+    }
+
+    void updateActuators(const state &x){
+        // Get wrench from actuator list
+        rocket_control.setZero();
+        for(unsigned int i=0; i<actuatorList.size(); i++) rocket_control += actuatorList[i]->getActuatorWrench(x);
     }
 
 
@@ -270,9 +292,7 @@ public:
         attitude.normalize();
         Matrix<double, 3, 3> rot_matrix = attitude.toRotationMatrix();
 
-        // Get wrench from actuator list
-        rocket_control.setZero();
-        for(unsigned int i=0; i<actuatorList.size(); i++) rocket_control += actuatorList[i]->getActuatorWrench(x);
+        
 
         // Force in inertial frame: gravity
         Matrix<double, 3, 1> gravity;

@@ -605,7 +605,7 @@
                   "type": "repr"
                 },
                 "rviz_config_file": {
-                  "repr": "'/home/username/catkin_ws/src/real_time_simulator/GUI/rocket_config.rviz'",
+                  "repr": "'/home/svenbecker/Documents/EPFL/Semester_Project_ERT/Code/catkin_ws_tvc/src/tvc_drone/real_time_simulator/GUI/rocket_config.rviz'",
                   "type": "repr"
                 }
               },
