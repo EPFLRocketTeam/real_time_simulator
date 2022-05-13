@@ -22,8 +22,6 @@ import re
 import signal
 from enum import Enum
 import ruamel.yaml
-
-import dynamic_reconfigure.client
 # --------  Parameters  ---------------
 # - 1
 
@@ -120,12 +118,9 @@ def launch_nodes():
     # Set default values for wind speed and wind direction
     global speed
     global direction
-    global client
-    client = dynamic_reconfigure.client.Client("aerodynamic", timeout=30, config_callback=conf_callback)
     env_data = rospy.get_param("/environment")
     speed = env_data["wind_speed"]
     direction = env_data["wind_direction"]
-    client.update_configuration({"wind_speed" : speed, "wind_direction": direction})
     launch_value = SimulatorState.launched
 
 
@@ -458,12 +453,10 @@ def dataCallBack(data):
     # 4 -----------------------------------------------------
 
     if(data.command == "change_wind"):
-        global client
         global speed
         global direction
         speed = data.data[0]
         direction = data.data[1]
-        client.update_configuration({"wind_speed" : speed, "wind_direction": direction})
 
     # 5 -----------------------------------------------------
 

@@ -34,7 +34,7 @@ find_package(catkin REQUIRED COMPONENTS
         genmsg
         visualization_msgs
         tf2_ros
-        dynamic_reconfigure
+        #dynamic_reconfigure
         #polympc-ros
         )
 
@@ -120,9 +120,9 @@ generate_messages(
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-generate_dynamic_reconfigure_options(
-  cfg/Wind.cfg
-)
+## generate_dynamic_reconfigure_options(
+##  cfg/Wind.cfg
+## )
 
 ###################################
 ## catkin specific configuration ##

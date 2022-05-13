@@ -49,8 +49,6 @@ from aero.Functions.Models.stdAtmosUS import stdAtmosUS
 from aero.Simulator3D import Simulator3D
 from aero.Functions.Models.stdAtmos import stdAtmos
 
-from dynamic_reconfigure.server import Server
-from real_time_simulator.cfg import WindConfig
 
 
 def control_callback(control):
@@ -123,13 +121,8 @@ def init_integrator():
   
 	SimObj = Simulator3D(Bellalui_2, US_Atmos)
 	return SimObj
+		
 
-def callback(config, level):
-	print("Dynamic reconfigure ws:")
-	print(config)
-	global rocket_sim
-	rocket_sim.Environment.set_wind(config.wind_speed, 180 - config.wind_direction)
-	return config
 
 if __name__ == '__main__':
 
@@ -160,12 +153,9 @@ if __name__ == '__main__':
 	rocket_aero_pub = rospy.Publisher('rocket_aero', Control, queue_size=10)
 
 	# Simulation object
-	global rocket_sim
 	rocket_sim = init_integrator()
 
 	rate = rospy.Rate(30) # In Hz
-
-	srv = Server(WindConfig, callback)	
 
 	while not rospy.is_shutdown():
 
@@ -199,9 +189,3 @@ if __name__ == '__main__':
 				rocket_aero_pub.publish(aero_msg)
 
 			#rospy.loginfo(1000*(rospy.get_time()-start_time))
-
-
-		  
-     
-
-
