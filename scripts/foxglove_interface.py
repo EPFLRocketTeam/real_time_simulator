@@ -14,7 +14,7 @@ from datetime import datetime
 from catkin_pkg.topological_order import topological_order 
 import time
 from std_msgs.msg import String
-from real_time_simulator.msg import Update, Data
+from real_time_simulator.msg import Update, FoxgloveDataMessage
 import shlex
 from psutil import Popen
 from bs4 import BeautifulSoup
@@ -112,7 +112,6 @@ def launch_nodes():
 
     for node in nodes:
         v = 'rosrun ' + node[1] + ' ' + node[2] + ' ' + node[3] + ' __name:=' + node[0]
-        print(v)
         node_process = Popen(
             shlex.split(v)
         )
@@ -189,7 +188,7 @@ def getConfigs():
             json.dump(out, f)
 
     recentConfigs = res
-    msg = Data()
+    msg = FoxgloveDataMessage()
     msg.command = "recent_configs"
     msg.data = res
     comm_data.publish(msg) 
@@ -208,7 +207,7 @@ def getConfigs():
 
     allConfigs = onlyfiles
     # Give back the results
-    msg = Data()
+    msg = FoxgloveDataMessage()
     msg.command = "configs"
     msg.data = onlyfiles
     comm_data.publish(msg)
@@ -220,13 +219,12 @@ def instruction_callback(instruction):
     global launch_value
     global test_value
     global launchFiles
-    print("Instruction recieved")
     # 1 -----------------------------------------------------
 
     # Instruction to get all config that can be launched
     if(instruction.data == "get_configs"):
         # Get all config files
-        print("Get config ------------")
+        print("Get config")
         getConfigs()
         launch_value = SimulatorState.configs
 
@@ -242,7 +240,7 @@ def instruction_callback(instruction):
 
     # Instruction to stop the simulation
     if(instruction.data == "clear_parameters"):
-        print("Clear parameters ----------")
+        print("Clear parameters")
         launch_value = SimulatorState.selection
         clearParameters()
         getConfigs()
@@ -259,8 +257,6 @@ def instruction_callback(instruction):
                 yaml = ruamel.yaml.YAML()
                 yaml.preserve_quotes = True
                 par = yaml.load(tmp)
-                print("Yaml file ---------")
-                print(par)
                 changed = modifiedParameters[file[1]]
                 
                 for p in changed:
@@ -268,13 +264,12 @@ def instruction_callback(instruction):
                 f = open(file[0], "w")
                 yaml.dump(par, f)
                 f.close()
-                print(modifiedParameters[file[1]])
         modifiedParameters.clear()
     # 3 -----------------------------------------------------
 
     # Close config instruction
     if(instruction.data == "close_config"):
-        print("Stop config " + configFile)
+        print("Stop config ")
         launch_value = SimulatorState.selection
         # Clear parameters
         clearParameters()
@@ -288,7 +283,6 @@ def instruction_callback(instruction):
     
     # Instruction to start the simulation
     if(instruction.data == "launch_simulation"):
-        print("Pressed launch, state = " + str(launch_value) + " =? " + str(SimulatorState.launched) + " -> " + str(launch_value is SimulatorState.launched))
         if(launch_value is SimulatorState.launched):
             print("Launch")
             launch_value = SimulatorState.simulation
@@ -298,7 +292,7 @@ def instruction_callback(instruction):
 
     # Instuction to stop nodes
     if(instruction.data == "stop_nodes"):
-        print("Stopping nodes --------")
+        print("Stopping nodes")
         for p in listSubProcesses:
             kill(p.pid,signal.SIGINT)
         
@@ -313,12 +307,12 @@ def instruction_callback(instruction):
 
     # Instuction to stop nodes
     if(instruction.data == "stop_simulation"):
-        print("Stopping nodes --------")
+        print("Stopping Simulation")
         stop_simulation()
     
     # Instruction to reset the simulation
     if(instruction.data == "restart_simulation"):
-        print("Reset simulation ---------")
+        print("Reset simulation")
         # TODO : Implement (kill all nodes and recreate them)
         stop_simulation()
         launch_nodes()
@@ -354,12 +348,9 @@ def instruction_callback(instruction):
                 n['output'] = node[5]
             soup.launch.append(n)
         p = relativePathToSrc + launchFiles[configFile] + "/launch/rocket_test_save.launch"
-        print(p)
         
         with open(p, "w") as f:
             f.write(str(soup.prettify()))
-    
-    print("Current state -> " + str(launch_value))
     
     
     # Instruction to execute the test code (for dev, when testing and experimenting with new concepts)
@@ -377,8 +368,7 @@ def instruction_callback(instruction):
 def dataCallBack(data):
     global launch_value
     global configFile
-    print("data recieved--------------")
-    print(data)
+    print("data recieved")
 
     # 1 -----------------------------------------------------
 
@@ -389,24 +379,19 @@ def dataCallBack(data):
         configFile = data.data[0]
         
         p = relativePathToSrc + launchFiles[configFile] + "/launch/" + configFile
-        print(p)
         
         with open(p) as f:
             soup = BeautifulSoup(f, 'html.parser')
         
-        print("Extract params :")
         for param in soup.find_all('param'):
             v = 'param -> name=' + param.get('name') + ' value=' + param.get('value')
-            print(v)
             params.append((param.get('name'), param.get('value')))
             comm = 'rosparam set ' + param.get('name') + ' ' + param.get('value')
-            print(comm)
             param_process = Popen(
                 shlex.split(comm)
             )
             listSubProcesses.append(param_process)
 
-        print("Extract param files :")
         paramFilePrefixes.clear()
         paramFiles.clear()
         for group in soup.find_all('group'):
@@ -418,21 +403,18 @@ def dataCallBack(data):
                 if(m):
                     src = m.group(1)
                     f = f.replace('$(find ' + src + ')', relativePathToSrc + src)
-                    print(src)
                 paramFiles.append((f, pack))
                 v = 'rosparam load ' + f + ' /' + pack
-                print(v)
                 param_process = Popen(
                 shlex.split(v)
                 )
                 listSubProcesses.append(param_process)
 
-        msg = Data()
+        msg = FoxgloveDataMessage()
         msg.command = "list_parameter_prefix"
         msg.data = paramFilePrefixes
         comm_data.publish(msg) 
 
-        print("Extract nodes :")
         nodes.clear()
         for node in soup.find_all('node'):
             args = ""
@@ -471,15 +453,6 @@ def dataCallBack(data):
 
     # 2 -----------------------------------------------------
 
-    # Update a parameter
-    if(data.command == "update_param"):
-        comm = 'rosparam set /environment/apogee "[0, 0, 2000]"'
-        print(comm)
-        param_process = Popen(
-            shlex.split(comm)
-        )
-        listSubProcesses.append(param_process)
-
     # 3 -----------------------------------------------------
 
     # 4 -----------------------------------------------------
@@ -490,13 +463,10 @@ def dataCallBack(data):
         global direction
         speed = data.data[0]
         direction = data.data[1]
-        print("direction " + direction + " speed:" + speed)
         client.update_configuration({"wind_speed" : speed, "wind_direction": direction})
 
     # 5 -----------------------------------------------------
 
-
-    print("Current state -> " + str(launch_value))
 
 def modifyCallback(m):
     global modifiedParameters
@@ -510,7 +480,6 @@ def modifyCallback(m):
         modifiedParameters[m.config].append(m.parameter)
     else:
         modifiedParameters[m.config] = [m.parameter]
-    print(m)
 
 
 # Initialises all publishers
@@ -526,7 +495,7 @@ def caller():
 
     # Publisher for data passing
     global comm_data
-    comm_data = rospy.Publisher('data', Data, queue_size=10)
+    comm_data = rospy.Publisher('data', FoxgloveDataMessage, queue_size=10)
 
 def conf_callback(config):
     print("Conf callback : ")
@@ -539,7 +508,7 @@ def listener():
     
 
     rospy.Subscriber("instructions", String, instruction_callback)
-    rospy.Subscriber("data", Data, dataCallBack)
+    rospy.Subscriber("data", FoxgloveDataMessage, dataCallBack)
     rospy.Subscriber("updates", Update, modifyCallback)
 
 if __name__ == '__main__':
@@ -549,11 +518,11 @@ if __name__ == '__main__':
         pass
     listener()
     
-    state_pub = rospy.Publisher('simulation_state', Data, queue_size=10)
+    state_pub = rospy.Publisher('simulation_state', FoxgloveDataMessage, queue_size=10)
     state_rate = rospy.Rate(10)
 
     while not rospy.is_shutdown():
-        msg = Data()
+        msg = FoxgloveDataMessage()
         msg.command = str(launch_value.value)
         if(launch_value is SimulatorState.selection):
             msg.data = []
