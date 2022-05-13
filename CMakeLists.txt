@@ -80,7 +80,7 @@ add_message_files(
         Sensor.msg
         Trajectory.msg
         Update.msg
-        Data.msg
+        FoxgloveDataMessage.msg
 )
 
 ## Generate services in the 'srv' folder
