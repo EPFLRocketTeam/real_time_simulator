@@ -111,9 +111,9 @@ generate_messages(
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-generate_dynamic_reconfigure_options(
-  cfg/Wind.cfg
-)
+## generate_dynamic_reconfigure_options(
+##  cfg/Wind.cfg
+## )
 
 ###################################
 ## catkin specific configuration ##
