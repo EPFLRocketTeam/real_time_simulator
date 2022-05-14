@@ -605,7 +605,7 @@
                   "type": "repr"
                 },
                 "rviz_config_file": {
-                  "repr": "'/home/mathieu/catkin_ws/src/real_time_simulator/GUI/rocket_config.rviz'",
+                  "repr": "'/home/username/catkin_ws/src/real_time_simulator/GUI/rocket_config.rviz'",
                   "type": "repr"
                 }
               },
