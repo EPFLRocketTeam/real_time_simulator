@@ -19,14 +19,21 @@
 #
 # -----------------------
 
+from turtle import update
 import rospy
 
 import numpy as np
+import math
+import time
 from scipy.spatial.transform import Rotation as R
 
 from real_time_simulator.msg import Control
 from real_time_simulator.msg import FSM
 from real_time_simulator.msg import State
+from real_time_simulator.msg import Update
+
+
+from std_msgs.msg import String
 
 
 def fsm_callback(fsm):
@@ -43,6 +50,38 @@ def control_callback(control):
 	global current_control
 	current_control = control
 
+launch_check = 0
+test_check = 0
+def command_callback(command):
+	global launch_check
+	global test_check
+	print("command")
+	print(command)
+	if command.data == "launch":
+		if launch_check<1:
+			#Launches simulation
+			print("Launch")
+			launch_check = launch_check + 1
+			command_msg = String()
+			comm_pub.publish(command_msg)
+			
+			time.sleep(0.5)
+	if command.data == "test":
+		test_check += 1
+		print("Message recieved")
+		msg = String()
+		msg.data = "This message has been print" + str(test_check)
+		test_pub.publish(msg)
+		time.sleep(0.5)
+		
+
+def update_callback(command):
+	# Handle update
+	print("Update")
+	print(command.config)
+	print(command.parameter)
+	print(command.value)
+		
 
 class Rocket:
   dry_mass = 0
@@ -64,6 +103,14 @@ class Rocket:
   diameter = np.zeros(3)
 
   def __init__(self):
+	  # Publisher for test topic
+	  global test_pub
+	  test_pub = rospy.Publisher('tests', String, queue_size=10)
+
+	  # Publisher for commands topic
+	  global comm_pub
+	  comm_pub = rospy.Publisher('commands', String, queue_size=10)
+
 	  # Get parameters
 	  rocket_data = rospy.get_param("/rocket")
 	  env_data = rospy.get_param("/environment")
@@ -163,6 +210,11 @@ class Disturbance:
     return np.array([force, torque])
 
 
+
+
+
+
+
 if __name__ == '__main__':
 
 	# Create global variable
@@ -189,6 +241,13 @@ if __name__ == '__main__':
 
 	# Publisher for disturbance control
 	disturbance_pub = rospy.Publisher('disturbance_pub', Control, queue_size=10)
+	
+	# Subscribe to commands
+	rospy.Subscriber("commands", String, command_callback)
+
+	rospy.Subscriber("updates", Update, update_callback)
+	
+	
 
 	rocket = Rocket()
 	chaos = Disturbance()

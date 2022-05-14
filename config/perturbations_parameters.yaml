@@ -1,26 +1,42 @@
-acc_bias: 0
+#------------- Perturbations parameters ----------------
+#
+# Defines perturbations and errors to be applied to the model in order to test GNC robustness
+#   - External forces and torque perturbations (used by disturbance.py)
+#   - Sensors error
+#
+# ----------------------------------------------------
+
+wind_gust_intensity:      # Wind speed in [m/s] (world X and Y)
+  - 0
+  - 0
+wind_gust_assymetry: 0.3 # Range of gust position, from 0 to 1 rocket length
+wind_gust_var: 5          # Gust standart deviation as percentage of wind gust intensity
+
+motor_tilt:               # 2D tilt of motor in degree
+  - 0.0
+  - 0.0
+plume_tilt_var:           # Plume tilt standard deviation in degree
+  - 0.0
+  - 0.0
+
+fins_tilt:                # Tilt angle of each fins
+  - 2
+  - 1
+  - -1
+
+drag_assymetry:           # Amount of drag force distributed on X and Y surface as percentage of total drag -> creates X and Y torque
+  - -0.2
+  - 0.5
+
+air_density_bias: 20      # Error bias in percentage of the air density
+
+# Sensor parameters
+sensor_period: 0.050 # 0.048
 acc_noise: 0.0
-air_density_bias: 20
-baro_bias: 0
-baro_noise: 0.0
-drag_assymetry:
-- -0.2
-- 0.5
-fins_tilt:
-- 2
-- 1
-- -1
-gyro_bias: 0
+acc_bias: 0
+
 gyro_noise: 0.0
-motor_tilt:
-- 0.0
-- 0.0
-plume_tilt_var:
-- 0.0
-- 0.0
-sensor_period: 0.05
-wind_gust_assymetry: 0.3
-wind_gust_intensity:
-- 0
-- 0
-wind_gust_var: 5
+gyro_bias: 0
+
+baro_noise: 0.0
+baro_bias: 0
