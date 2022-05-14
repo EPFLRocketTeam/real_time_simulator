@@ -19,6 +19,7 @@
 #
 # -----------------------
 
+from turtle import update
 import rospy
 
 import numpy as np
@@ -166,6 +167,11 @@ class Disturbance:
 
 
 
+
+
+
+
+
 if __name__ == '__main__':
 
 	# Create global variable
@@ -190,6 +196,8 @@ if __name__ == '__main__':
 
 	# Publisher for disturbance control
 	disturbance_pub = rospy.Publisher('disturbance_pub', Control, queue_size=10)
+	
+	
 
 	rocket = Rocket()
 	chaos = Disturbance()
