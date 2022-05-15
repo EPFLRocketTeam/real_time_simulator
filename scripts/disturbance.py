@@ -19,7 +19,6 @@
 #
 # -----------------------
 
-from turtle import update
 import rospy
 
 import numpy as np

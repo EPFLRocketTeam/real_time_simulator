@@ -1,8 +1,4 @@
 *.pyc
 GUI/rocket_GUI.perspective
 log.bag
-<<<<<<< HEAD
 .vscode
-=======
-.vscode
->>>>>>> new-template-gnc
