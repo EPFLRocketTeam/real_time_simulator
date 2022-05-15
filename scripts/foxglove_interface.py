@@ -195,7 +195,7 @@ def getConfigs():
     for elem in res:
         path = relativePathToSrc + elem[0] + "/launch/"
         if(isdir(path)):
-            temp = [f for f in listdir(path) if isfile(join(path, f)) and "rocket_" in f]
+            temp = [f for f in listdir(path) if isfile(join(path, f)) and "_SIL" in f]
             onlyfiles = onlyfiles + temp
             for file in temp:
                 launchFiles[file] = elem[0]
