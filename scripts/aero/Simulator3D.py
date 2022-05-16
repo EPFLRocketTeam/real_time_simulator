@@ -147,7 +147,7 @@ class Simulator3D:
 
         # Aerodynamic corrective forces --------------------
         # Compute center of mass angle of attack
-        v_cm = v - self.Environment.get_V_inf()*self.Environment.V_dir
+        v_cm = v - self.Environment.get_wind()
 
 
         v_cm_mag = np.linalg.norm(v_cm)
@@ -269,7 +269,7 @@ class Simulator3D:
         # Aerodynamic corrective forces
         # Compute center of mass angle of attack
         v_cm = v - wind_model(t, self.Environment.get_turb(x[2] + self.Environment.ground_altitude),
-                              self.Environment.get_V_inf()*self.Environment.V_dir, 'None' , x[2]) # TODO : V_dir
+                              self.Environment.get_wind(), 'None' , x[2]) # TODO : V_dir
 
 
         v_cm_mag = np.linalg.norm(v_cm)
@@ -363,7 +363,7 @@ class Simulator3D:
 
         # Aerodynamic force
         v_rel = -v + wind_model(t, self.Environment.get_turb(x[2] + self.Environment.ground_altitude),
-                                self.Environment.get_V_inf()*self.Environment.V_dir, self.Environment.get_turb_model(), x[2])
+                                self.Environment.get_wind(), self.Environment.get_turb_model(), x[2])
 
         M = self.rocket.get_empty_mass() - self.rocket.pl_mass
 
@@ -401,7 +401,7 @@ class Simulator3D:
         M = self.rocket.get_empty_mass()
 
         V_rel = V - wind_model(t, self.Environment.get_turb(X[2] + self.Environment.ground_altitude),
-                               self.Environment.get_V_inf()*self.Environment.V_dir,
+                               self.Environment.get_wind(),
                                self.Environment.get_turb_model(), X[2])
 
         G = -9.81 * M * ZE

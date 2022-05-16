@@ -22,11 +22,11 @@
 
 #include "ros/ros.h"
 
-#include "real_time_simulator/FSM.h"
-#include "real_time_simulator/State.h"
-#include "real_time_simulator/Sensor.h"
+#include "rocket_utils/FSM.h"
+#include "rocket_utils/State.h"
+#include "rocket_utils/Sensor.h"
 
-#include "real_time_simulator/Control.h"
+#include "rocket_utils/Control.h"
 
 #include "std_msgs/String.h"
 #include <boost/numeric/odeint/stepper/runge_kutta_dopri5.hpp>
@@ -37,12 +37,18 @@
 
 #include <chrono>
 #include <random>
+#include <vector>
 
 #include "rocket.hpp"
 
 using namespace std;
 using namespace boost::numeric::odeint;
 using namespace Eigen;
+
+enum LaunchTriggerType{
+    COMMAND,
+    THRUST
+};
 
 class IntegratorNode {
 private:
@@ -55,14 +61,12 @@ private:
 
     Rocket rocket;
 
-    //last updated rocket force & torque
-    Rocket::control rocket_control;
     //last updated aerodynamic force & torque
-    Rocket::control aero_control;
+    Actuator::control aero_control;
     //last updated perturbations force & torque
-    Rocket::control perturbation_control;
+    Actuator::control perturbation_control;
     //last requested fsm
-    real_time_simulator::FSM current_fsm;
+    rocket_utils::FSM current_fsm;
     double time_zero;
     double rail_length;
 
@@ -75,9 +79,14 @@ private:
     // publishers
     ros::Publisher rocket_state_pub;
     ros::Publisher rocket_sensor_pub;
+    ros::Publisher rocket_forces_pub;
     ros::Publisher fsm_pub;
+
 public:
-    float integration_period = 10e-3;
+
+    double integration_period = 1e-3;
+
+    LaunchTriggerType launch_trigger_type;
 
     IntegratorNode(ros::NodeHandle &nh) {
         // Initialize publishers and subscribers
@@ -85,22 +94,24 @@ public:
 
         /* ---------- Variable initialization  ---------- */
         // Initialize rocket class with useful parameters
-        rocket.init(nh);
+        rocket.init(nh, integration_period);
 
         // Initialize fsm
-        current_fsm.time_now = 0;
         current_fsm.state_machine = "Idle";
 
         nh.param<double>("/environment/rail_length", rail_length, 0);
 
+        std::string launch_trigger_type_string;
+        nh.param<std::string>("launch_trigger_type", launch_trigger_type_string, "Thrust");
+
+        if (launch_trigger_type_string == "Thrust") launch_trigger_type = LaunchTriggerType::THRUST;
+        else if (launch_trigger_type_string == "Command") launch_trigger_type = LaunchTriggerType::COMMAND;
+        else throw std::runtime_error("Invalid launch trigger type.");
+
         // Initialize external forces
         aero_control << 0, 0,
-                0, 0,
-                0, 0;
-
-        rocket_control << 0, 0,
-                0, 0,
-                rocket.maxThrust[2], 0;
+                        0, 0,
+                        0, 0;
 
         //Get initial orientation and convert in Radians
         float roll = 0, zenith = 0, azimuth = 0.0;
@@ -120,7 +131,7 @@ public:
         Quaterniond q(init_angle);
 
         // Init state X
-        X << 0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, rocket.propellant_mass;
+        X << 0, 0, 0,   0, 0, 0,   0.0, 0.0, 0.0, 1.0,   0.0, 0.0, 0.0,   rocket.propellant_mass;
         X.segment(6, 4) = q.coeffs();
 
         // Init sensors
@@ -135,9 +146,7 @@ public:
     void initTopics(ros::NodeHandle &nh) {
         // Subscribe to commands
         command_sub = nh.subscribe("commands", 10, &IntegratorNode::processCommand, this);
-        // Subscribe to control message from control node
-        rocket_control_sub = nh.subscribe("control_measured", 100,
-                                          &IntegratorNode::rocketControlCallback, this);
+
         // Subscribe to aero message
         rocket_aero_sub = nh.subscribe("rocket_aero", 100, &IntegratorNode::rocketAeroCallback, this);
         // Subscribe to perturbations message
@@ -145,25 +154,31 @@ public:
                                                &IntegratorNode::rocketPerturbationCallback, this);
 
         // Create state publisher
-        rocket_state_pub = nh.advertise<real_time_simulator::State>("rocket_state", 10);
+        rocket_state_pub = nh.advertise<rocket_utils::State>("rocket_state", 10);
         // Create fake sensors publisher
-        rocket_sensor_pub = nh.advertise<real_time_simulator::Sensor>("simu_sensor_pub", 10);
+        rocket_sensor_pub = nh.advertise<rocket_utils::Sensor>("simu_sensor_pub", 10);
         // Create timer publisher and associated thread (100Hz)
-        fsm_pub = nh.advertise<real_time_simulator::FSM>("fsm_pub", 10);
+        fsm_pub = nh.advertise<rocket_utils::FSM>("fsm_pub", 10);
+
+        rocket_forces_pub = nh.advertise<rocket_utils::Control>("simu_actuator", 10);
     }
 
     void step() {
         // State machine ------------------------------------------
         if (current_fsm.state_machine.compare("Idle") == 0) {
-
-        } 
+            if (launch_trigger_type == LaunchTriggerType::THRUST){
+                Rocket::state xdot;
+                rocket.dynamics_rail(X, xdot, aero_control, 0);
+                double z_acc = xdot(5);
+                if (z_acc > 0){
+                    initLaunch();
+                }
+            }
+        }
         else {
-            // Update current time
-            current_fsm.time_now = ros::Time::now().toSec() - time_zero;
-
             if (current_fsm.state_machine.compare("Rail") == 0) {
                 auto dynamics_rail = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
-                    rocket.dynamics_rail(x, xdot, rocket_control, aero_control, t);
+                    rocket.dynamics_rail(x, xdot, aero_control, t);
                 };
                 stepper.do_step(dynamics_rail, X, 0, xout, 0 + integration_period);
 
@@ -173,7 +188,7 @@ public:
                 }
             } else if (current_fsm.state_machine.compare("Launch") == 0) {
                 auto dynamics_flight = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
-                    rocket.dynamics_flight(x, xdot, rocket_control, aero_control, perturbation_control, t);};
+                    rocket.dynamics_flight(x, xdot, aero_control, perturbation_control, t);};
 
                 stepper.do_step(dynamics_flight, X, 0, xout, 0 + integration_period);
 
@@ -182,11 +197,9 @@ public:
                     current_fsm.state_machine = "Coast";
                 }
             } else if (current_fsm.state_machine.compare("Coast") == 0) {
-                rocket_control << 0, 0,
-                        0, 0,
-                        0, 0;
+
                 auto dynamics_flight = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
-                    rocket.dynamics_flight(x, xdot, rocket_control, aero_control, perturbation_control, t);};
+                    rocket.dynamics_flight(x, xdot, aero_control, perturbation_control, t);};
 
                 stepper.do_step(dynamics_flight, X, 0, xout, 0 + integration_period);
             }
@@ -197,7 +210,7 @@ public:
         }
 
         // Parse state and publish it on the /fast_rocket_state topic
-        real_time_simulator::State current_state;
+        rocket_utils::State current_state;
 
         current_state.pose.position.x = X(0);
         current_state.pose.position.y = X(1);
@@ -218,30 +231,25 @@ public:
 
         current_state.propeller_mass = X(13);
 
+        current_state.header.stamp = ros::Time::now();
+
         rocket_state_pub.publish(current_state);
 
-        // Publish time + state machine    
+        // Publish time + state machine
         fsm_pub.publish(current_fsm);
 
         //std::cout << "Fast integration time: " << 1000*(ros::Time::now().toSec()-time_now) << "ms \n";
     }
 
-    // Callback function to store last received control
-    void rocketControlCallback(const real_time_simulator::Control::ConstPtr &control_law) {
-        rocket_control << control_law->force.x, control_law->torque.x,
-                control_law->force.y, control_law->torque.y,
-                control_law->force.z, control_law->torque.z;
-    }
-
     // Callback function to store last received aero force and torque
-    void rocketAeroCallback(const real_time_simulator::Control::ConstPtr &rocket_aero) {
+    void rocketAeroCallback(const rocket_utils::Control::ConstPtr &rocket_aero) {
         aero_control << rocket_aero->force.x, rocket_aero->torque.x,
                 rocket_aero->force.y, rocket_aero->torque.y,
                 rocket_aero->force.z, rocket_aero->torque.z;
     }
 
     // Callback function to store last received aero force and torque
-    void rocketPerturbationCallback(const real_time_simulator::Control::ConstPtr &perturbation) {
+    void rocketPerturbationCallback(const rocket_utils::Control::ConstPtr &perturbation) {
         perturbation_control << perturbation->force.x, perturbation->torque.x,
                 perturbation->force.y, perturbation->torque.y,
                 perturbation->force.z, perturbation->torque.z;
@@ -250,12 +258,17 @@ public:
     void processCommand(const std_msgs::String &command) {
         if (command.data.compare("Coast") == 0) {
             current_fsm.state_machine = "Coast";
-        } else {
+        } else if(launch_trigger_type == LaunchTriggerType::COMMAND) {
             //received launch command
-            time_zero = ros::Time::now().toSec();
-            if (rail_length == 0) current_fsm.state_machine = "Launch";
-            else current_fsm.state_machine = "Rail";
+            initLaunch();
         }
+    }
+
+    // Start the integration
+    void initLaunch(){
+        time_zero = ros::Time::now().toSec();
+        if (rail_length == 0) current_fsm.state_machine = "Launch";
+        else current_fsm.state_machine = "Rail";
     }
 
     void send_fake_sensor() {
@@ -267,7 +280,7 @@ public:
         std::normal_distribution<double> gyro_noise(rocket.gyro_bias, rocket.gyro_noise);
         std::normal_distribution<double> baro_noise(rocket.baro_bias, rocket.baro_noise);
 
-        real_time_simulator::Sensor sensor_msg;
+        rocket_utils::Sensor sensor_msg;
 
         sensor_msg.IMU_acc.x = rocket.sensor_acc(0) + acc_noise(generator);
         sensor_msg.IMU_acc.y = rocket.sensor_acc(1) + acc_noise(generator);
@@ -281,6 +294,23 @@ public:
 
         rocket_sensor_pub.publish(sensor_msg);
     }
+
+    void sendActuatorForce(){
+
+        rocket_utils::Control actuatorMsg;
+
+        actuatorMsg.force.x = rocket.rocket_control(0, 0);
+        actuatorMsg.force.y = rocket.rocket_control(1, 0);
+        actuatorMsg.force.z = rocket.rocket_control(2, 0);
+
+        actuatorMsg.torque.x = rocket.rocket_control(0, 1);
+        actuatorMsg.torque.y = rocket.rocket_control(1, 1);
+        actuatorMsg.torque.z = rocket.rocket_control(2, 1);
+
+        actuatorMsg.header.stamp = ros::Time::now();
+
+        rocket_forces_pub.publish(actuatorMsg);
+    }
 };
 
 
@@ -292,16 +322,31 @@ int main(int argc, char **argv) {
 
     IntegratorNode integrator_node(nh);
 
+    std::vector<double> timestep;
+
     // Thread to integrate state. Duration defines interval time in seconds
     ros::Timer integrator_thread = nh.createTimer(
             ros::Duration(integrator_node.integration_period), [&](const ros::TimerEvent &) {
+                // double t0 = ros::Time::now().toSec();
                 integrator_node.step();
+                // timestep.push_back(ros::Time::now().toSec() - t0);
+                //
+                // if(timestep.size() > 1000) {
+                //     std::cout << std::accumulate(timestep.begin(), timestep.end(),
+                //                 decltype(timestep)::value_type(0)) << std::endl;
+                //     timestep.clear();
+                // }
             });
 
     double sensor_period;
     nh.getParam("/perturbation/sensor_period", sensor_period);
     ros::Timer sensor_thread = nh.createTimer(ros::Duration(sensor_period), [&](const ros::TimerEvent &) {
         integrator_node.send_fake_sensor();
+    });
+
+
+    ros::Timer actuator_thread = nh.createTimer(ros::Duration(20e-3), [&](const ros::TimerEvent &) {
+        integrator_node.sendActuatorForce();
     });
 
     // Automatic callback of service and publisher from here

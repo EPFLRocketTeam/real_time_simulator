@@ -4,11 +4,11 @@
 # When rocket runs out of fuel, the simulator stops using the commanded force and speed start to decrease
 
 set -e
-cd ~/catkin_ws
+cd ~/Documents/EPFL/Semester_Project_ERT/Code/catkin_ws
 catkin_make
-source ~/catkin_ws/devel/setup.sh
+source ~/Documents/EPFL/Semester_Project_ERT/Code/catkin_ws/devel/setup.sh
 
-(sleep 5;rostopic pub /control_measured real_time_simulator/Control "torque:
+(sleep 5;rostopic pub /control_measured rocket_utils/Control "torque:
   x: 0.0
   y: 0.0
   z: 0.0

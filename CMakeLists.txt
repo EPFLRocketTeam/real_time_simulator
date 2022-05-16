@@ -34,8 +34,7 @@ find_package(catkin REQUIRED COMPONENTS
         genmsg
         visualization_msgs
         tf2_ros
-        #dynamic_reconfigure
-        #polympc-ros
+        rocket_utils
         )
 
 ## System dependencies are found with CMake's conventions
@@ -73,21 +72,14 @@ catkin_python_setup()
 ## Generate messages in the 'msg' folder
 add_message_files(
         FILES
-        Control.msg
-        State.msg
-        FSM.msg
-        Waypoint.msg
-        Sensor.msg
-        Trajectory.msg
         Update.msg
         FoxgloveDataMessage.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
-        FILES
-        GetFSM.srv
-        GetWaypoint.srv
+  FILES
+  SetWind.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -102,7 +94,6 @@ generate_messages(
         DEPENDENCIES
         std_msgs
         geometry_msgs
-        #visualization_msgs
 )
 
 ################################################
@@ -136,7 +127,7 @@ generate_messages(
 catkin_package(
         #  INCLUDE_DIRS include
         #  LIBRARIES real_time_simulator
-        CATKIN_DEPENDS roscpp rospy std_msgs message_runtime geometry_msgs #polympc-ros
+        CATKIN_DEPENDS roscpp rospy std_msgs message_runtime geometry_msgs
         #  DEPENDS system_lib
 )
 
@@ -242,12 +233,14 @@ catkin_install_python(PROGRAMS
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-
 add_executable(integrator src/integrator.cpp)
 target_link_libraries(integrator Eigen3::Eigen ${catkin_LIBRARIES})
-add_dependencies(integrator ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_dependencies(integrator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(GUI_interface src/GUI_interface.cpp)
 target_link_libraries(GUI_interface ${catkin_LIBRARIES})
-add_dependencies(GUI_interface ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_dependencies(GUI_interface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+add_executable(wind_generator src/wind_dynamic/wind_generator.cpp)
+target_link_libraries(wind_generator Eigen3::Eigen ${catkin_LIBRARIES})
+add_dependencies(wind_generator ${${PROJECT_NAME}_EXPORTED_TARGETS}  ${catkin_EXPORTED_TARGETS})

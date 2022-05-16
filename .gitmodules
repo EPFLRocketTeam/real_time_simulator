@@ -1,0 +1,3 @@
+[submodule "src/wind-dynamics"]
+	path = src/wind-dynamics
+	url = https://github.com/goromal/wind-dynamics.git

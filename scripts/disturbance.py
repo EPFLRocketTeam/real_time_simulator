@@ -27,18 +27,13 @@ import math
 import time
 from scipy.spatial.transform import Rotation as R
 
-from real_time_simulator.msg import Control
-from real_time_simulator.msg import FSM
-from real_time_simulator.msg import State
-from real_time_simulator.msg import Update
-
-
-from std_msgs.msg import String
+from rocket_utils.msg import Control
+from rocket_utils.msg import FSM
+from rocket_utils.msg import State
 
 
 def fsm_callback(fsm):
 	global current_fsm
-	current_fsm.time_now = fsm.time_now
 	current_fsm.state_machine = fsm.state_machine
 
 
@@ -49,30 +44,6 @@ def rocket_state_callback(state):
 def control_callback(control):
 	global current_control
 	current_control = control
-
-launch_check = 0
-test_check = 0
-def command_callback(command):
-	global launch_check
-	global test_check
-	print("command")
-	print(command)
-	if command.data == "launch":
-		if launch_check<1:
-			#Launches simulation
-			print("Launch")
-			launch_check = launch_check + 1
-			command_msg = String()
-			comm_pub.publish(command_msg)
-			
-			time.sleep(0.5)
-	if command.data == "test":
-		test_check += 1
-		print("Message recieved")
-		msg = String()
-		msg.data = "This message has been print" + str(test_check)
-		test_pub.publish(msg)
-		time.sleep(0.5)
 		
 
 def update_callback(command):
@@ -84,130 +55,126 @@ def update_callback(command):
 		
 
 class Rocket:
-  dry_mass = 0
-  propellant_mass = 0
-  dry_CM = 0
+	dry_mass = 0
+	propellant_mass = 0
+	dry_CM = 0
 
-  Isp = 0
-  maxThrust = 0
-  minThrust = 0
+	Isp = 0
+	maxThrust = 0
+	minThrust = 0
 
-  ground_altitude = 0
-  groung_temperature = 0
-  
+	ground_altitude = 0
+	groung_temperature = 0
+	
 
-  target_apogee = np.zeros(3)
-  Cd = np.zeros(3)
-  surface = np.zeros(3)
-  length = 0
-  diameter = np.zeros(3)
+	target_apogee = np.zeros(3)
+	Cd = np.zeros(3)
+	surface = np.zeros(3)
+	length = 0
+	diameter = np.zeros(3)
 
-  def __init__(self):
-	  # Publisher for test topic
-	  global test_pub
-	  test_pub = rospy.Publisher('tests', String, queue_size=10)
+	def __init__(self):
+		rocket_data = rospy.get_param("/rocket")
+		env_data = rospy.get_param("/environment")
+		
+		self.dry_mass = rocket_data["dry_mass"]
+		self.propellant_mass = rocket_data["propellant_mass"]
+		self.dry_CM = rocket_data["dry_CM"]
 
-	  # Publisher for commands topic
-	  global comm_pub
-	  comm_pub = rospy.Publisher('commands', String, queue_size=10)
+		self.Isp = rocket_data["Isp"]
+		self.maxThrust = rocket_data["maxThrust"]
+		self.minThrust = rocket_data["minThrust"]
 
-	  # Get parameters
-	  rocket_data = rospy.get_param("/rocket")
-	  env_data = rospy.get_param("/environment")
-    
-	  self.dry_mass = rocket_data["dry_mass"]
-	  self.propellant_mass = rocket_data["propellant_mass"]
-	  self.dry_CM = rocket_data["dry_CM"]
+		self.ground_altitude = env_data["ground_altitude"]
+		self.ground_temperature = env_data["temperature"]
 
-	  self.Isp = rocket_data["Isp"]
-	  self.maxThrust = rocket_data["maxThrust"]
-	  self.minThrust = rocket_data["minThrust"]
-
-	  self.ground_altitude = env_data["ground_altitude"]
-	  self.ground_temperature = env_data["temperature"]
-
-	  nStage = rocket_data["stages"]
-	  self.Cd = np.asarray(rocket_data["Cd"])
-	  self.diameter = np.asarray(rocket_data["diameters"])
-	  self.length = rocket_data["stage_z"][nStage-1]
+		nStage = rocket_data["stages"]
+		self.Cd = np.asarray(rocket_data["Cd"])
+		self.diameter = np.asarray(rocket_data["diameters"])
+		self.length = rocket_data["stage_z"][nStage-1]
 
 
-	  self.surface[0] = self.diameter[1]*self.length;
-	  self.surface[1] = self.surface[0];
-	  self.surface[2] = self.diameter[1]*self.diameter[1]/4 * 3.14159;
-    
-    
-  def getPression(self, z):
-    return 101325*np.exp(-0.00012*(z+ self.ground_altitude))
+		self.surface[0] = self.diameter[1]*self.length
+		self.surface[1] = self.surface[0]
+		self.surface[2] = self.diameter[1]*self.diameter[1]/4 * 3.14159
+		
+		
+	def getPression(self, z):
+		return 101325*np.exp(-0.00012*(z+ self.ground_altitude))
 
-  def getDensity(self, z):
-    return self.getPression(z)/(287.058*self.ground_temperature)
+	def getDensity(self, z):
+		return self.getPression(z)/(287.058*self.ground_temperature)
 
 
 class Disturbance:
-  wind_gust_intensity = np.zeros(2)
-  wind_gust_assymetry = 0
-  wind_gust_var = 0
+	wind_gust_intensity = np.zeros(2)
+	wind_gust_assymetry = 0
+	wind_gust_var = 0
 
-  motor_tilt = np.zeros(2)
-  plume_tilt_var = np.zeros(2)
+	motor_tilt = np.zeros(2)
+	plume_tilt_var = np.zeros(2)
 
-  fins_tilt = np.zeros(3)
-  drag_assymetry = np.zeros(2)
+	fins_tilt = np.zeros(3)
+	drag_assymetry = np.zeros(2)
 
-  air_density_bias = 0
-
-
-  def __init__(self):
-	  chaos_data = rospy.get_param("/perturbation")
-
-	  self.wind_gust_intensity = np.asarray(chaos_data["wind_gust_intensity"])
-	  self.wind_gust_assymetry = chaos_data["wind_gust_assymetry"]
-	  self.wind_gust_var = chaos_data["wind_gust_var"]
-
-	  self.motor_tilt = np.asarray(chaos_data["motor_tilt"])
-	  self.plume_tilt_var = np.asarray(chaos_data["plume_tilt_var"])
-
-	  self.fins_tilt = np.asarray(chaos_data["fins_tilt"])
-	  self.drag_assymetry = np.asarray(chaos_data["drag_assymetry"])
-	  
-	  self.air_density_bias = chaos_data["air_density_bias"]
+	air_density_bias = 0
 
 
-  # Compute random force and torque due to gust of wind
-  def get_gust_disturbance(self, rocket, state):
-    # Wind velocity is normal law with mean and std defined in YAML parameters
-    wind_speed = np.random.normal(self.wind_gust_intensity, self.wind_gust_var*self.wind_gust_intensity/100) 
+	def __init__(self):
+		chaos_data = rospy.get_param("/perturbation")
 
-    rho_air = rocket.getDensity(state.pose.position.z)
-    force = 0.5*rocket.Cd[0:2]*rocket.surface[0:2]*rho_air*wind_speed**2 
-    force = np.append(force, 0)
+		self.wind_gust_intensity = np.asarray(chaos_data["wind_gust_intensity"])
+		self.wind_gust_assymetry = chaos_data["wind_gust_assymetry"]
+		self.wind_gust_var = chaos_data["wind_gust_var"]
 
-    gust_position = (2*np.random.rand()-1)*self.wind_gust_assymetry*rocket.length/2
-    torque = force*gust_position
+		self.motor_tilt = np.asarray(chaos_data["motor_tilt"])
+		self.plume_tilt_var = np.asarray(chaos_data["plume_tilt_var"])
 
-    return np.array([force, torque])
+		self.fins_tilt = np.asarray(chaos_data["fins_tilt"])
+		self.drag_assymetry = np.asarray(chaos_data["drag_assymetry"])
+		
+		self.air_density_bias = chaos_data["air_density_bias"]
 
 
-  def get_thrust_disturbance(self, rocket):
-    global current_control
+	# Compute random force and torque due to gust of wind
+	def get_gust_disturbance(self, rocket, state):
+		# Wind velocity is normal law with mean and std defined in YAML parameters
+		wind_speed = np.random.normal(self.wind_gust_intensity, self.wind_gust_var*self.wind_gust_intensity/100) 
 
-    thrust_tilt = np.random.normal(self.motor_tilt, self.plume_tilt_var)
-    r = R.from_euler("yx", thrust_tilt, degrees =True)
+		rho_air = rocket.getDensity(state.pose.position.z)
+		force = 0.5*rocket.Cd[0:2]*rocket.surface[0:2]*rho_air*wind_speed**2 
+		force = np.append(force, 0)
 
-    control_thrust = np.zeros(3)
-    control_thrust[0] = current_control.force.x
-    control_thrust[1] = current_control.force.y
-    control_thrust[2] = current_control.force.z
+		gust_position = (2*np.random.rand()-1)*self.wind_gust_assymetry*rocket.length/2
+		torque = force*gust_position
 
-    real_thrust = r.apply(control_thrust)
+		return np.array([force, torque])
 
-    force = real_thrust - control_thrust
 
-    torque = force*rocket.dry_CM
-    torque[2] = 0
+	def get_thrust_disturbance(self, rocket):
+		global current_control
 
-    return np.array([force, torque])
+		thrust_tilt = np.random.normal(self.motor_tilt, self.plume_tilt_var)
+		r = R.from_euler("yx", thrust_tilt, degrees =True)
+
+		control_thrust = np.zeros(3)
+		control_thrust[0] = current_control.force.x
+		control_thrust[1] = current_control.force.y
+		control_thrust[2] = current_control.force.z
+
+		real_thrust = r.apply(control_thrust)
+
+		force = real_thrust - control_thrust
+
+		torque = force*rocket.dry_CM
+		torque[2] = 0
+
+		return np.array([force, torque])
+
+
+
+
+
 
 
 
@@ -226,8 +193,7 @@ if __name__ == '__main__':
 	rospy.init_node('disturbance', anonymous=True)
 
 	# Init fsm
-	current_fsm.time_now = 0;
-	current_fsm.state_machine = "Idle";
+	current_fsm.state_machine = "Idle"
 
 	# Subscribe to fsm 
 	rospy.Subscriber("fsm_pub", FSM, fsm_callback)
@@ -241,11 +207,6 @@ if __name__ == '__main__':
 
 	# Publisher for disturbance control
 	disturbance_pub = rospy.Publisher('disturbance_pub', Control, queue_size=10)
-	
-	# Subscribe to commands
-	rospy.Subscriber("commands", String, command_callback)
-
-	rospy.Subscriber("updates", Update, update_callback)
 	
 	
 
