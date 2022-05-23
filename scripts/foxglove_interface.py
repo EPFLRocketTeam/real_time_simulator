@@ -6,6 +6,8 @@
 #
 # -----------------------
 
+from matplotlib.pyplot import get
+from numpy import empty
 import rospy
 from os import listdir, rename, kill, remove
 from os.path import isfile, join, isdir,exists
@@ -22,6 +24,10 @@ import re
 import signal
 from enum import Enum
 import ruamel.yaml
+from visualization_msgs.msg import Marker, MarkerArray
+import geometry_msgs
+import math
+import ast 
 # --------  Parameters  ---------------
 # - 1
 
@@ -83,7 +89,9 @@ bagFilePath = relativePathToSrc + "real_time_simulator/log/"
 recentOpenedPath = relativePathToSrc + "real_time_simulator/launch/recentOpened.json"
 
 
-# Stop nodes (kill all nodes)
+""" Kill all ROS nodes from the launch file
+
+"""
 def stop_simulation():
 
     global listSubProcesses
@@ -103,7 +111,9 @@ def stop_simulation():
     rename(bagFilePath + "log.bag", bagFilePath + newName)
 
 
-# Launches ros nodes
+""" Launch all the ROS nodes from the launch file
+
+"""
 def launch_nodes():
     global launch_value
     launch_value = SimulatorState.launching
@@ -124,7 +134,9 @@ def launch_nodes():
     launch_value = SimulatorState.launched
 
 
-# Clears parameters from ros system
+""" Clear all parameters that have been loaded in ROS from a launch file
+
+"""
 def clearParameters():
     global params
     global paramFiles
@@ -152,7 +164,9 @@ def clearParameters():
     modifiedParameters = []
 
 
-# Get all configs
+""" Gets all configuration files containing a certain prefix and send them to foxglove
+
+"""
 def getConfigs():
     global launchFiles
     global recentConfigs
@@ -210,10 +224,16 @@ def getConfigs():
 
 
 # Callback for the instruction topic
+""" Method handling the instruction messages from instruction topic
+
+:param instruction message recieved from foxglove containing the instruction
+:type instruction message type: {string data}
+"""
 def instruction_callback(instruction):
     global launch_value
     global test_value
     global launchFiles
+    print(instruction)
     # 1 -----------------------------------------------------
 
     # Instruction to get all config that can be launched
@@ -358,8 +378,11 @@ def instruction_callback(instruction):
         time.sleep(0.5)
 
 
+""" Method handling the data messages from data topic
 
-# Callback for the data topic
+:param data message recieved from foxglove containing data
+:type data message type: {string command, string[] data}
+"""
 def dataCallBack(data):
     global launch_value
     global configFile
@@ -461,21 +484,54 @@ def dataCallBack(data):
     # 5 -----------------------------------------------------
 
 
+def reccModif(list, param, value):
+    if(not list):
+        return value
+    else:
+        print(list)
+        if(type(param)==dict):
+            print("dict")
+            print(list[0])
+            param[list[0]] = reccModif(list[1:], param[list[0]], value)
+        else:
+            print("list")
+            print(int(list[0]))
+            param[int(list[0])] = reccModif(list[1:], param[int(list[0])], value)
+        return param
+
+
+"""Handles the modification of a parameter: pushes the changes to ROS and saves the parameter as modified
+
+:param m message recieved from foxglove
+:type m message type : {string parameter, string[] sub_param, string value}
+"""
 def modifyCallback(m):
     global modifiedParameters
     print("Modify recieved")
-    comm = 'rosparam set /' + m.config + '/' + m.parameter + ' ' + m.value
-    Popen(
-        shlex.split(comm)
-    )
+    param = rospy.get_param(m.parameter)
+    list = m.sub_param
+    value = m.value
 
-    if(m.config in modifiedParameters):
-        modifiedParameters[m.config].append(m.parameter)
+    # Convert the booleans true and false to respectively True and False (python syntaxe)
+    if(value == "true" or value == "false"):
+        value = value.capitalize()
+    
+    # Convert the string to its value
+    newParam = reccModif(list, param, ast.literal_eval(value))
+    rospy.set_param(m.parameter, newParam)
+
+    # Add the parameter to the modified list (to later save in file)
+    file = m.parameter.split("/")
+    if(file[1] in modifiedParameters):
+        if(file[2] not in modifiedParameters[file[1]]):
+            modifiedParameters[file[1]].append(file[2])
     else:
-        modifiedParameters[m.config] = [m.parameter]
+        modifiedParameters[file[1]] = [file[2]]
 
 
-# Initialises all publishers
+""" Creates the ROS publishers
+
+"""
 def caller():
     global launch_value
     # Publisher for test topic
@@ -490,11 +546,13 @@ def caller():
     global comm_data
     comm_data = rospy.Publisher('data', FoxgloveDataMessage, queue_size=10)
 
-def conf_callback(config):
-    print("Conf callback : ")
-    print(config)
+    global visualization_pub
+    visualization_pub = rospy.Publisher('dataviz', Marker, queue_size=10)
 
-# Initialises all listened topics and give their callback
+
+""" Creates the ROS listeners
+
+"""
 def listener():
     
     rospy.init_node('foxglove_interface', anonymous=True)
@@ -513,6 +571,11 @@ if __name__ == '__main__':
     
     state_pub = rospy.Publisher('simulation_state', FoxgloveDataMessage, queue_size=10)
     state_rate = rospy.Rate(10)
+    MARKERS_MAX = 100
+    count = 0
+    markerArray = MarkerArray()
+    rocket_pos = geometry_msgs.msg.Pose()
+    marker = Marker()
 
     while not rospy.is_shutdown():
         msg = FoxgloveDataMessage()
@@ -531,5 +594,32 @@ if __name__ == '__main__':
             msg.data = [configFile, str(speed), str(direction)]
 
         state_pub.publish(msg)
+
+        if(launch_value is SimulatorState.preLaunch):
+            v = 0
+            # modelName = rospy.get_param("/visualization/stl_model")
+            # rocket_scale = rospy.get_param("/visualization/stl_model_scale")
+            # rocket_alpha = rospy.get_param("/visualization/stl_alpha")
+            
+            # marker.header.frame_id = "/rocket_model"
+            # marker.ns = "rocket"
+            # marker.type = marker.MESH_RESOURCE
+            # marker.mesh_resource = modelName
+            # marker.id = 0
+            # marker.action = marker.ADD
+            # marker.scale.x = rocket_scale
+            # marker.scale.y = rocket_scale
+            # marker.scale.z = rocket_scale
+            # marker.color.a = rocket_alpha
+            # marker.color.r = 0.75
+            # marker.color.g = 0.75
+            # marker.color.b = 0.75
+            # marker.pose.orientation.w = 1.0
+            # marker.pose.position.x = 0
+            # marker.pose.position.y = 0
+            # marker.pose.position.z = 0
+            
+                
+            # visualization_pub.publish(marker)
 
         state_rate.sleep()
