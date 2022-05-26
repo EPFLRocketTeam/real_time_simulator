@@ -164,6 +164,16 @@ def clearParameters():
     modifiedParameters = []
 
 
+def saveParamRecursive(list, toChange, rosParam):
+        if(not list):
+            return rosParam
+        else:
+            if(type(rosParam)==dict):
+                toChange[list[0]] = saveParamRecursive(list[1:], toChange[list[0]], rosParam[list[0]])
+            else:
+                toChange[int(list[0])] = saveParamRecursive(list[1:], toChange[int(list[0])], rosParam[int(list[0])])
+            return toChange
+
 """ Gets all configuration files containing a certain prefix and send them to foxglove
 
 """
@@ -261,7 +271,7 @@ def instruction_callback(instruction):
         getConfigs()
         launch_value = SimulatorState.configs
 
-     
+    # Saves the modification on parameters in their config files
     if(instruction.data == "save_parameters"):
         print("Saving parameters")
         for file in paramFiles:
@@ -273,13 +283,17 @@ def instruction_callback(instruction):
                 yaml.preserve_quotes = True
                 par = yaml.load(tmp)
                 changed = modifiedParameters[file[1]]
-                
+                # Change every subparam
                 for p in changed:
-                    par[p] = rospy.get_param(file[1] + "/" + p)
+                    rosParam = rospy.get_param(file[1] + "/" + p)
+                    for sub_p in changed[p]:
+                        par[p] = saveParamRecursive(sub_p, par[p], rosParam)
+                print(par)
                 f = open(file[0], "w")
                 yaml.dump(par, f)
                 f.close()
         modifiedParameters.clear()
+
     # 3 -----------------------------------------------------
 
     # Close config instruction
@@ -523,10 +537,15 @@ def modifyCallback(m):
     # Add the parameter to the modified list (to later save in file)
     file = m.parameter.split("/")
     if(file[1] in modifiedParameters):
-        if(file[2] not in modifiedParameters[file[1]]):
-            modifiedParameters[file[1]].append(file[2])
+        if(file[2] in modifiedParameters[file[1]]):
+            if(m.sub_param not in modifiedParameters[file[1]][file[2]]):
+                modifiedParameters[file[1]][file[2]].append(m.sub_param)
+        else:
+            modifiedParameters[file[1]][file[2]] = [m.sub_param]
     else:
-        modifiedParameters[file[1]] = [file[2]]
+        modifiedParameters[file[1]] = {}
+        modifiedParameters[file[1]][file[2]] = [m.sub_param]
+    print(modifiedParameters)
 
 
 """ Creates the ROS publishers
