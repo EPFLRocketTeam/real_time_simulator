@@ -35,7 +35,6 @@ find_package(catkin REQUIRED COMPONENTS
         visualization_msgs
         tf2_ros
         rocket_utils
-        #polympc-ros
         )
 
 ## System dependencies are found with CMake's conventions
@@ -71,9 +70,11 @@ catkin_python_setup()
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-#add_message_files(
-#        FILES
-#)
+add_message_files(
+        FILES
+        Update.msg
+        FoxgloveDataMessage.msg
+)
 
 ## Generate services in the 'srv' folder
 add_service_files(
@@ -110,10 +111,9 @@ generate_messages(
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+## generate_dynamic_reconfigure_options(
+##  cfg/Wind.cfg
+## )
 
 ###################################
 ## catkin specific configuration ##
@@ -184,6 +184,7 @@ include_directories(
 catkin_install_python(PROGRAMS
         scripts/aerodynamic.py
         scripts/disturbance.py
+        scripts/foxglove_interface.py
         interface_hardware/test_interface.py
         interface_hardware/pcan_interface.py
         interface_hardware/usb_interface.py

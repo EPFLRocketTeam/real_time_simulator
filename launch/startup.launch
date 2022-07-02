@@ -1,0 +1,6 @@
+<!-- Launch file to activate real-time simulator and connect to it the test_rocket_gnc algorithms-->
+<launch>
+
+  <node name="foxglove_interface" pkg="real_time_simulator" type="foxglove_interface.py" cwd = "node" output="screen"/>
+
+</launch>

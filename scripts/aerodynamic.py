@@ -190,9 +190,3 @@ if __name__ == '__main__':
 				rocket_aero_pub.publish(aero_msg)
 
 			#rospy.loginfo(1000*(rospy.get_time()-start_time))
-
-
-		  
-     
-
-
