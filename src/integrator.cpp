@@ -139,7 +139,7 @@ public:
                 Eigen::Vector3d::UnitZ() * 3.986e14 / pow(6371e3 + rocket.h0, 2));
         rocket.sensor_gyro << 0.0, 0.0, 0.0;
         rocket.sensor_baro = 0;
-
+	    rocket.sensor_mag << 1.0, 0.0, 0.0;
         xout = X;
     }
 
@@ -280,6 +280,8 @@ public:
         std::normal_distribution<double> gyro_noise(rocket.gyro_bias, rocket.gyro_noise);
         std::normal_distribution<double> baro_noise(rocket.baro_bias, rocket.baro_noise);
 
+        std::normal_distribution<double> mag_noise(rocket.mag_bias, rocket.mag_noise);
+
         rocket_utils::Sensor sensor_msg;
 
         sensor_msg.IMU_acc.x = rocket.sensor_acc(0) + acc_noise(generator);
@@ -289,6 +291,11 @@ public:
         sensor_msg.IMU_gyro.x = rocket.sensor_gyro(0) + gyro_noise(generator);
         sensor_msg.IMU_gyro.y = rocket.sensor_gyro(1) + gyro_noise(generator);
         sensor_msg.IMU_gyro.z = rocket.sensor_gyro(2) + gyro_noise(generator);
+
+
+        sensor_msg.IMU_mag.x = rocket.sensor_mag(0) + mag_noise(generator);
+        sensor_msg.IMU_mag.y = rocket.sensor_mag(1) + mag_noise(generator);
+        sensor_msg.IMU_mag.z = rocket.sensor_mag(2) + mag_noise(generator);
 
         sensor_msg.baro_height = rocket.sensor_baro + baro_noise(generator);
 

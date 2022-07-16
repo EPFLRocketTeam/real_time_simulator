@@ -40,3 +40,6 @@ gyro_bias: 0
 
 baro_noise: 0.0
 baro_bias: 0
+
+mag_noise: 0
+mag_bias: 0

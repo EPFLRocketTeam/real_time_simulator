@@ -68,11 +68,17 @@ public:
     // Sensor data
     Vector3d sensor_acc;
     Vector3d sensor_gyro;
+    Vector3d sensor_mag;
     float sensor_baro;
 
     float acc_noise, acc_bias;
     float gyro_noise, gyro_bias;
     float baro_noise, baro_bias;
+    float mag_noise, mag_bias;
+
+
+    Matrix<double, 3, 1> mag_vector = {1.0, 0, 0};
+
 
     std::vector<Actuator*> actuatorList;
 
@@ -140,6 +146,9 @@ public:
 
         n.getParam("/perturbation/gyro_noise", gyro_noise);
         n.getParam("/perturbation/gyro_bias", gyro_bias);
+
+	    n.getParam("/perturbation/mag_noise", mag_noise);
+        n.getParam("/perturbation/mag_bias", mag_bias);
 
         n.getParam("/perturbation/baro_noise", baro_noise);
         n.getParam("/perturbation/baro_bias", baro_bias);
@@ -241,7 +250,9 @@ public:
 
         sensor_gyro = rot_matrix.transpose() * x.segment(10, 3);
 
-        sensor_baro = x(2);
+	    sensor_mag = rot_matrix.transpose()*(mag_vector);
+
+	    sensor_baro = x(2);
     }
 
 
@@ -301,7 +312,9 @@ public:
         sensor_acc = (total_force + rot_matrix.transpose() * gravity) / mass;
 
         sensor_gyro << 0.0, 0.0, 0.0;
+ 
+	    sensor_mag = rot_matrix.transpose()*(mag_vector);
 
-        sensor_baro = x(2);
+	    sensor_baro = x(2);
     }
 };

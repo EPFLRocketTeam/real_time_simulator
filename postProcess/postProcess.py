@@ -40,6 +40,9 @@ omega_est = np.zeros((1,3))
 prop_mass_est = np.zeros((1,1))
 time_state_est = np.zeros((1,1))
 
+# state covariance matrix from navigation
+covariance = np.zeros((32,32))
+
 # Controled forces and torque
 feedback_gimbal = np.zeros((1,2))
 feedback_thrust = np.zeros((1,1))
@@ -81,6 +84,10 @@ for msg in stateMsg[::10]:
     omega = np.append(omega, [[new_omega.x, new_omega.y, new_omega.z]], axis = 0)
     prop_mass = np.append(prop_mass, [[new_mass]])
     time_state = np.append(time_state, [[msg.message.header.stamp.to_sec()]])
+
+for topic, msg, t in bag.read_messages(topics=['/state_covariance']):
+    new_cov = msg.covariance
+    #covariance = np.append(covariance,new_cov,axis = 0)
 
 for topic, msg, t in bag.read_messages(topics=['/kalman_rocket_state']):
     new_pos = msg.pose.position
@@ -141,6 +148,7 @@ omega = omega[1:]
 position = position[1:]
 attitude = attitude[1:]
 time_state = time_state[1:]
+covariance = covariance[1:]
 
 prop_mass_est = prop_mass_est[1:]
 speed_est = speed_est[1:]
