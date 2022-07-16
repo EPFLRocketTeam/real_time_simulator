@@ -1,5 +1,7 @@
 <launch>
 
+  <param name="launch_trigger_type" type="string" value="Command" />
+
   <group ns="rocket">
       <rosparam file="$(find real_time_simulator)/config/rocket_parameters.yaml" />
   </group>
