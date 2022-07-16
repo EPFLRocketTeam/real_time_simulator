@@ -284,6 +284,8 @@ public:
 
         rocket_utils::Sensor sensor_msg;
 
+        sensor_msg.header.stamp = ros::Time::now();
+
         sensor_msg.IMU_acc.x = rocket.sensor_acc(0) + acc_noise(generator);
         sensor_msg.IMU_acc.y = rocket.sensor_acc(1) + acc_noise(generator);
         sensor_msg.IMU_acc.z = rocket.sensor_acc(2) + acc_noise(generator);
