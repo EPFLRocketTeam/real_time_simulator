@@ -211,12 +211,12 @@ public:
 
         // Force in inertial frame: gravity
         Matrix<double, 3, 1> gravity;
-        gravity << 0, 0, g0 * mass;
+        gravity << 0, 0, -1 * g0 * mass;
         
         // Total force in inertial frame [N]
         Matrix<double, 3, 1> total_force;
         
-        total_force = rot_matrix * rocket_control.col(0) - gravity + aero_control.col(0) + perturbation_control.col(0);
+        total_force = rot_matrix * rocket_control.col(0) + gravity - aero_control.col(0) + perturbation_control.col(0);
         //std::cout << total_force.transpose() << "\n";
 
 
@@ -233,12 +233,12 @@ public:
                 rocket_control.col(1) + rot_matrix.transpose() * (aero_control.col(1) + perturbation_control.col(1));
 
         // -------------- Differential equation ---------------------
-        if(x[2] < 5e-2) {
+        if(x[2] < -5e-2) {
             xdot.setZero();
             ROS_WARN_STREAM_THROTTLE(2, "Crash due to collision with ground");
 
         }
-        if ((x[2] <= 0.0 && total_force(2) <= 0.0 && x[5] <= 0)) xdot.setZero();
+        else if ((x[2] <= 0.0 && total_force(2) <= 0.0 && x[5] <= 0)) xdot.setZero();
         else {
             // Position variation is speed
             xdot.head(3) = x.segment(3, 3);

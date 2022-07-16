@@ -101,6 +101,7 @@ public:
 
         nh.param<double>("/environment/rail_length", rail_length, 0);
 
+
         std::string launch_trigger_type_string = "Command";
         //nh.param<std::string>("launch_trigger_type", launch_trigger_type_string, "Thrust");
 
@@ -131,8 +132,23 @@ public:
         Quaterniond q(init_angle);
 
         // Init state X
-        X << 0, 0, 0,   0, 0, 0,   0.0, 0.0, 0.0, 1.0,   0.0, 0.0, 0.0,   rocket.propellant_mass;
-        X.segment(6, 4) = q.coeffs();
+        if(nh.hasParam("/environment/initial_pose")){
+            
+            std::map<std::string, double> initial_state;
+            nh.getParam("/environment/initial_pose", initial_state);
+            Quaterniond orientation = AngleAxisd(initial_state["gamma"], Vector3d::UnitZ()) * AngleAxisd(initial_state["beta"], Vector3d::UnitY()) * AngleAxisd(initial_state["alpha"], Vector3d::UnitX());
+            X <<    initial_state["x"], initial_state["y"], initial_state["z"], 
+                    initial_state["vx"], initial_state["vy"], initial_state["vx"],
+                    orientation.x(), orientation.y(), orientation.z(), orientation.w(),
+                    initial_state["wx"], initial_state["wy"], initial_state["wz"], rocket.propellant_mass;
+            
+        }
+        
+        else{
+            double angle = 0.;
+            X << 0.0, 0, 0.,   0.0, 0, 0.0,   0.0, 0.0, sin(angle * M_PI /360), cos(angle * M_PI /360),   0.0, 0.0, 0.0,   rocket.propellant_mass;
+            // X.segment(6, 4) = q.coeffs();
+        }
 
         // Init sensors
         rocket.sensor_acc = (q.inverse())._transformVector(

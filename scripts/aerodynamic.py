@@ -22,6 +22,7 @@ import rospy
 from rocket_utils.msg import FSM
 from rocket_utils.msg import State
 from rocket_utils.msg import Control
+from geometry_msgs.msg import Vector3;
 from rocket_utils.msg import Sensor
 from geometry_msgs.msg import Vector3
 
@@ -62,6 +63,7 @@ def rocket_state_callback(new_state):
 
 def fsm_callback(fsm):
 	global current_fsm
+	# current_fsm.time_now = fsm.time_now
 	current_fsm.state_machine = fsm.state_machine
 
 def init_integrator():
@@ -137,6 +139,7 @@ if __name__ == '__main__':
 	rospy.init_node('aerodynamic', anonymous=True)
 
 	# Init global variable
+	# current_fsm.time_now = 0
 	current_fsm.state_machine = "Idle"
 
 	# Simulation object

@@ -146,9 +146,9 @@ class DroneGimbal : public Actuator{
             alpha_i << 0, u(1), 0;
             alpha_i += Ry90.transpose() * gimbalState(3) * omega_o + Ry.transpose() * alpha_o;
             //thrust 2rd order model
-            const double a = 0.00015;
-            const double b = 0.014;
-            const double c = -0.014;
+            const double a = -0.000035075437403;
+            const double b = 0.029719658777622;
+            const double c = -0.341510545964088;
             const double Pavg = (-b + std::sqrt(b * b - 4 * a * (c - gimbalState[4] / G))) / (2 * a);
             const double Pdelta = gimbalState[5] / (-0.1040 * 0.0128);
             
@@ -271,7 +271,6 @@ class DroneGimbal : public Actuator{
                 setPointDirection[1] = -1;
                 gimbalCommand.inner_angle *= -1;
             }
-
             else setPointDirection[1] = 1;
             if (gimbalCommand.outer_angle < gimbalState(0)){
                 setPointDirection[0] = -1;
@@ -289,7 +288,6 @@ class DroneGimbal : public Actuator{
             if(gimbalCommand.thrust < minRange(2))  gimbalCommand.thrust = minRange(2);
             if(gimbalCommand.torque > maxRange(3))  gimbalCommand.torque = maxRange(3);
             if(gimbalCommand.torque < minRange(3))  gimbalCommand.torque = minRange(3);
-            
         }
 
 

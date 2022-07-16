@@ -27,13 +27,14 @@ import math
 import time
 from scipy.spatial.transform import Rotation as R
 
-from rocket_utils.msg import Control
-from rocket_utils.msg import FSM
-from rocket_utils.msg import State
+from real_time_simulator.msg import Control
+from real_time_simulator.msg import FSM
+from real_time_simulator.msg import State
 
 
 def fsm_callback(fsm):
 	global current_fsm
+	current_fsm.time_now = fsm.time_now
 	current_fsm.state_machine = fsm.state_machine
 
 
@@ -193,7 +194,8 @@ if __name__ == '__main__':
 	rospy.init_node('disturbance', anonymous=True)
 
 	# Init fsm
-	current_fsm.state_machine = "Idle"
+	current_fsm.time_now = 0;
+	current_fsm.state_machine = "Idle";
 
 	# Subscribe to fsm 
 	rospy.Subscriber("fsm_pub", FSM, fsm_callback)
