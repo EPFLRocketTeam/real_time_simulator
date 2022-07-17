@@ -146,7 +146,7 @@ if __name__ == '__main__':
 	rospy.Subscriber("rocket_state", State, rocket_state_callback)
 
 	# Subscribe to control law
-	rospy.Subscriber("control_measured", Control, control_callback)
+	rospy.Subscriber("simu_actuator", Control, control_callback)
 
 	# Subscribe to fsm 
 	rospy.Subscriber("fsm_pub", FSM, fsm_callback)
@@ -172,7 +172,6 @@ if __name__ == '__main__':
 										current_state.twist.angular.x, current_state.twist.angular.y, current_state.twist.angular.z,
 										current_state.propeller_mass ]),
 										np.array([current_control.force.x, current_control.force.y, current_control.force.z]) )
-			
 			
 			rocket_aero = rocket_sim.rocket.get_aero()
 
