@@ -233,31 +233,24 @@ public:
                 rocket_control.col(1) + rot_matrix.transpose() * (aero_control.col(1) + perturbation_control.col(1));
 
         // -------------- Differential equation ---------------------
-        if(x[2] < -5e-2) {
-            xdot.setZero();
-            ROS_WARN_STREAM_THROTTLE(2, "Crash due to collision with ground");
 
-        }
-        else if ((x[2] <= 0.0 && total_force(2) <= 0.0 && x[5] <= 0)) xdot.setZero();
-        else {
-            // Position variation is speed
-            xdot.head(3) = x.segment(3, 3);
+        // Position variation is speed
+        xdot.head(3) = x.segment(3, 3);
 
-            // Speed variation is Force/mass
-            xdot.segment(3, 3) = total_force / mass;
+        // Speed variation is Force/mass
+        xdot.segment(3, 3) = total_force / mass;
 
-            // Quaternion variation is 0.5*w◦q
-            xdot.segment(6, 4) = 0.5 * (omega_quat * attitude).coeffs();
+        // Quaternion variation is 0.5*w◦q
+        xdot.segment(6, 4) = 0.5 * (omega_quat * attitude).coeffs();
 
-            // Angular speed variation is Torque/Inertia
-            xdot.segment(10, 3) = rot_matrix * (total_torque.cwiseProduct(I_inv));
+        // Angular speed variation is Torque/Inertia
+        xdot.segment(10, 3) = rot_matrix * (total_torque.cwiseProduct(I_inv));
 
-            // Mass variation is proportional to total thrust
-            if (Isp != -1) {
-                xdot(13) = -rocket_control.col(0).norm() / (Isp * g0);
-            } else {
-                xdot(13) = 0;
-            }
+        // Mass variation is proportional to total thrust
+        if (Isp != -1) {
+            xdot(13) = -rocket_control.col(0).norm() / (Isp * g0);
+        } else {
+            xdot(13) = 0;
         }
 
 
@@ -329,7 +322,7 @@ public:
         xdot.tail(1) << -rocket_control.col(0).norm() / (Isp * g0);
 
         // Fake sensor data update -----------------
-        sensor_acc = (total_force + rot_matrix.transpose() * gravity) / mass; // error ?
+        sensor_acc = (total_force + rot_matrix.transpose() * gravity) / mass; 
 
         sensor_gyro << 0.0, 0.0, 0.0;
  

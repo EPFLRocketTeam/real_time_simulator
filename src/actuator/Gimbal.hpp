@@ -76,7 +76,7 @@ class Gimbal : public Actuator{
         Actuator::control getActuatorWrench(const Eigen::Matrix<double, 14, 1> &rocketState){
             
             // Reduce thrust to zero when there are no propellant left
-            if(rocketState[13] <= -1) gimbalCommand.thrust = 0;
+            if(rocketState[13] <= 0) gimbalCommand.thrust = 0;
 
             // Update state of actuator
             computeStateActuator();
@@ -114,7 +114,6 @@ class Gimbal : public Actuator{
 
             // Send latest gimbal state as feedback
             rocket_utils::GimbalControl gimbalStateMsg;
-            gimbalStateMsg.header.stamp = ros::Time::now();
 
             gimbalStateMsg.outer_angle = gimbalState[2];
             gimbalStateMsg.inner_angle = gimbalState[3];
