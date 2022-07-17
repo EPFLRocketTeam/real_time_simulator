@@ -168,6 +168,7 @@ public:
         // State machine ------------------------------------------
         if (current_fsm.state_machine.compare("Idle") == 0) {
             if (launch_trigger_type == LaunchTriggerType::THRUST){
+                rocket.updateActuators(X);
                 Rocket::state xdot;
                 rocket.dynamics_rail(X, xdot, aero_control, 0);
                 double z_acc = xdot(5);

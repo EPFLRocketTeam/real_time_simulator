@@ -159,34 +159,38 @@ public:
         rocket_control.setZero();
 
         // Fill in actuator list
-        XmlRpc::XmlRpcValue yamlActuatorList;
 
         // Get all gimbal actuators
-        n.getParam("/actuator/gimbal", yamlActuatorList);
-        // std::cout << "Gimbal list " << yamlActuatorList << std::endl << std::endl;
-        for (int i = 0; i < yamlActuatorList.size(); i++) {
-            XmlRpc::XmlRpcValue sublist = yamlActuatorList[i];
+        XmlRpc::XmlRpcValue yamlGimbalList;
+        n.getParam("/actuator/gimbal", yamlGimbalList);
+        if(yamlGimbalList.valid()){
+            for (int i = 0; i < yamlGimbalList.size(); i++) {
+                XmlRpc::XmlRpcValue sublist = yamlGimbalList[i];
 
-            actuatorList.push_back(new Gimbal(n, integration_period, sublist));
+                actuatorList.push_back(new Gimbal(n, integration_period, sublist));
+            }
         }
 
         // Get all gimbal actuators
-        n.getParam("/actuator/drone_gimbal", yamlActuatorList);
-        // std::cout << "Gimbal list " << yamlActuatorList << std::endl << std::endl;
-        for (int i = 0; i < yamlActuatorList.size(); i++) {
-            XmlRpc::XmlRpcValue sublist = yamlActuatorList[i];
+        XmlRpc::XmlRpcValue yamlDroneGimbalList;
+        n.getParam("/actuator/drone_gimbal", yamlDroneGimbalList);
+        if(yamlDroneGimbalList.valid()){
+            for (int i = 0; i < yamlDroneGimbalList.size(); i++) {
+                XmlRpc::XmlRpcValue sublist = yamlDroneGimbalList[i];
 
-            actuatorList.push_back(new DroneGimbal(n, integration_period, sublist));
+                actuatorList.push_back(new DroneGimbal(n, integration_period, sublist));
+            }
         }
 
         // Get all CMG actuators
-        n.getParam("/actuator/CMG", yamlActuatorList);
-        // std::cout << "CMG list " << yamlActuatorList << std::endl << std::endl;
+        XmlRpc::XmlRpcValue yamlCMGList;
+        n.getParam("/actuator/CMG", yamlCMGList);
+        if(yamlCMGList.valid()){
+            for (int i = 0; i < yamlCMGList.size(); i++) {
+                XmlRpc::XmlRpcValue sublist = yamlCMGList[i];
 
-        for (int i = 0; i < yamlActuatorList.size(); i++) {
-            XmlRpc::XmlRpcValue sublist = yamlActuatorList[i];
-
-            actuatorList.push_back(new ControlMomentGyro(n, integration_period, sublist));
+                actuatorList.push_back(new ControlMomentGyro(n, integration_period, sublist));
+            }
         }
 
     }

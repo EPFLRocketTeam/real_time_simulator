@@ -327,11 +327,11 @@
                   "type": "repr"
                 },
                 "topics": {
-                  "repr": "''",
+                  "repr": "['/gimbal_state_0/inner_angle', '/gimbal_state_0/outer_angle']",
                   "type": "repr"
                 },
                 "x_limits": {
-                  "repr": "[0.0, 50.0]",
+                  "repr": "[0.0, 30.0]",
                   "type": "repr"
                 },
                 "y_limits": {
@@ -378,7 +378,7 @@
                   "type": "repr"
                 },
                 "x_limits": {
-                  "repr": "[-1.1681530475616455, 48.831846952438354]",
+                  "repr": "[0.0, 30.0]",
                   "type": "repr"
                 },
                 "y_limits": {
@@ -425,7 +425,7 @@
                   "type": "repr"
                 },
                 "x_limits": {
-                  "repr": "[-0.9638395309448242, 49.036160469055176]",
+                  "repr": "[0.0, 30.0]",
                   "type": "repr"
                 },
                 "y_limits": {
@@ -468,11 +468,11 @@
                   "type": "repr"
                 },
                 "topics": {
-                  "repr": "''",
+                  "repr": "'/gimbal_state_0/thrust'",
                   "type": "repr"
                 },
                 "x_limits": {
-                  "repr": "[0.0, 50.0]",
+                  "repr": "[0.0, 30.0]",
                   "type": "repr"
                 },
                 "y_limits": {
@@ -519,7 +519,7 @@
                   "type": "repr"
                 },
                 "x_limits": {
-                  "repr": "[-1.0613069534301758, 48.938693046569824]",
+                  "repr": "[0.0, 30.0]",
                   "type": "repr"
                 },
                 "y_limits": {
@@ -566,7 +566,7 @@
                   "type": "repr"
                 },
                 "x_limits": {
-                  "repr": "[-1.0210778713226318, 48.97892212867737]",
+                  "repr": "[0.0, 30.0]",
                   "type": "repr"
                 },
                 "y_limits": {
