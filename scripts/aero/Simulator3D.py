@@ -29,7 +29,7 @@ from aero.Functions.Models.pitch_damping_moment import pitch_damping_moment
 from aero.Functions.Models.Mass_Non_Lin import Mass_Non_Lin
 from aero.Functions.Models.Thrust import Thrust
 from aero.Functions.Models.Mass_Properties import Mass_Properties
-import rospy
+
 
 class Simulator3D:
     """
@@ -102,8 +102,9 @@ class Simulator3D:
         return x_dot, v_dot
 
     def Compute_aero(self, s, thrust_force):
+
         x = s[0:3]
-        v = np.array(s[3:6])
+        v = s[3:6]
         q = s[6:10]
         w = s[10:13]
         propellant_mass = s[13]
@@ -114,26 +115,7 @@ class Simulator3D:
         
 
         # Rotation matrix from rocket coordinates to Earth coordinates
-        c = np.array(quat2rotmat(q))
-
-        drag_matrix = np.zeros((3,3))
-        v_cm = c.T @ np.array(v - np.array(self.Environment.get_wind())).reshape(3,1)
-        if v_cm[0] > 0:
-            drag_matrix[0,0] = 0.03033
-        else:
-            drag_matrix[0,0] = 0.02967
-        if v_cm[1] > 0:
-            drag_matrix[1,1] = 0.03185
-        else:
-            drag_matrix[1,1] = 0.02751
-        drag_matrix[2,2] = 0.03073
-        
-        Fd = np.linalg.norm(v_cm) * drag_matrix @ v_cm
-
-        Fd = c @ Fd
-
-        
-
+        c = quat2rotmat(q)
         angle = rot2anglemat(c)
 
         # Rocket principle frame vectors expressed in Earth coordinates
@@ -218,14 +200,14 @@ class Simulator3D:
         # Moment estimation ------------------------
 
         # Aerodynamic corrective moment
-        mn = -1 * np.linalg.norm(n) * margin * v_cross_norm
+        mn = np.linalg.norm(n) * margin * v_cross_norm
 
         # Aerodynamic damping moment
         w_pitch = w - np.dot(w, ra) * ra
         cdm = pitch_damping_moment(self.rocket, rho, CNa_bar, CP_bar, dMdt, cg, np.linalg.norm(w_pitch), v_mag)
-        md = 0.5 * rho * cdm * Sm * v_mag ** 2 * normalize_vector(w_pitch)
+        md = -0.5 * rho * cdm * Sm * v_mag ** 2 * normalize_vector(w_pitch)
 
-        self.rocket.set_aero(Fd.T[0], [0,0,0])
+        self.rocket.set_aero(n+d, mn+md)
 
 
 
