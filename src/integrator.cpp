@@ -168,6 +168,10 @@ public:
         // State machine ------------------------------------------
         if (current_fsm.state_machine.compare("Idle") == 0) {
             if (launch_trigger_type == LaunchTriggerType::THRUST){
+                // Save accelerometer value as it is erased by dynamics_rail -> NOT VERY CLEAN
+                Eigen::Vector3d static_acc = rocket.sensor_acc;
+                
+                // Compute force without integrating to detect liftoff
                 rocket.updateActuators(X);
                 Rocket::state xdot;
                 rocket.dynamics_rail(X, xdot, aero_control, 0);
@@ -175,6 +179,7 @@ public:
                 if (z_acc > 0){
                     initLaunch();
                 }
+                rocket.sensor_acc = static_acc;
             }
         }
         else {

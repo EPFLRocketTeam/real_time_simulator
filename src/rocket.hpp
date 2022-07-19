@@ -259,7 +259,7 @@ public:
 
 
         // Fake sensor data update -----------------
-        sensor_acc = rot_matrix.transpose() * (total_force + gravity) / mass;
+        sensor_acc = rot_matrix.transpose() * (total_force - gravity) / mass;
 
         sensor_gyro = rot_matrix.transpose() * x.segment(10, 3);
 
@@ -293,11 +293,11 @@ public:
 
         // Force in inertial frame: gravity
         Matrix<double, 3, 1> gravity;
-        gravity << 0, 0, g0 * mass;
+        gravity << 0, 0, -g0 * mass;
 
         // Total force in initial body frame [N] (rail frame)
         Matrix<double, 3, 1> total_force;
-        total_force = rocket_control.col(0) - rot_matrix.transpose() * (gravity + aero_control.col(0));
+        total_force = rocket_control.col(0) + rot_matrix.transpose() * (gravity + aero_control.col(0));
 
         Matrix<double, 3, 1> body_acceleration;
 
@@ -326,7 +326,7 @@ public:
         xdot.tail(1) << -rocket_control.col(0).norm() / (Isp * g0);
 
         // Fake sensor data update -----------------
-        sensor_acc = (total_force + rot_matrix.transpose() * gravity) / mass; 
+        sensor_acc = (total_force - rot_matrix.transpose() * gravity) / mass; 
 
         sensor_gyro << 0.0, 0.0, 0.0;
  
