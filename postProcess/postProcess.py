@@ -89,6 +89,10 @@ for topic, msg, t in bag.read_messages(topics=['/state_covariance']):
     new_cov = msg.covariance
     #covariance = np.append(covariance,new_cov,axis = 0)
 
+for topic, msg, t in bag.read_messages(topics=['/state_covariance']):
+    new_cov = msg.covariance
+    #covariance = np.append(covariance,new_cov,axis = 0)
+
 for topic, msg, t in bag.read_messages(topics=['/kalman_rocket_state']):
     new_pos = msg.pose.position
     new_speed = msg.twist.linear

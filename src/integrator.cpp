@@ -101,6 +101,7 @@ public:
 
         nh.param<double>("/environment/rail_length", rail_length, 0);
 
+
         std::string launch_trigger_type_string;
         nh.param<std::string>("launch_trigger_type", launch_trigger_type_string, "Thrust");
 
@@ -167,15 +168,22 @@ public:
         // State machine ------------------------------------------
         if (current_fsm.state_machine.compare("Idle") == 0) {
             if (launch_trigger_type == LaunchTriggerType::THRUST){
+                // Save accelerometer value as it is erased by dynamics_rail -> NOT VERY CLEAN
+                Eigen::Vector3d static_acc = rocket.sensor_acc;
+                
+                // Compute force without integrating to detect liftoff
+                rocket.updateActuators(X);
                 Rocket::state xdot;
                 rocket.dynamics_rail(X, xdot, aero_control, 0);
                 double z_acc = xdot(5);
                 if (z_acc > 0){
                     initLaunch();
                 }
+                rocket.sensor_acc = static_acc;
             }
         }
         else {
+            rocket.updateActuators(X);
             if (current_fsm.state_machine.compare("Rail") == 0) {
                 auto dynamics_rail = [this](const Rocket::state &x, Rocket::state &xdot, const double &t) -> void {
                     rocket.dynamics_rail(x, xdot, aero_control, t);

@@ -17,7 +17,7 @@ apogee: # targeted apogee
   - 0
   - 0
   - 3000
-wind_speed: 10
+wind_speed: 5
 wind_direction: 0 # direction of wind from north, trigonometric
 wind_variation: 5.0 # wind speed variability as ratio of wind_speed
 rail_azimuth: 0 # angle of rail from north, trigonmetric

@@ -187,7 +187,7 @@ class Simulator3D:
         if np.linalg.norm(na) == 0:
             n = np.array([0, 0, 0]).transpose()
         else:
-            n = 0.5 * rho * Sm * CNa * alpha * v_mag ** 2 * na/ (np.linalg.norm(na)+0.05) # --> constant added to avoid division by small number
+            n = 0.5 * rho * Sm * CNa * alpha * v_mag ** 2 * na/np.linalg.norm(na)
 
         # Drag
         # Drag coefficient
@@ -204,7 +204,8 @@ class Simulator3D:
 
         # Aerodynamic damping moment
         w_pitch = w - np.dot(w, ra) * ra
-        cdm = pitch_damping_moment(self.rocket, rho, CNa_bar, CP_bar, dMdt, cg, np.linalg.norm(w_pitch), v_mag)
+        # !! INCREASED DAMPING BY FACTOR 2 TO STABILIZE SIMU !!
+        cdm = 2*pitch_damping_moment(self.rocket, rho, CNa_bar, CP_bar, dMdt, cg, np.linalg.norm(w_pitch), v_mag)
         md = -0.5 * rho * cdm * Sm * v_mag ** 2 * normalize_vector(w_pitch)
 
         self.rocket.set_aero(n+d, mn+md)

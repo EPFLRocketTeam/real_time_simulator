@@ -35,6 +35,8 @@ find_package(catkin REQUIRED COMPONENTS
         visualization_msgs
         tf2_ros
         rocket_utils
+        tf2_geometry_msgs
+        #polympc-ros
         )
 
 ## System dependencies are found with CMake's conventions

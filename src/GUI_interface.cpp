@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
     // Subscribe to state message
     ros::Subscriber rocket_state_sub = n.subscribe("rocket_state", 1000, rocket_stateCallback);
     ros::Subscriber rocket_nav_state_sub = n.subscribe("kalman_rocket_state", 1000, rocket_nav_stateCallback);
-    ros::Subscriber control_sub = n.subscribe("control_measured", 1000, controlCallback);
+    ros::Subscriber control_sub = n.subscribe("simu_actuator", 1000, controlCallback);
     ros::Subscriber mpc_horizon_sub = n.subscribe("mpc_horizon", 1000, mpcHorizonCallback);
     ros::Subscriber target_trajectory_sub = n.subscribe("target_trajectory", 1000, targetTrajCallback);
 

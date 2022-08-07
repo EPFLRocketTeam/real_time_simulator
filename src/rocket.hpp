@@ -7,6 +7,7 @@
 #include "rocket_utils/Control.h"
 
 #include "actuator/Gimbal.hpp"
+#include "actuator/DroneGimbal.hpp"
 #include "actuator/ControlMomentGyro.hpp"
 
 #include "geometry_msgs/Vector3.h"
@@ -158,25 +159,38 @@ public:
         rocket_control.setZero();
 
         // Fill in actuator list
-        XmlRpc::XmlRpcValue yamlActuatorList;
 
         // Get all gimbal actuators
-        n.getParam("/actuator/gimbal", yamlActuatorList);
-        // std::cout << "Gimbal list " << yamlActuatorList << std::endl << std::endl;
-        for (int i = 0; i < yamlActuatorList.size(); i++) {
-            XmlRpc::XmlRpcValue sublist = yamlActuatorList[i];
+        XmlRpc::XmlRpcValue yamlGimbalList;
+        n.getParam("/actuator/gimbal", yamlGimbalList);
+        if(yamlGimbalList.valid()){
+            for (int i = 0; i < yamlGimbalList.size(); i++) {
+                XmlRpc::XmlRpcValue sublist = yamlGimbalList[i];
 
-            actuatorList.push_back(new Gimbal(n, integration_period, sublist));
+                actuatorList.push_back(new Gimbal(n, integration_period, sublist));
+            }
+        }
+
+        // Get all gimbal actuators
+        XmlRpc::XmlRpcValue yamlDroneGimbalList;
+        n.getParam("/actuator/drone_gimbal", yamlDroneGimbalList);
+        if(yamlDroneGimbalList.valid()){
+            for (int i = 0; i < yamlDroneGimbalList.size(); i++) {
+                XmlRpc::XmlRpcValue sublist = yamlDroneGimbalList[i];
+
+                actuatorList.push_back(new DroneGimbal(n, integration_period, sublist));
+            }
         }
 
         // Get all CMG actuators
-        n.getParam("/actuator/CMG", yamlActuatorList);
-        // std::cout << "CMG list " << yamlActuatorList << std::endl << std::endl;
+        XmlRpc::XmlRpcValue yamlCMGList;
+        n.getParam("/actuator/CMG", yamlCMGList);
+        if(yamlCMGList.valid()){
+            for (int i = 0; i < yamlCMGList.size(); i++) {
+                XmlRpc::XmlRpcValue sublist = yamlCMGList[i];
 
-        for (int i = 0; i < yamlActuatorList.size(); i++) {
-            XmlRpc::XmlRpcValue sublist = yamlActuatorList[i];
-
-            actuatorList.push_back(new ControlMomentGyro(n, integration_period, sublist));
+                actuatorList.push_back(new ControlMomentGyro(n, integration_period, sublist));
+            }
         }
 
     }
@@ -197,17 +211,16 @@ public:
         Matrix<double, 3, 3> rot_matrix = attitude.toRotationMatrix();
         //std::cout << (180/3.14)*std::acos(x(9)*x(9) - x(6)*x(6) - x(7)*x(7) + x(8)*x(8)) << "\n";
 
-        // Get wrench from actuator list
-        rocket_control.setZero();
-        for(unsigned int i=0; i<actuatorList.size(); i++) rocket_control += actuatorList[i]->getActuatorWrench(x);
+        
 
         // Force in inertial frame: gravity
         Matrix<double, 3, 1> gravity;
-        gravity << 0, 0, g0 * mass;
+        gravity << 0, 0, -1 * g0 * mass;
         
         // Total force in inertial frame [N]
         Matrix<double, 3, 1> total_force;
-        total_force = rot_matrix * rocket_control.col(0) - gravity + aero_control.col(0) + perturbation_control.col(0);
+        
+        total_force = rot_matrix * rocket_control.col(0) + gravity - aero_control.col(0) + perturbation_control.col(0);
         //std::cout << total_force.transpose() << "\n";
 
 
@@ -246,13 +259,19 @@ public:
 
 
         // Fake sensor data update -----------------
-        sensor_acc = rot_matrix.transpose() * (total_force + gravity) / mass;
+        sensor_acc = rot_matrix.transpose() * (total_force - gravity) / mass;
 
         sensor_gyro = rot_matrix.transpose() * x.segment(10, 3);
 
 	    sensor_mag = rot_matrix.transpose()*(mag_vector);
 
 	    sensor_baro = x(2);
+    }
+
+    void updateActuators(const state &x){
+        // Get wrench from actuator list
+        rocket_control.setZero();
+        for(unsigned int i=0; i<actuatorList.size(); i++) rocket_control += actuatorList[i]->getActuatorWrench(x);
     }
 
 
@@ -270,17 +289,15 @@ public:
         attitude.normalize();
         Matrix<double, 3, 3> rot_matrix = attitude.toRotationMatrix();
 
-        // Get wrench from actuator list
-        rocket_control.setZero();
-        for(unsigned int i=0; i<actuatorList.size(); i++) rocket_control += actuatorList[i]->getActuatorWrench(x);
+        
 
         // Force in inertial frame: gravity
         Matrix<double, 3, 1> gravity;
-        gravity << 0, 0, g0 * mass;
+        gravity << 0, 0, -g0 * mass;
 
         // Total force in initial body frame [N] (rail frame)
         Matrix<double, 3, 1> total_force;
-        total_force = rocket_control.col(0) - rot_matrix.transpose() * (gravity + aero_control.col(0));
+        total_force = rocket_control.col(0) + rot_matrix.transpose() * (gravity + aero_control.col(0));
 
         Matrix<double, 3, 1> body_acceleration;
 
@@ -309,7 +326,7 @@ public:
         xdot.tail(1) << -rocket_control.col(0).norm() / (Isp * g0);
 
         // Fake sensor data update -----------------
-        sensor_acc = (total_force + rot_matrix.transpose() * gravity) / mass;
+        sensor_acc = (total_force - rot_matrix.transpose() * gravity) / mass; 
 
         sensor_gyro << 0.0, 0.0, 0.0;
  
