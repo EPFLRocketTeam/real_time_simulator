@@ -204,8 +204,8 @@ class Simulator3D:
 
         # Aerodynamic damping moment
         w_pitch = w - np.dot(w, ra) * ra
-        # !! INCREASED DAMPING BY FACTOR 2 TO STABILIZE SIMU !!
-        cdm = 2*pitch_damping_moment(self.rocket, rho, CNa_bar, CP_bar, dMdt, cg, np.linalg.norm(w_pitch), v_mag)
+        # !! INCREASED DAMPING BY FACTOR 3 TO STABILIZE SIMU !!
+        cdm = 3*pitch_damping_moment(self.rocket, rho, CNa_bar, CP_bar, dMdt, cg, np.linalg.norm(w_pitch), v_mag)
         md = -0.5 * rho * cdm * Sm * v_mag ** 2 * normalize_vector(w_pitch)
 
         self.rocket.set_aero(n+d, mn+md)
