@@ -1,4 +1,4 @@
-#include "wind_generator.hpp"
+#include "wind_generator.h"
 
 
 WindGenerator::WindGenerator(double dt, ros::NodeHandle nh, double altitude = 2.0){
@@ -35,7 +35,7 @@ WindGenerator::WindGenerator(double dt, ros::NodeHandle nh, double altitude = 2.
     
 
 bool WindGenerator::setWindCallback(real_time_simulator::SetWindRequest& req, real_time_simulator::SetWindResponse& res){
-    this->main_timer.stop();
+   
     wind_components = req.wind_components;
     noise_components = req.noise_components;
     
@@ -45,7 +45,7 @@ bool WindGenerator::setWindCallback(real_time_simulator::SetWindRequest& req, re
 }
 
 bool WindGenerator::setWindModel(uint8_t wind_type){
-
+    if(this->main_timer.hasStarted())  this->main_timer.stop();
     switch (wind_type){
         case WindType::OFF:
         {
@@ -72,7 +72,10 @@ bool WindGenerator::setWindModel(uint8_t wind_type){
             wind_dryden.initialize(0.0,0.0,0.0, noise_components.x, noise_components.y, noise_components.z, this->altitude);
             atmosphere_models::turbulence_models::discrete::DiscreteGustModel wind_gust;
             wind_gust.setup(
-                this->dt, std::atan2(wind_components.y, wind_components.x) * 180.0 / M_PI, 
+                this->dt, 
+                // Direction of gusts
+                std::atan2(wind_components.y, wind_components.x) * 180.0 / M_PI,
+                // Magnitude of gusts
                 std::sqrt(wind_components.x*wind_components.x+wind_components.y*wind_components.y)
                 );
             this->wind_dryden = wind_dryden;

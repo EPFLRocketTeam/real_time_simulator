@@ -1,3 +1,14 @@
+/**
+ * @file DroneGimbal.hpp
+ * @author Sven Becker (sven.becker@epfl.ch)
+ * @brief Implementation of chapter 4.2 and 4.3 of https://drive.google.com/file/d/1psKMbYIDg3n1MyOD7myFiBktjy46THxa/view?usp=sharing
+ * @version 1.0
+ * @date 2022-09-04
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #pragma once
 
 #include "Actuator.hpp"
